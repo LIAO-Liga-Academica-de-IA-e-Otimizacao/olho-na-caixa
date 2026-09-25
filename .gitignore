@@ -1,0 +1,7 @@
+.vscode
+__pycache__/
+.env
+docs/book/
+docs/src/temp/
+docs/src/.obsidian/
+.cursor
