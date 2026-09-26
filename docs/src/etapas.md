@@ -1,8 +1,8 @@
 # Etapas de construção
 
-O aplicativo ainda não foi iniciado. Cada etapa abaixo termina num ponto em que vale a pena você olhar e dizer se seguimos. Trabalho miúdo (estrutura de pastas, testes da fórmula, ajustes de tela) fica dentro da etapa, sem uma parada própria.
+Cada etapa abaixo termina num ponto em que vale a pena você olhar e dizer se seguimos. Trabalho miúdo (estrutura de pastas, testes da fórmula, ajustes de tela) fica dentro da etapa, sem uma parada própria.
 
-A stack proposta está na primeira seção. A etapa 1 só começa depois que você aceitar essa stack.
+A etapa 1 está no repositório. Na raiz, `make dev` abre o aplicativo em `http://localhost:3001`. A tela Filmar é o que esta etapa pede para validar. As telas Medidas e Conta já existem, com números digitados, para a fórmula poder ser olhada antes da validação da jornada.
 
 ## Stack proposta
 
@@ -31,7 +31,7 @@ O cartão de tamanho conhecido continua fora, salvo se sobrar tempo.
 
 ## Etapa 1. O celular filma
 
-Sobe um aplicativo Android que abre, pede a câmera e grava um arco curto. O vídeo fica no aparelho e pode ser revisto na tela. Ainda não há detector, nem conta, nem catálogo.
+O aplicativo abre no navegador, pede a câmera e grava um arco curto. O vídeo fica na sessão e pode ser revisto na tela. Ainda não há detector. A conta desta fase usa números digitados, na tela Conta.
 
 O que você valida: o aplicativo instala no seu celular, a câmera abre, e o vídeo fica utilizável. Se a câmera dentro da WebView falhar, esta etapa troca o plugin de captura antes de qualquer conta.
 

@@ -1,0 +1,174 @@
+:root {
+  --paper: #f3efe4;
+  --ink: #1b2822;
+  --muted: #5c6b63;
+  --line: #d7d0c2;
+  --accent: #d85a24;
+  --accent-ink: #fff8f3;
+  --tomato: #8d2e2a;
+  --ok: #1f6b45;
+  --warn: #8a5a12;
+  --card: #fffdf8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 20px 20px 8px;
+  max-width: 440px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.brand {
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  gap: 14px;
+  font-size: 0.92rem;
+}
+
+.nav a {
+  text-decoration: none;
+  color: var(--muted);
+}
+
+.nav a[aria-current="page"] {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+main {
+  width: min(440px, 100%);
+  margin: 0 auto;
+  padding: 12px 20px 40px;
+  flex: 1;
+}
+
+h1 {
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+  font-size: 1.8rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  margin: 8px 0 8px;
+}
+
+.lede,
+.note {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.preview {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  background: #1b2822;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+button {
+  border: 0;
+  border-radius: 999px;
+  padding: 14px 18px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  cursor: pointer;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+label {
+  display: block;
+  margin-top: 12px;
+  font-size: 0.92rem;
+}
+
+input {
+  width: 100%;
+  margin-top: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+}
+
+.result {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.result strong {
+  font-size: 1.35rem;
+}
+
+.flag {
+  color: var(--warn);
+  line-height: 1.4;
+}
+
+.ok {
+  color: var(--ok);
+}

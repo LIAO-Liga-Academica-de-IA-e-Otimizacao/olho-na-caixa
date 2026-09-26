@@ -5,3 +5,10 @@ docs/book/
 docs/src/temp/
 docs/src/.obsidian/
 .cursor
+app/node_modules/
+app/.next/
+app/out/
+app/android/.gradle/
+app/android/app/build/
+app/android/build/
+app/android/local.properties

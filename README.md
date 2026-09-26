@@ -4,6 +4,14 @@ Este repositório descreve um método para conferir tangerina e tomate na recep�
 
 O enunciado do desafio, com as regras, os itens e os critérios de avaliação, está no repositório [desafio-olho-na-caixa](https://github.com/marx-correia/desafio-olho-na-caixa/tree/main).
 
+Para abrir o aplicativo no navegador, na raiz do repositório:
+
+```bash
+make dev
+```
+
+A tela abre em `http://localhost:3001`. O navegador pede permissão da câmera. O vídeo não sai da máquina.
+
 A documentação do método está neste repositório, no formato de um livro local (mdBook). Para abri-la no navegador, na raiz do repositório:
 
 ```bash
