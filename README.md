@@ -10,7 +10,7 @@ Para abrir o aplicativo no navegador, na raiz do repositório:
 make dev
 ```
 
-A tela abre em `http://localhost:3001`. O navegador pede permissão da câmera. O vídeo não sai da máquina.
+A tela abre em `http://localhost:3001`. A porta 3000 fica com a documentação. Sem webcam, na tela Filmar use **Gravar clipe de teste**. O replay tem de mostrar a caixa desenhada. O vídeo não sai da máquina. Para esta primeira tela, não precisa de fruta.
 
 A documentação do método está neste repositório, no formato de um livro local (mdBook). Para abri-la no navegador, na raiz do repositório:
 
