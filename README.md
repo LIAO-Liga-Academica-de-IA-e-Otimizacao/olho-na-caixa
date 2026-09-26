@@ -1,6 +1,6 @@
 # Olho na Caixa
 
-Este repositório descreve um método para conferir tangerina e tomate na recepção de cozinhas escolares. A captura usa um celular comum. O processamento roda num notebook que fica na mesma sala.
+Este repositório descreve um método para conferir tangerina e tomate na recepção de cozinhas escolares. A captura e o cálculo rodam num celular comum.
 
 O enunciado do desafio, com as regras, os itens e os critérios de avaliação, está no repositório [desafio-olho-na-caixa](https://github.com/marx-correia/desafio-olho-na-caixa/tree/main).
 

@@ -44,7 +44,11 @@ O operador abre a tampa e filma o miolo. Uma caixa lacrada, sem abertura, não o
 
 ## 7. Onde o cálculo roda
 
-Nesta fase, o celular filma e um notebook na mesma sala processa o vídeo, pela rede local. O custo de API é zero, porque o processamento fica nessa máquina. A versão que roda inteira no celular fica para quando o método já estiver medido. A demonstração final precisa funcionar sem internet externa. O plano atual é a rede local do notebook, e por isso o notebook precisa estar na sala.
+O celular filma e o próprio celular calcula. O vídeo permanece no aparelho. O custo por conferência é zero, e a conferência funciona com a rede da escola caída.
+
+A fórmula em si é imediata. O que leva tempo é escolher os quadros e detectar a fruta. O aplicativo percorre o vídeo só para medir nitidez, luz e se a borda aparece. O detector, um YOLO pequeno e quantizado, roda uma vez, no quadro de cima escolhido. Ele não roda em todo quadro do arco. A geometria da borda e a conta de camadas ou de quilos fecham em seguida, no mesmo aparelho.
+
+O tempo vale no celular de referência da decisão 14. Um computador de desenvolvimento pode servir para treinar o detector. Ele não faz parte da conferência na cozinha.
 
 ## 8. Qual conta cada item usa
 
@@ -88,13 +92,13 @@ Os quatro primeiros bônus saem do próprio método. Eles não formam um projeto
 - O peso sai da imagem, porque a foto é a medição (decisão 2).
 - O aplicativo recusa foto ruim (tremida, estourada ou sem a borda) e pede outro arco.
 - A conferência fica em menos de um minuto, porque a caixa não é fracionada e o modelo de detecção fica pequeno.
-- O custo de API é zero, porque o processamento é local (decisão 7).
+- O custo de API é zero, porque o cálculo roda no celular (decisão 7).
 
 Generalizar o método para um item novo fica para a última semana, e só acontece se tangerina e tomate já tiverem passado na meta. Esse trabalho não faz parte desta fase.
 
 ## 14. Celular de referência
 
-Na primeira semana, o time escolhe um aparelho concreto: o mais fraco que possa aparecer na demonstração. O modelo desse aparelho será escrito neste parágrafo. Todo teste de tempo roda nesse aparelho. Um tempo medido no notebook do time não vale como tempo de captura.
+Na primeira semana, o time escolhe um aparelho concreto: o mais fraco que possa aparecer na demonstração. O modelo desse aparelho será escrito neste parágrafo. Todo teste de tempo roda nesse aparelho, incluindo a escolha dos quadros e o detector. Um tempo medido no computador de desenvolvimento não vale como tempo da conferência.
 
 ## O que ainda está em aberto
 

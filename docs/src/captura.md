@@ -1,6 +1,6 @@
 # Captura em arco
 
-O operador não precisa acertar uma foto isolada. Ele filma um arco curto ao redor da caixa aberta. O notebook olha o vídeo e escolhe os quadros que servem para a conta.
+O operador não precisa acertar uma foto isolada. Ele filma um arco curto ao redor da caixa aberta. O próprio celular olha o vídeo e escolhe os quadros que servem para a conta.
 
 ## O que o arco resolve
 
@@ -20,11 +20,11 @@ Andar com o celular em volta da caixa não cria uma trena. Vários ângulos ajud
 1. O operador abre a tampa.
 2. No aplicativo, ele confirma o item (tangerina ou tomate) e o modelo da caixa. Se o aplicativo sugerir o modelo certo, o operador só precisa aceitar.
 3. Ele filma o arco: começa na face longa e sobe até o topo. O gesto dura alguns segundos.
-4. O celular envia o vídeo para o notebook da sala.
-5. O notebook dá uma nota a cada quadro. A nota considera a nitidez, a luz, se a borda aparece inteira, e se o ângulo é de cima ou de lado.
-6. O notebook separa o melhor quadro de cima e o melhor quadro de lado.
+4. O celular dá uma nota a cada quadro, ainda sem o detector de fruta. A nota considera a nitidez, a luz, se a borda aparece inteira, e se o ângulo é de cima ou de lado.
+5. O celular separa o melhor quadro de cima e o melhor quadro de lado.
+6. O detector de fruta roda uma vez, no quadro de cima. A conta de unidades ou de quilos roda no mesmo aparelho.
 7. Se a borda não fechar sozinha em algum desses quadros, o operador marca os quatro cantos internos com quatro toques.
-8. A conta roda. Se o intervalo não couber na meta, o aplicativo pede o peso digitado da balança.
+8. Se o intervalo não couber na meta, o aplicativo pede o peso digitado da balança.
 
 Uma foto tremida, estourada de luz ou sem a borda não entra na conta. O aplicativo pede para repetir o arco. Essa recusa é o tratamento de exceção para luz ruim e para enquadramento ruim.
 
