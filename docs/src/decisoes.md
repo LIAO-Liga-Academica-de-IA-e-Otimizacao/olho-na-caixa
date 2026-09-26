@@ -63,11 +63,11 @@ O time combinou a conta de cada item. A tabela abaixo é o resumo. O passo a pas
 
 ## 9. Variedade
 
-Cada item usa uma variedade: a que a cozinha mais recebe. O nome dessa variedade ainda não está escolhido. Ele sai de uma visita à cozinha, e não de um catálogo genérico. Se na demonstração chegar outra variedade, o aplicativo avisa o operador e se recusa a usar a tabela da variedade errada.
+O diâmetro desta caixa sai da mediana das frutas visíveis em cima. A variedade não guarda esse tamanho. Ela guarda o formato: o passo entre camadas da tangerina e os quilos por litro do tomate. O nome da variedade que a cozinha recebe ainda será anotado na visita. Se chegar outro formato, o aplicativo não reutiliza o coeficiente do formato errado.
 
 ## 10. Quais caixas entram no catálogo
 
-O catálogo inclui só as caixas vistas na cozinha piloto, medidas por dentro. A lista fica aberta até essa visita. A altura da caixa plástica (18, 24 ou 31 cm, ou o valor que a trena mostrar por dentro) é uma escolha explícita de cada modelo. Errar essa altura erra todos os quilos daquele modelo.
+O aplicativo guarda o vão interno que o operador informa: comprimento, largura e altura. Uma vez salvo, o modelo entra na lista e não precisa ser medido de novo. A lista que deve estar pronta na demonstração continua sendo a das caixas vistas na cozinha piloto. Errar a altura erra todos os quilos daquele modelo.
 
 ## 11. Qual conjunto publica o erro
 
@@ -98,13 +98,13 @@ Generalizar o método para um item novo fica para a última semana, e só aconte
 
 ## 14. Celular de referência
 
-Na primeira semana, o time escolhe um aparelho concreto: o mais fraco que possa aparecer na demonstração. O modelo desse aparelho será escrito neste parágrafo. Todo teste de tempo roda nesse aparelho, incluindo a escolha dos quadros e o detector. Um tempo medido no computador de desenvolvimento não vale como tempo da conferência.
+O aparelho de referência é um intermediário comum no Brasil, na faixa de cerca de R$ 1.000 a R$ 1.500, com cerca de 8 GB de RAM. Exemplos dessa faixa são o Galaxy A35, o Moto G84, o Moto G56 e o Redmi Note 14. Não é o aparelho mais barato da linha, e não é um topo de linha. O modelo exato é o que o time tiver nessa faixa, e o nome dele será escrito neste parágrafo quando estiver na mão. Todo teste de tempo roda nesse aparelho, incluindo a escolha dos quadros e o detector. Um tempo medido no computador de desenvolvimento não vale como tempo da conferência.
 
 ## O que ainda está em aberto
 
 | Pendência | Quando se resolve |
 | :--- | :--- |
-| Variedade de tangerina e de tomate | Na visita à cozinha |
-| Lista de caixas e as medidas internas | Na mesma visita, com trena |
-| Modelo do celular de entrada | Na primeira semana |
+| Nome da variedade que a cozinha recebe | Na visita à cozinha |
+| Lista de caixas já salvas para a demonstração | Na mesma visita, com trena. O aplicativo já tem o campo do vão interno |
+| Modelo exato dentro da faixa intermediária | Quando o aparelho estiver na mão |
 | Cartão de referência para caixa fora do catálogo | Só se sobrar tempo no fim do prazo |

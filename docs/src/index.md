@@ -4,7 +4,7 @@ Este livro descreve o método do Desafio Olho na Caixa (Solutis / UFBA). O probl
 
 ## Como ler
 
-O livro está dividido em quatro capítulos. A ordem abaixo segue o raciocínio do método: primeiro o que o time já decidiu, depois a filmagem, a conta e a forma de medir o erro.
+A ordem abaixo segue o raciocínio do método: primeiro o que o time já decidiu, depois a filmagem, a conta, a forma de medir o erro, e o plano de construção.
 
 | Capítulo | O que o capítulo explica |
 | :--- | :--- |
@@ -12,6 +12,8 @@ O livro está dividido em quatro capítulos. A ordem abaixo segue o raciocínio 
 | [Captura em arco](captura.md) | Como o operador filma a caixa, e como o aplicativo escolhe os quadros que entram na conta |
 | [Como a quantidade é calculada](calculo.md) | A conta que transforma essas fotos em unidades ou em quilos |
 | [Validação](validacao.md) | Qual número entra no relatório, e como esse número é medido |
+| [Etapas de construção](etapas.md) | A stack proposta e as paradas em que o time valida o aplicativo |
+| [Simulação no computador](simulacao.md) | Como a placa de vídeo testa a conta por último, fora da cozinha |
 
 Para ver este livro no navegador, na raiz do repositório:
 
