@@ -180,3 +180,70 @@ input {
 .ok {
   color: var(--ok);
 }
+
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.step.is-current {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+button.choice {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  text-align: left;
+}
+
+.preview-wide {
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  background: #1b2822;
+}
+
+.shot-pick {
+  margin-top: 12px;
+}
+
+.shot-pick > button {
+  display: block;
+  width: 100%;
+}
+
+.shot-moment {
+  margin: 8px 0 0;
+}
+
+.marker {
+  position: relative;
+  margin-top: 12px;
+}
+
+.marker img {
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+  cursor: crosshair;
+}
+
+.dot {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  margin-left: -14px;
+  margin-top: -14px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  pointer-events: none;
+}

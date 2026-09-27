@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 const links = [
-  { href: "/", label: "Filmar" },
+  { href: "/", label: "Conferir" },
   { href: "/medidas/", label: "Medidas" },
   { href: "/conta/", label: "Conta" },
 ];

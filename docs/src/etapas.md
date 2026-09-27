@@ -50,7 +50,17 @@ O que você me diz: se o replay mostrou a caixa, e se a conta mostrou 112 unidad
 
 Entra a jornada combinada: item, modelo de caixa, arco, notas de nitidez e de luz, quadro de cima e quadro de lado, quatro toques na borda quando o retângulo não fechar, resultado com intervalo, e o pedido de peso digitado quando o intervalo não cabe em 10%. A caixa e os coeficientes são os de exemplo. O diâmetro, nesta etapa, pode ser informado ou lido de um valor fixo de exemplo, porque o detector ainda não existe.
 
-O que você faz: percorre a jornada no navegador, ainda sem fruta, com diâmetro e altura digitados. No fim, diz se uma pessoa da cozinha entenderia os passos, e se a tela deixa claro que tangerina sai em unidades e tomate sai em quilos, com um intervalo legível.
+A etapa 2 está na tela Conferir. O que você faz, ainda sem fruta e sem webcam:
+
+1. Com `make dev` no ar, abra `http://localhost:3001`.
+2. Escolha tangerina ou tomate e continue.
+3. Confira o vão interno e continue.
+4. Clique em **Gravar clipe de teste**, espere uns dois segundos, pare, e continue.
+5. No vídeo, escolha um instante como vista de cima e outro como vista de lado. Cada botão mostra o instante, e **Pular para este quadro** volta o vídeo até ele. No clipe de teste, os dois podem ser o mesmo desenho.
+6. Toque os quatro cantos internos na ordem pedida.
+7. Na última tela, confira se tangerina aparece em unidades e tomate em quilos, com um intervalo. A incerteza orçada ainda pede o peso da balança.
+
+O que você me diz: se uma pessoa da cozinha entenderia esses passos, e se a unidade de cada item ficou clara.
 
 ## Etapa 3. O detector no aparelho
 
