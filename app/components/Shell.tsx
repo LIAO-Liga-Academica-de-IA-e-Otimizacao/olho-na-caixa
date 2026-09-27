@@ -8,6 +8,7 @@ const links = [
   { href: "/", label: "Conferir" },
   { href: "/medidas/", label: "Medidas" },
   { href: "/conta/", label: "Conta" },
+  { href: "/coleta/", label: "Coleta" },
 ];
 
 export function Shell({ children }: { children: ReactNode }) {

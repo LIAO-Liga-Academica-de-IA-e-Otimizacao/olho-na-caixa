@@ -24,11 +24,15 @@ Esferas perfeitas, empilhadas do jeito que a fórmula já supõe, fazem o erro c
 
 ## Como as cenas são feitas
 
-O gerador é o Blender, com corpo rígido, ou o Isaac Sim, que usa a placa NVIDIA para produzir muitas cenas. Não há um motor de física escrito para este projeto.
+O gerador proposto para a noite é o Isaac Sim, porque a placa disponível é NVIDIA. O Blender com corpo rígido continua válido se o Isaac não estiver instalado. Não há um motor de física escrito para este projeto. Nenhuma cena foi renderizada. A noite não começa sem autorização.
 
-A primeira leva é fácil: esferas iguais, caixa cheia, luz boa. A fórmula tem de acertar. Se não acertar, o defeito está no código, e o detector fica de fora.
+A primeira leva tem 20 cenas e serve para ver se a fórmula fecha. Em cada cena as esferas são iguais, com um diâmetro sorteado entre 5 e 8 cm. A caixa é sorteada entre 40 e 60 cm de comprimento, 25 e 40 cm de largura, e 15 e 25 cm de altura interna. O monte está cheio: a fruta encosta na borda dos quatro lados, e a altura do monte é a altura interna, sem desconto de coroa. A luz é uniforme e o fundo é liso. A verdade é a contagem que o gerador colocou. O aplicativo só vê as imagens. Se o erro não cair perto de zero, o defeito está no código e o detector fica de fora.
 
-A leva seguinte imita a cozinha: diâmetros misturados, camada de cima incompleta, luz ruim, câmera no arco, fruta um pouco achatada. O erro dessa leva é o que mede o método.
+O laço do passo usa 300 cenas renderizadas. Só o passo entre camadas muda, a partir do valor inicial de cerca de 0,82. O coeficiente que sair fica marcado como simulação.
+
+O laço do detector reutiliza essas cenas com luz, desfoque e fundo variados, para treinar o modelo na camada de cima.
+
+A leva seguinte só abre depois que a primeira fechar. Ela imita a cozinha: diâmetros misturados, camada de cima incompleta, luz ruim, câmera no arco, fruta um pouco achatada. O achatamento só entra se o modelo tridimensional for achatado. O erro dessa leva é o que mede o método, ainda como simulação.
 
 ## O que entra no relatório
 

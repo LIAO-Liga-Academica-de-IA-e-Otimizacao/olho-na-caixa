@@ -64,18 +64,42 @@ O que você me diz: se uma pessoa da cozinha entenderia esses passos, e se a uni
 
 ## Etapa 3. O detector no aparelho
 
-O YOLO nano passa a contar a camada de cima e a medir o diâmetro mediano, uma vez, no quadro de cima. O tempo da conferência inteira é medido no celular de referência. Se esse aparelho ainda não tiver sido escolhido, a etapa para nele.
+O quadro de cima recebe marcas uma vez, dentro da borda. Por enquanto a marca é a cor da casca: laranja conta como tangerina, vermelho como tomate. O diâmetro mediano dessas marcas usa a borda como régua e entra na conta. O YOLO nano ainda não está no aparelho. A cor é o encaixe, para a marca aparecer antes do modelo. O tempo da passagem aparece na última tela, medido neste computador. O minuto oficial continua esperando o celular de referência, que ainda não foi escolhido.
 
-O que você faz: aponta a câmera para uma foto de caixa do kit do desafio, na tela de outro aparelho ou impressa, e olha se o detector marca a fruta de cima. Sem essa foto, a etapa não tem o que mostrar. O tempo do minuto é medido no celular de referência, quando esse aparelho estiver na mão. Você me diz se o tempo coube e se as marcas fazem sentido na foto.
+O clipe de teste agora tem círculos laranja dentro da caixa marrom, para as marcas terem o que pegar sem a foto do kit.
+
+O que você faz, sem a foto do kit e sem webcam:
+
+1. Com `make dev` no ar, percorra Conferir até o quadro de cima. Grave o clipe de teste e escolha um instante em que os círculos laranja estejam dentro da caixa.
+2. Marque os quatro cantos da caixa marrom, não o fundo bege.
+3. Na última tela, cada círculo dentro da borda deve ganhar um anel. A contagem e o diâmetro mediano devem seguir esses anéis. O quadrado laranja que anda fora da caixa não entra.
+4. Volte, escolha tomate, e percorra de novo. A tela deve dizer que não há tomate dentro da borda.
+
+O que você me diz: se os anéis caíram nos círculos, e se a contagem ficou igual ao que você viu. A foto do kit, quando existir, entra no mesmo lugar do clipe. O minuto no celular de referência fica para quando esse aparelho estiver escolhido.
 
 ## Etapa 4. O número que vai para o edital
 
-O aplicativo passa a guardar, para cada caixa de coleta, o vídeo, o modelo, a altura medida com régua e a verdade (contagem dupla ou peso). Com o conjunto de calibração, os coeficientes deixam de ser exemplo. O conjunto congelado, de outro dia, produz a margem de erro média, o desvio padrão, o viés, a fração dentro de 10% e o percentil 90.
+A tela Coleta guarda a ficha de cada caixa: vídeo, modelo, altura da régua e a verdade. Na tangerina a verdade é a contagem dupla. No tomate, é o peso. O conjunto de calibração é o que um dia troca o passo e os quilos por litro. O conjunto congelado, de outro dia, produz o viés, a margem de erro média, o desvio padrão, a fração dentro de 10% e o percentil 90. Sem caixa real, a lista fica vazia e o número do edital não existe. Uma ilustração com erros inventados mostra as cinco linhas, rotulada como ilustração.
 
-O que você faz: lê o roteiro na tela e diz se os campos bastam (vídeo, modelo da caixa, altura da régua, contagem ou peso). Você não pesa nada nesta validação. A coleta em si fica de fora enquanto não houver caixa real.
+O que você faz, sem pesar nada:
+
+1. Com `make dev` no ar, abra `http://localhost:3001/coleta/`.
+2. Leia a ficha. Os campos são item, papel da caixa, modelo, variedade, altura da régua, vídeo, duas contagens na tangerina e peso no tomate.
+3. Confira que a tela diz que não há caixa congelada e que o número do edital ainda não existe.
+4. A ilustração do relatório não é fruta de cozinha.
+
+O que você me diz: se esses campos bastam para uma coleta futura. A coleta em si fica de fora enquanto não houver caixa real.
 
 ## Etapa 5. Simulação no computador
 
 Por último, e só no computador com a placa de vídeo. O gerador monta caixas com uma quantidade conhecida, renderiza o arco e compara a resposta do aplicativo com essa quantidade. Serve para testar a fórmula, ajustar o passo entre camadas e treinar o detector. Não descobre o quilo por litro de um tomate real, e não roda na cozinha. O detalhe está em [Simulação no computador](simulacao.md).
 
-O que você faz: lê as hipóteses das cenas e autoriza a noite de render. Quando o relatório sair, você olha o erro e confirma que ele está rotulado como simulação, não como fruta de cozinha.
+A tela Simulação lista as hipóteses para autorização: 20 cenas fáceis, 300 cenas no laço do passo, a leva que imita a cozinha, e o Isaac Sim como gerador proposto. Nenhuma cena foi renderizada.
+
+O que você faz, antes de qualquer noite de placa de vídeo:
+
+1. Com `make dev` no ar, abra `http://localhost:3001/simulacao/`. O caminho também está no fim da ficha, em Coleta.
+2. Leia a leva 1, os dois laços e a leva 2.
+3. Confira que a tela diz que nenhuma cena foi renderizada, e que a frase do relatório recusa usar esse erro como erro de cozinha.
+
+O que você me diz: se autoriza a noite com essas hipóteses, e se o gerador é o Isaac Sim. Sem essa autorização, a renderização não começa.

@@ -80,12 +80,31 @@ main {
   flex: 1;
 }
 
-h1 {
+h1,
+h2 {
   font-family: Palatino, "Palatino Linotype", Georgia, serif;
-  font-size: 1.8rem;
   font-weight: 600;
   letter-spacing: -0.03em;
+}
+
+h1 {
+  font-size: 1.8rem;
   margin: 8px 0 8px;
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.field-list {
+  margin: 12px 0 0;
+  padding-left: 1.2rem;
+  line-height: 1.45;
+}
+
+.field-list li {
+  margin-top: 8px;
 }
 
 .lede,
@@ -245,5 +264,15 @@ button.choice {
   display: grid;
   place-items: center;
   font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.fruit-mark {
+  position: absolute;
+  border: 2px solid #fff8f3;
+  box-shadow: 0 0 0 2px var(--accent);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  aspect-ratio: 1;
   pointer-events: none;
 }

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { flushSync } from "react-dom";
 import { readCrate, writeCrate } from "@/lib/crate-store";
 import { analyzeFrame, isConvexQuad, type FrameQuality, type Point } from "@/lib/frame-quality";
+import { markTopLayer, type TopLayer } from "@/lib/top-layer";
 import {
   fitsTolerance,
   interval,
@@ -50,7 +51,7 @@ function waitForDimensions(video: HTMLVideoElement): Promise<void> {
   });
 }
 
-function grabShot(video: HTMLVideoElement): Shot {
+function grabShot(video: HTMLVideoElement): Omit<Shot, "time"> {
   const canvas = document.createElement("canvas");
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
@@ -72,6 +73,10 @@ function formatClock(seconds: number): string {
   return `${minutes}:${String(whole).padStart(2, "0")},${String(hundredths).padStart(2, "0")}`;
 }
 
+function formatCm(value: number): string {
+  return value.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+}
+
 function formatEstimate(estimate: Estimate): string {
   const { low, high } = interval(estimate);
   const digits = estimate.unit === "kg" ? 1 : 0;
@@ -83,6 +88,7 @@ export function Conference() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const scrubRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const startedAtRef = useRef(Date.now());
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const drawRef = useRef<number | null>(null);
@@ -105,6 +111,9 @@ export function Conference() {
   const [diameter, setDiameter] = useState("6");
   const [topCount, setTopCount] = useState("28");
   const [scaleKg, setScaleKg] = useState("");
+  const [layer, setLayer] = useState<TopLayer | null>(null);
+  const [layerNote, setLayerNote] = useState<string | null>(null);
+  const [passageMs, setPassageMs] = useState<number | null>(null);
 
   useEffect(() => {
     const saved = readCrate();
@@ -130,6 +139,49 @@ export function Conference() {
       streamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, []);
+
+  useEffect(() => {
+    if (step !== "result" || !topShot || corners.length !== 4) return;
+    let cancelled = false;
+    setLayer(null);
+    setLayerNote(null);
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        if (!cancelled) setLayerNote("O quadro de cima não pôde ser lido.");
+        return;
+      }
+      context.drawImage(image, 0, 0);
+      const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+      try {
+        const found = markTopLayer(
+          { data: pixels.data, width: pixels.width, height: pixels.height },
+          corners,
+          Number(lengthCm),
+          Number(widthCm),
+          item,
+        );
+        if (cancelled) return;
+        setLayer(found);
+        setPassageMs(Date.now() - startedAtRef.current);
+        if (found.medianDiameterCm !== null) setDiameter(found.medianDiameterCm.toFixed(1));
+        if (item === "tangerine") setTopCount(String(found.count));
+      } catch {
+        if (!cancelled) setLayerNote("A borda não deu para usar como régua.");
+      }
+    };
+    image.onerror = () => {
+      if (!cancelled) setLayerNote("O quadro de cima não pôde ser lido.");
+    };
+    image.src = topShot.url;
+    return () => {
+      cancelled = true;
+    };
+  }, [step, topShot, corners, item, lengthCm, widthCm]);
 
   const crate: Crate = {
     name: name.trim() || "Caixa",
@@ -500,8 +552,42 @@ export function Conference() {
         <section className="card">
           <h1>{item === "tangerine" ? "Tangerina" : "Tomate"}</h1>
           <p className="lede">
-            Ainda sem detector. O diâmetro e a altura do monte são números de exemplo, e você pode trocá-los.
+            As marcas saem da cor da casca, uma vez, no quadro de cima. Laranja conta como tangerina e vermelho como
+            tomate. Ainda não é o YOLO. A altura do monte continua digitada.
           </p>
+          {topShot ? (
+            <div className="marker">
+              <img src={topShot.url} alt="Vista de cima com as marcas" />
+              {layer?.marks.map((mark) => (
+                <span
+                  key={`${mark.x}-${mark.y}`}
+                  className="fruit-mark"
+                  style={{
+                    left: `${mark.x * 100}%`,
+                    top: `${mark.y * 100}%`,
+                    width: `${mark.radius * 2 * 100}%`,
+                  }}
+                />
+              ))}
+            </div>
+          ) : null}
+          {layer ? (
+            <p className={layer.matchesItem ? "ok" : "flag"}>
+              {layer.matchesItem
+                ? `${layer.count} ${layer.count === 1 ? "marca" : "marcas"} dentro da borda. Diâmetro mediano ${formatCm(layer.medianDiameterCm ?? 0)} cm. A leitura levou ${Math.round(layer.elapsedMs)} ms.`
+                : item === "tangerine"
+                  ? "Nenhuma tangerina dentro da borda. A contagem abaixo não veio de uma fruta marcada."
+                  : "Nenhum tomate dentro da borda. O quilo por litro continua sendo o exemplo."}
+            </p>
+          ) : (
+            <p className={layerNote ? "flag" : "note"}>{layerNote ?? "Lendo o quadro de cima."}</p>
+          )}
+          {passageMs !== null ? (
+            <p className="note">
+              Esta passagem levou {formatClock(passageMs / 1000)} neste computador. O minuto oficial espera o celular de
+              referência.
+            </p>
+          ) : null}
           <label>
             Altura do monte (cm)
             <input value={fillHeight} inputMode="decimal" onChange={(event) => setFillHeight(event.target.value)} />
