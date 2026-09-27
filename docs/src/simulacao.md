@@ -24,7 +24,7 @@ Esferas perfeitas, empilhadas do jeito que a fórmula já supõe, fazem o erro c
 
 ## Como as cenas são feitas
 
-O gerador proposto para a noite é o Isaac Sim, porque a placa disponível é NVIDIA. O Blender com corpo rígido continua válido se o Isaac não estiver instalado. Não há um motor de física escrito para este projeto. Nenhuma cena foi renderizada. A noite não começa sem autorização.
+Os meshes ficam em `sim/assets/`: uma tangerina, as caixas vazias e a caixa já cheia. O gerador proposto para a noite é o Isaac Sim, porque a placa disponível é NVIDIA. O Blender com corpo rígido continua válido se o Isaac não estiver instalado. Não há um motor de física escrito para este projeto. Nenhuma cena foi renderizada. A noite não começa sem autorização.
 
 A primeira leva tem 20 cenas e serve para ver se a fórmula fecha. Em cada cena as esferas são iguais, com um diâmetro sorteado entre 5 e 8 cm. A caixa é sorteada entre 40 e 60 cm de comprimento, 25 e 40 cm de largura, e 15 e 25 cm de altura interna. O monte está cheio: a fruta encosta na borda dos quatro lados, e a altura do monte é a altura interna, sem desconto de coroa. A luz é uniforme e o fundo é liso. A verdade é a contagem que o gerador colocou. O aplicativo só vê as imagens. Se o erro não cair perto de zero, o defeito está no código e o detector fica de fora.
 

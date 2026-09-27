@@ -12,3 +12,7 @@ app/android/.gradle/
 app/android/app/build/
 app/android/build/
 app/android/local.properties
+sim/.tools/
+sim/assets/filled-crate/*
+!sim/assets/filled-crate/.gitkeep
+!sim/assets/filled-crate/LICENSE
