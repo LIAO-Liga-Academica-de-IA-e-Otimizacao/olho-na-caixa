@@ -1,8 +1,10 @@
-"""One full crate, two stills: top and side.
+"""One crate, two stills: top and side.
 
-Plastic crate 01. Fruit starts at random positions and rotations just above
-the pile, then rigid body drops it in. The count is how many remain inside
-after they settle. Pass the fruit after --, for example `-- tomato`.
+Plastic crate 01. The fruit count is drawn, then rigid body drops that many
+from random positions just above the pile. A low draw sits under the rim.
+The high end of the draw is the count that already crowned this crate, so
+some scenes still mound above the rim. Pass the fruit after --, then
+optional --seed and --count. Example: `-- tomato --seed 5`.
 """
 
 import importlib.util
@@ -19,34 +21,69 @@ from cycles_gpu import use_gpu
 
 ROOT = Path("/home/dante/Code/projects/olho-na-caixa/sim/assets")
 CRATE = ROOT / "crates/plastic-crate-01/plastic-crate-01.blend"
+# Counts that already crowned this crate. A drawn fraction of these is the fill.
+CROWNED = {"tangerine": 240, "tomato": 192}
+FILL_MIN = 0.35
+FILL_MAX = 1.0
+LABEL = "tangerine"
+FRUIT = ROOT / "tangerine/tangerine-01.blend"
+SOURCE_NAME = "Tangerine01"
+TOP = ROOT / "preview/crate-01-full-top.png"
+SIDE = ROOT / "preview/crate-01-full-side.png"
+TRUTH = ROOT / "preview/crate-01-full.txt"
+TARGET = 240
+SCENE_SEED = 1
+FILL_FRACTION = None
 
 
-def chosen_label() -> str:
+def parse_scene():
+    tail = []
     if "--" in sys.argv:
         tail = sys.argv[sys.argv.index("--") + 1 :]
-        if tail:
-            return tail[0]
-    return "tangerine"
+    label = tail[0] if tail else "tangerine"
+    seed = 1
+    count = None
+    index = 1
+    while index < len(tail):
+        if tail[index] == "--seed" and index + 1 < len(tail):
+            seed = int(tail[index + 1])
+            index += 2
+        elif tail[index] == "--count" and index + 1 < len(tail):
+            count = int(tail[index + 1])
+            index += 2
+        else:
+            raise SystemExit(f"unknown argument {tail[index]}")
+    if label not in CROWNED:
+        raise SystemExit(f"unknown fruit {label}")
+    if count is not None and count < 1:
+        raise SystemExit("count must be positive")
+    return label, seed, count
 
 
-LABEL = chosen_label()
-if LABEL == "tomato":
-    FRUIT = ROOT / "tomato/tomato-01.blend"
-    SOURCE_NAME = "Tomato_01"
-    TOP = ROOT / "preview/crate-01-tomato-top.png"
-    SIDE = ROOT / "preview/crate-01-tomato-side.png"
-    TRUTH = ROOT / "preview/crate-01-tomato.txt"
-    # Larger than the tangerine fill, so the pour can stop on the rim.
-    TARGET = 220
-elif LABEL == "tangerine":
-    FRUIT = ROOT / "tangerine/tangerine-01.blend"
-    SOURCE_NAME = "Tangerine01"
-    TOP = ROOT / "preview/crate-01-full-top.png"
-    SIDE = ROOT / "preview/crate-01-full-side.png"
-    TRUTH = ROOT / "preview/crate-01-full.txt"
-    TARGET = 240
-else:
-    raise SystemExit(f"unknown fruit {LABEL}")
+def drawn_count(label, seed, count):
+    """Uniform from a short pile to the crowned count. An explicit count skips the draw."""
+    if count is not None:
+        return count, None
+    fraction = random.Random(seed + 4400).uniform(FILL_MIN, FILL_MAX)
+    return max(1, round(fraction * CROWNED[label])), fraction
+
+
+def configure(label, seed, count, fraction) -> None:
+    global LABEL, FRUIT, SOURCE_NAME, TOP, SIDE, TRUTH, TARGET, SCENE_SEED, FILL_FRACTION
+    LABEL = label
+    SCENE_SEED = seed
+    TARGET = count
+    FILL_FRACTION = fraction
+    if label == "tomato":
+        FRUIT = ROOT / "tomato/tomato-01.blend"
+        SOURCE_NAME = "Tomato_01"
+    else:
+        FRUIT = ROOT / "tangerine/tangerine-01.blend"
+        SOURCE_NAME = "Tangerine01"
+    stem = f"crate-01-{label}-s{seed}-n{count}"
+    TOP = ROOT / "preview" / f"{stem}-top.png"
+    SIDE = ROOT / "preview" / f"{stem}-side.png"
+    TRUTH = ROOT / "preview" / f"{stem}.txt"
 
 
 def load_variants():
@@ -297,8 +334,8 @@ def step_to(scene, frame):
         scene.frame_set(scene.frame_current + 1)
 
 
-def pour(scene, fruits, bounds):
-    """Release small random groups just above the pile so the fall stays short."""
+def pour(scene, fruits, bounds, seed):
+    """Release the drawn count in small groups just above the pile."""
     if scene.rigidbody_world is None:
         bpy.ops.rigidbody.world_add()
     world = scene.rigidbody_world
@@ -311,15 +348,13 @@ def pour(scene, fruits, bounds):
     world.point_cache.frame_end = 800
     build_container(bounds, bounds["rim_z"] + 0.45)
     scene.frame_set(1)
-    rng = random.Random(4100)
+    rng = random.Random(seed + 4100)
     pending = list(fruits)
     frame = 1
     band = 0
     released = []
     while pending:
         top = pile_top(released, bounds["floor_z"])
-        if band > 0 and top > bounds["rim_z"] + 0.02:
-            break
         batch = pending[:24]
         pending = pending[24:]
         occupied = []
@@ -334,7 +369,7 @@ def pour(scene, fruits, bounds):
                     rng.uniform(bounds["min_y"] + 0.04, bounds["max_y"] - 0.04),
                     high_z + 0.03,
                 )
-            pose = random.Random(band * 1000 + len(occupied))
+            pose = random.Random(seed * 100000 + band * 1000 + len(occupied))
             obj.rotation_euler = (
                 pose.uniform(0.0, math.tau),
                 pose.uniform(0.0, math.tau),
@@ -426,19 +461,34 @@ def render_views(scene, bounds, fruits):
         print(f"WROTE {output} fruits={len(fruits)}")
 
 
-def write_truth(bounds, count):
+def surface_z(fruits):
+    top = None
+    for obj in fruits:
+        for corner in obj.bound_box:
+            z = (obj.matrix_world @ Vector(corner)).z
+            top = z if top is None else max(top, z)
+    return top
+
+
+def write_truth(bounds, count, top_z):
     width = (bounds["max_x"] - bounds["min_x"]) * 100
     length = (bounds["max_y"] - bounds["min_y"]) * 100
     height = (bounds["rim_z"] - bounds["floor_z"]) * 100
+    top_cm = (top_z - bounds["floor_z"]) * 100
+    fraction = "fixed" if FILL_FRACTION is None else f"{FILL_FRACTION:.3f}"
     TRUTH.write_text(
         "\n".join(
             (
                 "crate: plastic-crate-01",
                 f"fruit: {LABEL}",
+                f"seed: {SCENE_SEED}",
+                f"drawn: {TARGET}",
                 f"count: {count}",
+                f"fraction: {fraction}",
+                f"top_cm: {top_cm:.1f}",
                 "photos: top, side",
                 f"opening_cm: {width:.1f} x {length:.1f} x {height:.1f}",
-                "note: count is the fruit still inside after a drop from random positions",
+                "note: drawn is the count released; count is how many stayed inside; top_cm is from the inner floor to the highest fruit",
                 "",
             )
         )
@@ -447,6 +497,10 @@ def write_truth(bounds, count):
 
 
 def main():
+    label, seed, requested = parse_scene()
+    count, fraction = drawn_count(label, seed, requested)
+    configure(label, seed, count, fraction)
+    print(f"SCENE {label} seed={seed} drawn={count} fraction={FILL_FRACTION}", flush=True)
     variants = load_variants()
     bpy.ops.wm.open_mainfile(filepath=str(CRATE))
     scene = bpy.context.scene
@@ -455,10 +509,10 @@ def main():
     source = variants.load_source(FRUIT, SOURCE_NAME)
     source.location = (0.0, 0.0, -2.0)
     fruits = build_fruits(variants, source)
-    fruits = pour(scene, fruits, bounds)
+    fruits = pour(scene, fruits, bounds, seed)
     fruits = keep_inside(fruits, bounds)
-    if len(fruits) < 100:
-        print(f"SETTLE_FAILED kept={len(fruits)}", flush=True)
+    if len(fruits) < max(1, int(round(TARGET * 0.85))):
+        print(f"SETTLE_FAILED kept={len(fruits)} drawn={TARGET}", flush=True)
         return
     use_gpu(scene)
     scene.cycles.samples = 32
@@ -469,7 +523,7 @@ def main():
     scene.view_settings.view_transform = "AgX"
     scene.view_settings.look = "AgX - Punchy"
     render_views(scene, bounds, fruits)
-    write_truth(bounds, len(fruits))
+    write_truth(bounds, len(fruits), surface_z(fruits))
 
 
 if __name__ == "__main__":

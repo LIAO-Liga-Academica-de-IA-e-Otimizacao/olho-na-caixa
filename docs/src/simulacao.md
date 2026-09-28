@@ -28,11 +28,28 @@ Os meshes ficam em `sim/assets/`: uma tangerina, um tomate, as caixas vazias e a
 
 ## O que as fotos de prova já mostram
 
-Antes dessa noite, o computador gera fotos para uma pessoa olhar. Elas não entram no erro do relatório. O Cycles usa a GPU por OptiX, na RTX 4060. Cada caixa de prova tem duas fotos, as mesmas duas vistas do arco: de cima e de lado.
+Antes dessa noite, o computador gera fotos para uma pessoa olhar. Elas não entram no erro do relatório, e os PNG não entram no git: cada cena pesa alguns megabytes e a noite inteira não cabe no repositório. O `.txt` ao lado fica versionado. Ele guarda a quantidade e a altura. O Cycles usa a GPU por OptiX, na RTX 4060. Cada caixa de prova tem duas fotos, as mesmas duas vistas do arco: de cima e de lado.
 
 A variação de uma fruta só está em `sim/render-variants.py`. A grade tem 48 sementes por fruta. A semente 0, no canto de trás à esquerda, é a malha como foi publicada. As outras ficam dentro de uma classe comercial, não atravessam cultivares. O deslocamento da casca é relevo de bump, para o Cycles não tesselar uma cópia por fruta.
 
-A primeira caixa cheia é a plástica 01, com 240 tangerinas, em `sim/assets/preview/crate-01-full-top.png` e `crate-01-full-side.png`. O vão interno medido no mesh é 28,2 cm por 39,2 cm, com 25,7 cm de altura. As frutas começam em posições e rotações aleatórias, em grupos pequenos, pouco acima do monte, e caem com corpo rígido. A contagem é a das que ficam dentro. Nessa cena o topo passa da boca. Pela regra de [Captura em arco](captura.md), a altura dessa caixa é a leitura de lado, não a altura interna menos a coroa.
+A primeira caixa cheia é a plástica 01, com 240 tangerinas, em `sim/assets/preview/crate-01-full-top.png` e `crate-01-full-side.png`. O vão interno medido no mesh é 28,2 cm por 39,2 cm, com 25,7 cm de altura. As frutas começam em posições e rotações aleatórias, em grupos pequenos, pouco acima do monte, e caem com corpo rígido. A contagem é a das que ficam dentro. Nessa cena o topo passa da boca. Pela regra de [Captura em arco](captura.md), a altura dessa caixa é a leitura de lado, não a altura interna menos a coroa. A caixa de tomate com 192 frutos, nas fotos `crate-01-tomato-top.png` e `crate-01-tomato-side.png`, é o mesmo caso: o gerador só parava depois de passar da boca.
+
+Daqui para a frente cada cena de prova sorteia a quantidade. O sorteio é uniforme entre 35% e 100% da contagem que já coroou essa caixa: 240 tangerinas, ou 192 tomates. O piso dá um monte baixo. O teto repete o monte acima da boca. A altura usada como verdade é medida depois da queda, do fundo interno até o topo da fruta mais alta, e pode ficar abaixo ou acima da parede. O arquivo ao lado das fotos guarda a quantidade sorteada, a que ficou dentro e essa altura. A primeira leva, a das esferas iguais, continua rente à borda: ela verifica a álgebra, e não é este sorteio.
+
+O script é `sim/render-crate.py`. A fruta vem depois de `--`. `--seed` escolhe o sorteio. `--count` fixa a quantidade e pula o sorteio. O nome do arquivo é `crate-01-<fruta>-s<semente>-n<quantidade>.txt`. Quatro sorteios já medidos, com a parede em 25,7 cm:
+
+| Fruta | Semente | Sorteada | Dentro | Topo |
+| :--- | ---: | ---: | ---: | ---: |
+| Tomate | 5 | 69 | 69 | 16,5 cm |
+| Tangerina | 5 | 86 | 86 | 16,5 cm |
+| Tomate | 1 | 127 | 127 | 25,4 cm |
+| Tangerina | 1 | 159 | 159 | 24,1 cm |
+
+As duas primeiras ficam abaixo da boca. As outras duas chegam perto da borda. As caixas de 240 tangerinas e de 192 tomates continuam sendo o extremo alto.
+
+## Onde a renderização roda
+
+Ela roda na máquina que tem a placa NVIDIA. O Blender não está no repositório. O Cycles usa OptiX, e isso acompanha o driver dessa máquina. Docker não entra nesta fase. Um contêiner com a placa ainda exige esse driver, e não deixa outra pessoa renderizar numa máquina sem a placa. O que a equipe compartilha é o script, a semente e o `.txt`. O aplicativo do celular também não roda em contêiner: o cálculo continua na exportação estática.
 
 ## De onde vem a variação da fruta
 
@@ -52,7 +69,7 @@ O laço do passo usa 300 cenas renderizadas. Só o passo entre camadas muda, a p
 
 O laço do detector reutiliza essas cenas com luz, desfoque e fundo variados, para treinar o modelo na camada de cima.
 
-A leva seguinte só abre depois que a primeira fechar. Ela imita a cozinha: diâmetros misturados, camada de cima incompleta, luz ruim, câmera no arco, fruta um pouco achatada, e monte que sobe acima da boca. A altura desse monte é a leitura do quadro de lado. O achatamento só entra se o modelo tridimensional for achatado. O erro dessa leva é o que mede o método, ainda como simulação.
+A leva seguinte só abre depois que a primeira fechar. Ela imita a cozinha: diâmetros misturados, camada de cima incompleta, luz ruim, câmera no arco, fruta um pouco achatada, quantidade sorteada e monte que pode ficar abaixo da boca ou subir acima dela. A altura desse monte é a leitura do quadro de lado. O achatamento só entra se o modelo tridimensional for achatado. O erro dessa leva é o que mede o método, ainda como simulação.
 
 ## O que entra no relatório
 

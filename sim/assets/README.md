@@ -8,7 +8,7 @@ Junto de cada mesh, deixe um arquivo `LICENSE` com o nome da licença e o endere
 
 ## tangerine
 
-Uma fruta só, sem caixa. Esta é a malha que a cena repete. `sim/render-variants.py` sorteia a variação de uma classe comercial e, na tangerina, casca ainda verde, ápice fundo e casca mais rugosa. A grade fica em `preview/`.
+Uma fruta só, sem caixa. Esta é a malha que a cena repete. `sim/render-variants.py` sorteia a variação de uma classe comercial e, na tangerina, casca ainda verde, ápice fundo e casca mais rugosa. A grade fica em `preview/`. Os PNG dessa pasta não entram no git. O `.txt` com a quantidade e a altura entra.
 
 ## tomato
 

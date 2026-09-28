@@ -51,6 +51,7 @@ export default function SimulationPage() {
           <li>Câmera percorrendo o arco.</li>
           <li>Fruta um pouco achatada. O achatamento só existe se o modelo tridimensional for achatado.</li>
           <li>Monte que sobe acima da boca. A altura sai do quadro de lado e pode passar da altura interna.</li>
+          <li>Quantidade sorteada. O monte pode ficar abaixo da boca ou passar dela.</li>
         </ul>
         <p>O erro desta leva mede o método dentro do simulador. Ele continua sendo erro de simulação.</p>
       </section>

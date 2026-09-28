@@ -94,7 +94,7 @@ O que você me diz: se esses campos bastam para uma coleta futura. A coleta em s
 
 Por último, e só no computador com a placa de vídeo. O gerador monta caixas com uma quantidade conhecida, renderiza o arco e compara a resposta do aplicativo com essa quantidade. Serve para testar a fórmula, ajustar o passo entre camadas e treinar o detector. Não descobre o quilo por litro de um tomate real, e não roda na cozinha. O detalhe está em [Simulação no computador](simulacao.md).
 
-A tela Simulação lista as hipóteses para autorização: 20 cenas fáceis, 300 cenas no laço do passo, a leva que imita a cozinha, e o Isaac Sim como gerador proposto. Há fotos de prova em `sim/assets/preview/`: a grade de variação e uma caixa cheia de tangerinas, de cima e de lado. Elas não são a noite, e não há erro de simulação para publicar.
+A tela Simulação lista as hipóteses para autorização: 20 cenas fáceis, 300 cenas no laço do passo, a leva que imita a cozinha, e o Isaac Sim como gerador proposto. Há fotos de prova em `sim/assets/preview/`, na máquina de render: a grade de variação e caixas de cima e de lado. Os PNG não entram no git. Elas não são a noite, e não há erro de simulação para publicar.
 
 O que você faz, antes de qualquer noite de placa de vídeo:
 
