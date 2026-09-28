@@ -36,7 +36,7 @@ A primeira caixa cheia é a plástica 01, com 240 tangerinas, em `sim/assets/pre
 
 Daqui para a frente cada cena de prova sorteia a quantidade. O sorteio é uniforme entre 35% e 100% da contagem que já coroou essa caixa: 240 tangerinas, ou 192 tomates. O piso dá um monte baixo. O teto repete o monte acima da boca. A altura usada como verdade é medida depois da queda, do fundo interno até o topo da fruta mais alta, e pode ficar abaixo ou acima da parede. O arquivo ao lado das fotos guarda a quantidade sorteada, a que ficou dentro e essa altura. A primeira leva, a das esferas iguais, continua rente à borda: ela verifica a álgebra, e não é este sorteio.
 
-O script é `sim/render-crate.py`. A fruta vem depois de `--`. `--seed` escolhe o sorteio. `--count` fixa a quantidade e pula o sorteio. O nome do arquivo é `crate-01-<fruta>-s<semente>-n<quantidade>.txt`. Quatro sorteios já medidos, com a parede em 25,7 cm:
+O atalho é `make render FRUIT=tomato SEED=5`. Sem `SEED`, a semente é 1. `COUNT=127` fixa a quantidade e pula o sorteio. `BLENDER=/caminho/do/blender` aponta o binário. O script por baixo é `sim/render-crate.py`. O nome do arquivo é `crate-01-<fruta>-s<semente>-n<quantidade>.txt`. Quatro sorteios já medidos, com a parede em 25,7 cm:
 
 | Fruta | Semente | Sorteada | Dentro | Topo |
 | :--- | ---: | ---: | ---: | ---: |
