@@ -6,8 +6,9 @@ export default function SimulationPage() {
     <>
       <h1>Simulação</h1>
       <p className="lede">
-        Estas são as hipóteses propostas para a noite de render. Nenhuma cena foi gerada. O celular da cozinha não roda
-        esta física. <Link href="/coleta/">Voltar à coleta.</Link>
+        Estas são as hipóteses propostas para a noite de render. As fotos de prova em sim/assets/preview/ não são essa
+        noite, e não há erro de simulação para ler. O celular da cozinha não roda esta física.{" "}
+        <Link href="/coleta/">Voltar à coleta.</Link>
       </p>
 
       <section className="card">
@@ -49,6 +50,7 @@ export default function SimulationPage() {
           <li>Luz ruim.</li>
           <li>Câmera percorrendo o arco.</li>
           <li>Fruta um pouco achatada. O achatamento só existe se o modelo tridimensional for achatado.</li>
+          <li>Monte que sobe acima da boca. A altura sai do quadro de lado e pode passar da altura interna.</li>
         </ul>
         <p>O erro desta leva mede o método dentro do simulador. Ele continua sendo erro de simulação.</p>
       </section>
@@ -63,7 +65,9 @@ export default function SimulationPage() {
           O gerador proposto é o Isaac Sim, porque a placa é NVIDIA. O Blender com corpo rígido vale se o Isaac não
           estiver instalado. Não há um motor de física escrito neste repositório.
         </p>
-        <p className="flag">Nenhuma cena renderizada. Não há erro de simulação para ler.</p>
+        <p className="flag">
+          A noite não foi autorizada. As fotos de prova não entram no relatório.
+        </p>
         <p className="note">{SIMULATION_STATEMENT}</p>
       </section>
     </>

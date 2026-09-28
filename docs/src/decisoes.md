@@ -34,6 +34,8 @@ O operador dá a volta com o celular num arco ao redor da caixa, e o aplicativo 
 
 O arco serve para escolher as vistas e para ler a altura do monte. Os centímetros da caixa continuam vindo da decisão 3.
 
+A altura do monte sai do quadro de lado sempre que ele existir, e pode passar da boca. O desconto de coroa só substitui essa leitura quando o perfil falta e a vista de cima mostra a fruta nos quatro lados. Em 27 de setembro de 2026 a primeira caixa cheia renderizada mostrou fruta acima da borda; a conta dessa cena usa a leitura de lado, não o desconto.
+
 ## 5. Ajuda do operador
 
 Nesta fase, a pessoa marca a borda com quatro toques quando o aplicativo não fecha o retângulo sozinho. A marcação automática substitui esses toques depois que o detector de borda estiver estável. Até lá, os quatro toques existem para a conta não depender de um detector inacabado.

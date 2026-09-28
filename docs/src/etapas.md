@@ -94,12 +94,12 @@ O que você me diz: se esses campos bastam para uma coleta futura. A coleta em s
 
 Por último, e só no computador com a placa de vídeo. O gerador monta caixas com uma quantidade conhecida, renderiza o arco e compara a resposta do aplicativo com essa quantidade. Serve para testar a fórmula, ajustar o passo entre camadas e treinar o detector. Não descobre o quilo por litro de um tomate real, e não roda na cozinha. O detalhe está em [Simulação no computador](simulacao.md).
 
-A tela Simulação lista as hipóteses para autorização: 20 cenas fáceis, 300 cenas no laço do passo, a leva que imita a cozinha, e o Isaac Sim como gerador proposto. Nenhuma cena foi renderizada.
+A tela Simulação lista as hipóteses para autorização: 20 cenas fáceis, 300 cenas no laço do passo, a leva que imita a cozinha, e o Isaac Sim como gerador proposto. Há fotos de prova em `sim/assets/preview/`: a grade de variação e uma caixa cheia de tangerinas, de cima e de lado. Elas não são a noite, e não há erro de simulação para publicar.
 
 O que você faz, antes de qualquer noite de placa de vídeo:
 
 1. Com `make dev` no ar, abra `http://localhost:3001/simulacao/`. O caminho também está no fim da ficha, em Coleta.
 2. Leia a leva 1, os dois laços e a leva 2.
-3. Confira que a tela diz que nenhuma cena foi renderizada, e que a frase do relatório recusa usar esse erro como erro de cozinha.
+3. Confira que a tela separa as fotos de prova da noite ainda não autorizada, e que a frase do relatório recusa usar esse erro como erro de cozinha.
 
 O que você me diz: se autoriza a noite com essas hipóteses, e se o gerador é o Isaac Sim. Sem essa autorização, a renderização não começa.

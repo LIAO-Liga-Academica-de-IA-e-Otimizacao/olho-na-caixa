@@ -24,7 +24,27 @@ Esferas perfeitas, empilhadas do jeito que a fórmula já supõe, fazem o erro c
 
 ## Como as cenas são feitas
 
-Os meshes ficam em `sim/assets/`: uma tangerina, as caixas vazias e a caixa já cheia. O gerador proposto para a noite é o Isaac Sim, porque a placa disponível é NVIDIA. O Blender com corpo rígido continua válido se o Isaac não estiver instalado. Não há um motor de física escrito para este projeto. Nenhuma cena foi renderizada. A noite não começa sem autorização.
+Os meshes ficam em `sim/assets/`: uma tangerina, um tomate, as caixas vazias e a caixa já cheia de referência. O gerador proposto para a noite é o Isaac Sim, porque a placa disponível é NVIDIA. O Blender com corpo rígido continua válido se o Isaac não estiver instalado. Não há um motor de física escrito para este projeto. A noite das 20 cenas, e a das 300, não começa sem autorização.
+
+## O que as fotos de prova já mostram
+
+Antes dessa noite, o computador gera fotos para uma pessoa olhar. Elas não entram no erro do relatório. O Cycles usa a GPU por OptiX, na RTX 4060. Cada caixa de prova tem duas fotos, as mesmas duas vistas do arco: de cima e de lado.
+
+A variação de uma fruta só está em `sim/render-variants.py`. A grade tem 48 sementes por fruta. A semente 0, no canto de trás à esquerda, é a malha como foi publicada. As outras ficam dentro de uma classe comercial, não atravessam cultivares. O deslocamento da casca é relevo de bump, para o Cycles não tesselar uma cópia por fruta.
+
+A primeira caixa cheia é a plástica 01, com 240 tangerinas, em `sim/assets/preview/crate-01-full-top.png` e `crate-01-full-side.png`. O vão interno medido no mesh é 28,2 cm por 39,2 cm, com 25,7 cm de altura. As frutas começam em posições e rotações aleatórias, em grupos pequenos, pouco acima do monte, e caem com corpo rígido. A contagem é a das que ficam dentro. Nessa cena o topo passa da boca. Pela regra de [Captura em arco](captura.md), a altura dessa caixa é a leitura de lado, não a altura interna menos a coroa.
+
+## De onde vem a variação da fruta
+
+O sorteio segue medidas publicadas, no que elas existem. Onde o texto só descreve a forma, o número é uma classe visível, e o livro diz isso.
+
+O tamanho, em relação à malha, fica na faixa 0,92 a 1,08. Nas malhas atuais isso é cerca de 10 mm no tomate e cerca de 12 mm na tangerina, dentro da regra de uma classe já embalada: o maior diâmetro menos o menor não passa de 15 mm (Portaria MAARA 553/1995, depois revogada pela IN MAPA 33/2018; o mesmo teto está na IN SARC 85/2002). No tomate salada, o coeficiente de variação do diâmetro dentro do cultivar fica perto de 8% (Takahashi e outros, 2025). A escala extra em x e y é 0,98 a 1,02.
+
+Na tangerina, a escala em z vai de 1,04 a 1,12, para a razão altura/diâmetro sair de cerca de 0,78 na malha e andar na direção das médias Ponkan 0,82 a 0,88 (Guarçoni e outros, 2018, Revista Intelletto, diâmetro médio 85,7 mm, coeficiente de variação 6,22%, n = 113; Oliveira, Brunini e Nunes, 2014). A malha publicada tem cerca de 5,3 cm. Uma Ponkan média de 70 a 82 mm pediria um fator perto de 1,45 a 1,55. Esse fator é um deslocamento da média, não este sorteio, e ainda não foi aplicado. No tomate, a escala em z fica entre 0,96 e 1,04. A malha, cerca de 6,0 por 5,8 por 4,8 cm, cabe numa classe achatada da CEAGESP.
+
+A cor da casca laranja permanece perto do tom medido. Silva e outros (2014) dão à Ponkan o ângulo de cor CIELAB 67,8° ± 3,0°, com croma perto de 64, n = 48. A malha, já renderizada, senta perto de 38° no HSV, mais amarela que a laranja da referência de mercado. As cópias laranja voltam cerca de 9° a 15° nessa direção. As amarelas ficam perto da malha. Cerca de 7% saem azeitona na fruta inteira, com vermelho e verde quase iguais e valor mais baixo. Outras guardam a laranja e recebem uma mancha amarelo-esverdeada, com mistura parcial e rampa larga, para a borda não parecer podre. Ponkan colhida verde no norte de Minas já pode ter razão de maturação perto de 10, e o ângulo de cor fica acima de 90° até um tratamento longo com etileno (dos Santos da Costa e outros, 2017). O tomate de mesa maduro fica perto do ângulo 42° (López Camelo e Gómez, 2004). A saturação das cópias não desce de 1,00: abaixo disso, o AgX puxava o tomate para o rosa.
+
+A forma segue o descritor, não um milímetro copiado. Ponkan tem ápice deprimido e casca irregular. Na coleção do IAC, Cascalho, Campeona e Mexerica-do-Pará são rugosas, Natsu Mikan é muito rugosa, e Clementina vai de lisa a rugosa (Pio e outros, Scientia Agricola). O protocolo mede a profundidade do ápice, mas o texto impresso dos acessos não traz os milímetros. Os 3 a 7 mm, e o relevo de 1,2 a 2,2 mm, são a classe que se vê. O pescoço da Ponkan não está modelado.
 
 A primeira leva tem 20 cenas e serve para ver se a fórmula fecha. Em cada cena as esferas são iguais, com um diâmetro sorteado entre 5 e 8 cm. A caixa é sorteada entre 40 e 60 cm de comprimento, 25 e 40 cm de largura, e 15 e 25 cm de altura interna. O monte está cheio: a fruta encosta na borda dos quatro lados, e a altura do monte é a altura interna, sem desconto de coroa. A luz é uniforme e o fundo é liso. A verdade é a contagem que o gerador colocou. O aplicativo só vê as imagens. Se o erro não cair perto de zero, o defeito está no código e o detector fica de fora.
 
@@ -32,7 +52,7 @@ O laço do passo usa 300 cenas renderizadas. Só o passo entre camadas muda, a p
 
 O laço do detector reutiliza essas cenas com luz, desfoque e fundo variados, para treinar o modelo na camada de cima.
 
-A leva seguinte só abre depois que a primeira fechar. Ela imita a cozinha: diâmetros misturados, camada de cima incompleta, luz ruim, câmera no arco, fruta um pouco achatada. O achatamento só entra se o modelo tridimensional for achatado. O erro dessa leva é o que mede o método, ainda como simulação.
+A leva seguinte só abre depois que a primeira fechar. Ela imita a cozinha: diâmetros misturados, camada de cima incompleta, luz ruim, câmera no arco, fruta um pouco achatada, e monte que sobe acima da boca. A altura desse monte é a leitura do quadro de lado. O achatamento só entra se o modelo tridimensional for achatado. O erro dessa leva é o que mede o método, ainda como simulação.
 
 ## O que entra no relatório
 

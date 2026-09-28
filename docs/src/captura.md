@@ -28,6 +28,10 @@ Andar com o celular em volta da caixa não cria uma trena. Vários ângulos ajud
 
 Uma foto tremida, estourada de luz ou sem a borda não entra na conta. O aplicativo pede para repetir o arco. Essa recusa é o tratamento de exceção para luz ruim e para enquadramento ruim.
 
-## Caixa cheia
+## Caixa cheia e fruta acima da borda
 
-Se, no quadro de cima, a fruta encosta na borda dos quatro lados, o monte está cheio. A altura usada na conta é a altura interna da caixa, menos um desconto pequeno de coroa, porque a fruta não forma uma mesa perfeitamente plana. Nesse caso, o quadro de lado continua sendo conferido quando ele existir no vídeo. Ele deixa de ser obrigatório quando o vídeo não tiver um perfil bom e a caixa estiver claramente cheia.
+Quando o vídeo tem um quadro de lado utilizável, a altura do monte é a leitura desse quadro: do fundo interno até o topo da fruta. Esse topo pode ficar acima da boca. A altura interna do catálogo é a parede, não um teto para a leitura.
+
+O atalho só entra quando esse perfil não existe e, no quadro de cima, a fruta encosta na borda dos quatro lados. Aí o monte é tratado como cheio, e a altura usada é a altura interna menos um desconto pequeno de coroa. O desconto cobre o topo que não é uma mesa rente à borda: a última camada encaixa nos vãos e o miolo efetivo fica um pouco abaixo da parede. Ele não cobre um monte que sobe por cima da boca. Esse monte só entra na conta pela leitura de lado.
+
+Se a caixa parece cheia de cima e o vídeo não tem perfil, o aplicativo usa o atalho e segue. Não inventa centímetros acima da parede. A primeira leva da simulação, a das esferas iguais, continua rente à borda e sem esse desconto: ela verifica a álgebra, não o monte coroado.
