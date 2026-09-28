@@ -1,0 +1,6 @@
+crate: plastic-crate-01
+fruit: tangerine
+count: 240
+photos: top, side
+opening_cm: 28.2 x 39.2 x 25.7
+note: count is the fruit still inside after a drop from random positions

@@ -1,10 +1,14 @@
 """One still of CC0 tangerines sitting in plastic crate 01. Not a simulation."""
 
 import math
+import sys
 from pathlib import Path
 
 import bpy
 from mathutils import Vector
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from cycles_gpu import use_gpu
 
 ROOT = Path("/home/dante/Code/projects/olho-na-caixa/sim/assets")
 CRATE = ROOT / "crates/plastic-crate-01/plastic-crate-01.blend"
@@ -88,8 +92,7 @@ world.color = (0.62, 0.64, 0.66)
 bpy.context.scene.world = world
 
 scene = bpy.context.scene
-scene.render.engine = "CYCLES"
-scene.cycles.device = "CPU"
+use_gpu(scene)
 scene.cycles.samples = 48
 scene.render.resolution_x = 960
 scene.render.resolution_y = 720
