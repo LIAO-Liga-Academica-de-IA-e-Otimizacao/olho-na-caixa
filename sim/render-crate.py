@@ -1,8 +1,8 @@
 """One full crate, two stills: top and side.
 
-Plastic crate 01. Tangerines start at random positions and rotations above
-the opening, then rigid body drops them in. The count is how many remain
-inside after they settle.
+Plastic crate 01. Fruit starts at random positions and rotations just above
+the pile, then rigid body drops it in. The count is how many remain inside
+after they settle. Pass the fruit after --, for example `-- tomato`.
 """
 
 import importlib.util
@@ -19,12 +19,34 @@ from cycles_gpu import use_gpu
 
 ROOT = Path("/home/dante/Code/projects/olho-na-caixa/sim/assets")
 CRATE = ROOT / "crates/plastic-crate-01/plastic-crate-01.blend"
-FRUIT = ROOT / "tangerine/tangerine-01.blend"
-TOP = ROOT / "preview/crate-01-full-top.png"
-SIDE = ROOT / "preview/crate-01-full-side.png"
-TRUTH = ROOT / "preview/crate-01-full.txt"
-TARGET = 240
-FRAMES = 150
+
+
+def chosen_label() -> str:
+    if "--" in sys.argv:
+        tail = sys.argv[sys.argv.index("--") + 1 :]
+        if tail:
+            return tail[0]
+    return "tangerine"
+
+
+LABEL = chosen_label()
+if LABEL == "tomato":
+    FRUIT = ROOT / "tomato/tomato-01.blend"
+    SOURCE_NAME = "Tomato_01"
+    TOP = ROOT / "preview/crate-01-tomato-top.png"
+    SIDE = ROOT / "preview/crate-01-tomato-side.png"
+    TRUTH = ROOT / "preview/crate-01-tomato.txt"
+    # Larger than the tangerine fill, so the pour can stop on the rim.
+    TARGET = 220
+elif LABEL == "tangerine":
+    FRUIT = ROOT / "tangerine/tangerine-01.blend"
+    SOURCE_NAME = "Tangerine01"
+    TOP = ROOT / "preview/crate-01-full-top.png"
+    SIDE = ROOT / "preview/crate-01-full-side.png"
+    TRUTH = ROOT / "preview/crate-01-full.txt"
+    TARGET = 240
+else:
+    raise SystemExit(f"unknown fruit {LABEL}")
 
 
 def load_variants():
@@ -107,6 +129,8 @@ def assign_color(obj, spec) -> None:
         obj["fruit_shade"] = 1.0
         obj["fruit_spot"] = 0.5
         obj["fruit_band"] = 0.5
+        obj["fruit_coat"] = 0.0
+        obj["fruit_freq"] = 12.0
         return
     obj["fruit_hue"] = 0.5 + spec["hue"]
     obj["fruit_sat"] = spec["saturation"]
@@ -117,10 +141,12 @@ def assign_color(obj, spec) -> None:
     obj["fruit_shade"] = spec["shade"]
     obj["fruit_spot"] = spec["spot"]
     obj["fruit_band"] = spec["band"]
+    obj["fruit_coat"] = spec["coat"]
+    obj["fruit_freq"] = spec["frequency_scale"]
 
 
 def make_fruit(variants, source, seed, location):
-    spec = variants.parameters(seed, "tangerine")
+    spec = variants.parameters(seed, LABEL)
     obj = source.copy()
     obj.data = source.data.copy()
     obj.hide_render = False
@@ -408,7 +434,7 @@ def write_truth(bounds, count):
         "\n".join(
             (
                 "crate: plastic-crate-01",
-                "fruit: tangerine",
+                f"fruit: {LABEL}",
                 f"count: {count}",
                 "photos: top, side",
                 f"opening_cm: {width:.1f} x {length:.1f} x {height:.1f}",
@@ -426,7 +452,7 @@ def main():
     scene = bpy.context.scene
     crate = bpy.data.objects["plastic_crate_01"]
     bounds = opening(crate)
-    source = variants.load_source(FRUIT, "Tangerine01")
+    source = variants.load_source(FRUIT, SOURCE_NAME)
     source.location = (0.0, 0.0, -2.0)
     fruits = build_fruits(variants, source)
     fruits = pour(scene, fruits, bounds)

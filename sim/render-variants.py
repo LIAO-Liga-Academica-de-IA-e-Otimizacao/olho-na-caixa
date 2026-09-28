@@ -22,7 +22,12 @@ turn back about 9° to 15° toward the reference orange, the yellow copies
 stay near the scan, and about 7% of the copies are a darker olive over the
 whole peel. The remaining copies keep the deeper orange and add one soft
 blush toward yellow-green. That mix stays partial and the noise ramp is
-wide, so the edge fades. Table-ripe tomato stays near hue 42°.
+wide, so the edge fades. A table-ripe tomato stays near hue 42° (López
+Camelo and Gómez 2004). The rendered tomato scan sits near HSV 21°. About
+10% of the copies are yellow-green over the whole fruit, and about 28%
+keep a red region and a green region on the same fruit. The tomato skin
+gets a clearcoat: the published roughness is 0.45 and the coat weight was
+0, so the wax highlight was missing.
 
 The published scan is a round, lightly pebbled fruit. Ponkan is described
 with a depressed apex, a neck, and an irregular peel (morpho-agronomic
@@ -105,6 +110,8 @@ def parameters(seed: int, label: str) -> dict | None:
         "shade": 1.0,
         "spot": 0.5,
         "band": 0.50,
+        "coat": 0.0,
+        "frequency_scale": 12.0,
         "pit_depth": 0.0,
         "pit_radius": 0.012,
         "peel_amp": 0.0,
@@ -146,6 +153,39 @@ def parameters(seed: int, label: str) -> dict | None:
             spec["pit_radius"] = extra.uniform(0.009, 0.014)
             spec["peel_amp"] = extra.uniform(0.0012, 0.0022)
             spec["peel_freq"] = extra.uniform(100.0, 160.0)
+    else:
+        # Wax, not a second peel color. The scan roughness is 0.45 and the coat was off.
+        extra = random.Random(seed + 12017)
+        spec["roughness"] = extra.uniform(0.42, 0.62)
+        spec["coat"] = extra.uniform(0.72, 1.0)
+        roll = extra.random()
+        if roll < 0.62:
+            spec["green"] = 0.0
+        elif roll < 0.80:
+            # Red fruit with one soft green region. The wavelength has to
+            # cross a 6 cm fruit, or the mix becomes one pale color.
+            spec["green"] = extra.uniform(0.88, 1.0)
+            spec["cast"] = extra.uniform(0.16, 0.22)
+            spec["shade"] = extra.uniform(1.00, 1.10)
+            spec["spot"] = extra.uniform(0.15, 0.40)
+            spec["band"] = extra.uniform(0.28, 0.48)
+            spec["frequency_scale"] = extra.uniform(26.0, 36.0)
+        elif roll < 0.90:
+            # Green fruit that still shows a red region.
+            spec["hue"] = extra.uniform(0.16, 0.22)
+            spec["value"] = extra.uniform(1.02, 1.14)
+            spec["saturation"] = extra.uniform(0.84, 0.98)
+            spec["green"] = extra.uniform(0.82, 1.0)
+            spec["cast"] = extra.uniform(-0.20, -0.14)
+            spec["shade"] = extra.uniform(0.95, 1.05)
+            spec["spot"] = extra.uniform(0.15, 0.40)
+            spec["band"] = extra.uniform(0.28, 0.48)
+            spec["frequency_scale"] = extra.uniform(26.0, 36.0)
+        else:
+            spec["hue"] = extra.uniform(0.15, 0.22)
+            spec["value"] = extra.uniform(1.06, 1.18)
+            spec["saturation"] = extra.uniform(0.78, 0.95)
+            spec["green"] = 0.0
     return spec
 
 
@@ -237,10 +277,11 @@ def prepare_material(material) -> None:
     coordinates = tree.nodes.new("ShaderNodeTexCoord")
     mottling = tree.nodes.new("ShaderNodeTexNoise")
     mottling.noise_dimensions = "3D"
-    mottling.inputs["Scale"].default_value = 12.0
     mottling.inputs["Detail"].default_value = 0.0
     mottling.inputs["Roughness"].default_value = 0.25
     tree.links.new(coordinates.outputs["Object"], mottling.inputs["Vector"])
+    freq_attr = object_attribute(tree, "fruit_freq")
+    tree.links.new(freq_attr.outputs["Fac"], mottling.inputs["Scale"])
     spot_attr = object_attribute(tree, "fruit_spot")
     band_attr = object_attribute(tree, "fruit_band")
     spot_end = tree.nodes.new("ShaderNodeMath")
@@ -274,6 +315,13 @@ def prepare_material(material) -> None:
         rough_attr = object_attribute(tree, "fruit_rough")
         tree.links.new(rough_attr.outputs["Fac"], scale.inputs[1])
         tree.links.new(scale.outputs["Value"], roughness)
+    coat = bsdf.inputs.get("Coat Weight")
+    if coat is not None and not coat.is_linked:
+        coat_attr = object_attribute(tree, "fruit_coat")
+        tree.links.new(coat_attr.outputs["Fac"], coat)
+    coat_rough = bsdf.inputs.get("Coat Roughness")
+    if coat_rough is not None and not coat_rough.is_linked:
+        coat_rough.default_value = 0.05
     linked = [
         link.to_socket.name
         for link in tree.links
@@ -344,6 +392,8 @@ def variant(source, seed: int, x: float, y: float, label: str):
         obj["fruit_shade"] = 1.0
         obj["fruit_spot"] = 0.5
         obj["fruit_band"] = 0.5
+        obj["fruit_coat"] = 0.0
+        obj["fruit_freq"] = 12.0
     else:
         deform(obj.data, spec)
         obj["fruit_hue"] = 0.5 + spec["hue"]
@@ -355,6 +405,8 @@ def variant(source, seed: int, x: float, y: float, label: str):
         obj["fruit_shade"] = spec["shade"]
         obj["fruit_spot"] = spec["spot"]
         obj["fruit_band"] = spec["band"]
+        obj["fruit_coat"] = spec["coat"]
+        obj["fruit_freq"] = spec["frequency_scale"]
     obj.rotation_euler = (0.55, 0.0, 0.4)
     place(obj, x, y)
     bpy.context.view_layer.update()
@@ -476,9 +528,18 @@ def stack_sheets() -> None:
 
 
 def main() -> None:
-    for fruit in FRUITS:
+    wanted = None
+    if "--" in sys.argv:
+        tail = sys.argv[sys.argv.index("--") + 1 :]
+        if tail:
+            wanted = tail[0]
+    fruits = [fruit for fruit in FRUITS if wanted is None or fruit["label"] == wanted]
+    if not fruits:
+        raise SystemExit(f"unknown fruit {wanted}")
+    for fruit in fruits:
         render_block(fruit)
-    stack_sheets()
+    if wanted is None:
+        stack_sheets()
 
 
 if __name__ == "__main__":
