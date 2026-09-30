@@ -39,6 +39,12 @@ export default function SimulationPage() {
           camada de cima. Comparar a fórmula com a lista interna de objetos, sem foto, só verifica a álgebra. Esse
           atalho não é o teste.
         </p>
+        <p>
+          Um primeiro conjunto já foi gerado com a renderização simplificada: 80 tangerinas e 40 tomates, só a foto de
+          cima. A semente divisível por 5 não entra no treino. Nas 24 cenas restantes o YOLO nano, a 320 pixels, erra a
+          contagem visível em 5% em média, e o pior caso fica em 14%. Isso é a camada de cima no simulador, não a caixa
+          inteira e não a cozinha. A conferência na tela continua pela cor da casca.
+        </p>
       </section>
 
       <section className="card">

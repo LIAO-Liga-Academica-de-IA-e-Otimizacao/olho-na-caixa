@@ -32,15 +32,20 @@ class StillStudio:
         scene.view_settings.look = cycles.LOOK
 
     def render(self, scene, bounds: dict, top, side, fruit_count: int) -> None:
+        self.render_views(scene, bounds, self._shots(bounds, top, side), fruit_count)
+
+    def render_views(self, scene, bounds: dict, shots, fruit_count: int, light: dict | None = None):
+        """Grey studio and the given shots. ``light`` overrides the sun for a dataset frame."""
+        self._clear_rig(scene)
         studio = self.cfg.STUDIO
         world = bpy.data.worlds.new("crate-world")
-        world.color = tuple(studio.WORLD_COLOR)
+        world.color = tuple(light["world"]) if light and "world" in light else tuple(studio.WORLD_COLOR)
         scene.world = world
         sun_data = bpy.data.lights.new("crate-sun", "SUN")
-        sun_data.energy = studio.SUN_ENERGY
+        sun_data.energy = light["energy"] if light else studio.SUN_ENERGY
         sun_data.angle = studio.SUN_ANGLE
         sun = bpy.data.objects.new("crate-sun", sun_data)
-        sun.rotation_euler = tuple(studio.SUN_ROTATION)
+        sun.rotation_euler = tuple(light["rotation"]) if light else tuple(studio.SUN_ROTATION)
         bpy.context.collection.objects.link(sun)
         center = bounds["center"]
         bpy.ops.mesh.primitive_plane_add(
@@ -67,13 +72,24 @@ class StillStudio:
         track.up_axis = "UP_Y"
         scene.camera = camera
 
-        for output, location, aim in self._shots(bounds, top, side):
+        for output, location, aim in shots:
             camera.location = location
             target.location = aim
             output.parent.mkdir(parents=True, exist_ok=True)
             scene.render.filepath = str(output)
             bpy.ops.render.render(write_still=True)
             print(f"WROTE {output} fruits={fruit_count}")
+        self._rig = [sun, plane, target, camera]
+        return camera, target
+
+    def _clear_rig(self, scene) -> None:
+        for obj in getattr(self, "_rig", []):
+            bpy.data.objects.remove(obj, do_unlink=True)
+        self._rig = []
+        world = scene.world
+        if world is not None and world.name.startswith("crate-world"):
+            scene.world = None
+            bpy.data.worlds.remove(world)
 
     def _shots(self, bounds: dict, top, side):
         center = bounds["center"]

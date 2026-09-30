@@ -1,4 +1,4 @@
-.PHONY: help dev dev-camera docs-serve render-crate
+.PHONY: help dev dev-camera docs-serve render-crate render-dataset detect-train detect-score
 .DEFAULT_GOAL := dev
 
 help:
@@ -11,7 +11,11 @@ help:
 		'               SEED sorteia o enchimento. Sem SEED, a semente é 1.' \
 		'               COUNT fixa a quantidade e pula o sorteio.' \
 		'               BLENDER=/caminho/do/blender aponta o binário, se não for o desta máquina.' \
-		'               Exemplo: make render-crate FRUIT=tomato SEED=5'
+		'               Exemplo: make render-crate FRUIT=tomato SEED=5' \
+		'render-dataset Gera as fotos de cima do detector, com a caixa de cada fruta visível.' \
+		'               LIMIT=2 para um ensaio. Sem LIMIT, são 80 tangerinas e 40 tomates.' \
+		'detect-train  Treina o YOLO nano nesse conjunto. Precisa do venv em sim/.venv.' \
+		'detect-score  Roda o peso treinado nas cenas que ficaram de fora e grava o erro.'
 
 dev:
 	cd app && npm run dev
@@ -31,3 +35,17 @@ FRUIT ?= tangerine
 render-crate:
 	@test -n "$(BLENDER)" && test -x "$(BLENDER)" || (echo "Blender não encontrado. Use make render-crate BLENDER=/caminho/do/blender" && exit 1)
 	PYTHONUNBUFFERED=1 "$(BLENDER)" --background --python sim/render-crate.py -- $(FRUIT)$(if $(SEED), --seed $(SEED),)$(if $(COUNT), --count $(COUNT),)
+
+render-dataset:
+	@test -n "$(BLENDER)" && test -x "$(BLENDER)" || (echo "Blender não encontrado. Use make render-dataset BLENDER=/caminho/do/blender" && exit 1)
+	PYTHONUNBUFFERED=1 "$(BLENDER)" --background --python sim/render-dataset.py --$(if $(LIMIT), --limit $(LIMIT),)
+
+VENV := sim/.venv/bin/python
+
+detect-train:
+	@test -x "$(VENV)" || (echo "Crie sim/.venv com torch e ultralytics antes de treinar." && exit 1)
+	cd sim/assets/detect && PYTHONUNBUFFERED=1 "$(CURDIR)/$(VENV)" "$(CURDIR)/sim/detect/train.py"
+
+detect-score:
+	@test -x "$(VENV)" || (echo "Crie sim/.venv com torch e ultralytics antes de pontuar." && exit 1)
+	cd sim/assets/detect && PYTHONUNBUFFERED=1 "$(CURDIR)/$(VENV)" "$(CURDIR)/sim/detect/score.py"

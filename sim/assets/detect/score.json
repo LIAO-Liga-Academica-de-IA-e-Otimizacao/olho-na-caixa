@@ -1,0 +1,177 @@
+{
+  "map50": 0.9725689265717437,
+  "map50_95": 0.7844669193734128,
+  "scenes": 24,
+  "count_mae": 0.05079983813010124,
+  "count_worst": 0.14285714285714285,
+  "rows": [
+    {
+      "stem": "tangerine-s10",
+      "label": "tangerine",
+      "truth": 47,
+      "predicted": 46,
+      "rel": -0.02127659574468085
+    },
+    {
+      "stem": "tangerine-s15",
+      "label": "tangerine",
+      "truth": 49,
+      "predicted": 50,
+      "rel": 0.02040816326530612
+    },
+    {
+      "stem": "tangerine-s20",
+      "label": "tangerine",
+      "truth": 45,
+      "predicted": 46,
+      "rel": 0.022222222222222223
+    },
+    {
+      "stem": "tangerine-s25",
+      "label": "tangerine",
+      "truth": 48,
+      "predicted": 50,
+      "rel": 0.041666666666666664
+    },
+    {
+      "stem": "tangerine-s30",
+      "label": "tangerine",
+      "truth": 47,
+      "predicted": 50,
+      "rel": 0.06382978723404255
+    },
+    {
+      "stem": "tangerine-s35",
+      "label": "tangerine",
+      "truth": 51,
+      "predicted": 53,
+      "rel": 0.0392156862745098
+    },
+    {
+      "stem": "tangerine-s40",
+      "label": "tangerine",
+      "truth": 50,
+      "predicted": 54,
+      "rel": 0.08
+    },
+    {
+      "stem": "tangerine-s45",
+      "label": "tangerine",
+      "truth": 52,
+      "predicted": 51,
+      "rel": -0.019230769230769232
+    },
+    {
+      "stem": "tangerine-s5",
+      "label": "tangerine",
+      "truth": 48,
+      "predicted": 48,
+      "rel": 0.0
+    },
+    {
+      "stem": "tangerine-s50",
+      "label": "tangerine",
+      "truth": 47,
+      "predicted": 49,
+      "rel": 0.0425531914893617
+    },
+    {
+      "stem": "tangerine-s55",
+      "label": "tangerine",
+      "truth": 46,
+      "predicted": 48,
+      "rel": 0.043478260869565216
+    },
+    {
+      "stem": "tangerine-s60",
+      "label": "tangerine",
+      "truth": 49,
+      "predicted": 51,
+      "rel": 0.04081632653061224
+    },
+    {
+      "stem": "tangerine-s65",
+      "label": "tangerine",
+      "truth": 49,
+      "predicted": 49,
+      "rel": 0.0
+    },
+    {
+      "stem": "tangerine-s70",
+      "label": "tangerine",
+      "truth": 48,
+      "predicted": 51,
+      "rel": 0.0625
+    },
+    {
+      "stem": "tangerine-s75",
+      "label": "tangerine",
+      "truth": 47,
+      "predicted": 53,
+      "rel": 0.1276595744680851
+    },
+    {
+      "stem": "tangerine-s80",
+      "label": "tangerine",
+      "truth": 51,
+      "predicted": 47,
+      "rel": -0.0784313725490196
+    },
+    {
+      "stem": "tomato-s1005",
+      "label": "tomato",
+      "truth": 41,
+      "predicted": 40,
+      "rel": -0.024390243902439025
+    },
+    {
+      "stem": "tomato-s1010",
+      "label": "tomato",
+      "truth": 42,
+      "predicted": 36,
+      "rel": -0.14285714285714285
+    },
+    {
+      "stem": "tomato-s1015",
+      "label": "tomato",
+      "truth": 39,
+      "predicted": 35,
+      "rel": -0.10256410256410256
+    },
+    {
+      "stem": "tomato-s1020",
+      "label": "tomato",
+      "truth": 42,
+      "predicted": 41,
+      "rel": -0.023809523809523808
+    },
+    {
+      "stem": "tomato-s1025",
+      "label": "tomato",
+      "truth": 39,
+      "predicted": 36,
+      "rel": -0.07692307692307693
+    },
+    {
+      "stem": "tomato-s1030",
+      "label": "tomato",
+      "truth": 41,
+      "predicted": 41,
+      "rel": 0.0
+    },
+    {
+      "stem": "tomato-s1035",
+      "label": "tomato",
+      "truth": 38,
+      "predicted": 39,
+      "rel": 0.02631578947368421
+    },
+    {
+      "stem": "tomato-s1040",
+      "label": "tomato",
+      "truth": 42,
+      "predicted": 37,
+      "rel": -0.11904761904761904
+    }
+  ]
+}

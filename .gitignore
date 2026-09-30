@@ -13,8 +13,15 @@ app/android/app/build/
 app/android/build/
 app/android/local.properties
 sim/.tools/
+sim/.venv/
 sim/assets/filled-crate/*
 !sim/assets/filled-crate/.gitkeep
 !sim/assets/filled-crate/LICENSE
 sim/assets/preview/**/*.png
 sim/assets/preview/*.png
+sim/assets/detect/images/
+sim/assets/detect/labels/
+sim/assets/detect/meta/
+sim/assets/detect/runs/
+sim/assets/detect/*.pt
+!sim/assets/detect/top-layer.pt
