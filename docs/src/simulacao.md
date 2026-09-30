@@ -24,7 +24,7 @@ Esferas perfeitas, empilhadas do jeito que a fórmula já supõe, fazem o erro c
 
 ## Como as cenas são feitas
 
-Os meshes ficam em `sim/assets/`: uma tangerina, um tomate, as caixas vazias e a caixa já cheia de referência. As fotos de prova assentam esferas com o volume da caixa envolvente da malha e repetem essa malha uma vez só. O tamanho vai na escala do objeto. A rotação é aleatória, então o buraco do talo, que é o polo +Z, não fica virado para cima. A altura guardada para a conta é a média do perfil de lado da malha já posicionada. O pico fica no mesmo arquivo, e não multiplica a camada de cima. O Cycles só entra na foto. O corpo rígido do Bullet foi o método das fotos guardadas em `sim/assets/preview/rigid-body/`. A noite das 20 cenas, e a das 300, continua proposta no Isaac Sim e não começa sem autorização.
+Os meshes ficam em `sim/assets/`: uma tangerina, um tomate, as caixas vazias e a caixa já cheia de referência. As fotos de prova assentam esferas com o volume da caixa envolvente da malha e repetem essa malha uma vez só. O tamanho vai na escala do objeto. A rotação é aleatória. O buraco do talo é o polo +Z, e a direção muda de fruta para fruta. A altura guardada para a conta é a média do perfil de lado da malha já posicionada. O pico fica no mesmo arquivo, e não multiplica a camada de cima. O Cycles só entra na foto. O corpo rígido do Bullet foi o método das fotos guardadas em `sim/assets/preview/rigid-body/`. A noite das 20 cenas, e a das 300, continua proposta no Isaac Sim e não começa sem autorização.
 
 ## O que as fotos de prova já mostram
 
@@ -45,7 +45,9 @@ O atalho é `make render-crate FRUIT=tomato SEED=5`. Sem `SEED`, a semente é 1.
 | Tomate | 1 | 127 | 127 | 20,5 cm | 21,7 cm |
 | Tangerina | 1 | 159 | 159 | 20,1 cm | 21,3 cm |
 
-As quatro ficam abaixo da boca. As caixas de 240 tangerinas e de 192 tomates, no arquivo de corpo rígido, continuam sendo o extremo alto. As oito fotos saíram em 12 s dentro de um processo só do Blender. O relógio de parede marcou 13 s.
+As quatro ficam abaixo da boca. As caixas de 240 tangerinas e de 192 tomates, no arquivo de corpo rígido, continuam sendo o extremo alto. As oito fotos saíram em 12 s dentro de um processo só do Blender. O relógio de parede marcou 13 s. Essas fotos usam 4 amostras, o subsurf desligado e o denoise na placa. A caixa não aplica o deslocamento de vértice da grade de variação: cada fruta só muda de escala e de cor. O relevo de bump da casca continua no material compartilhado.
+
+Um colega contou 42 tangerinas na caixa da semente 5 e 45 na da semente 1, em fotos de cima anteriores. Esses pixels foram substituídos. As contagens 42 e 45 não são uma leitura dos arquivos atuais. Com diâmetro 5,3 cm e passo 0,82, as médias de 12,1 cm e 20,1 cm não publicam as verdades 86 e 159. Nas duas a conta pede outro arco.
 
 ## Onde a renderização roda
 

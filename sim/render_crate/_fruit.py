@@ -42,7 +42,7 @@ class FruitBuilder:
         obj.scale = scale
         _assign_color(obj, spec, self.cfg)
         pose = random.Random(seed + self.cfg.MESH.POSE_SALT)
-        # Buried fruit keeps this. The stem pit is the +Z pole.
+        # The stem pit is the +Z pole. This rotation is uniform, so the pit is not forced up.
         obj.rotation_mode = "QUATERNION"
         obj.rotation_quaternion = _uniform_quaternion(pose)
         obj.location = (0.0, 0.0, self.cfg.MESH.PARK_Z_M)
