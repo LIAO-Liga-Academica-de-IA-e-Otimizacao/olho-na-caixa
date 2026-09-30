@@ -43,7 +43,9 @@ export default function SimulationPage() {
           Um primeiro conjunto já foi gerado com a renderização simplificada: 80 tangerinas e 40 tomates, só a foto de
           cima. A semente divisível por 5 não entra no treino. Nas 24 cenas restantes o YOLO nano, a 320 pixels, erra a
           contagem visível em 5% em média, e o pior caso fica em 14%. Isso é a camada de cima no simulador, não a caixa
-          inteira e não a cozinha. A conferência na tela continua pela cor da casca.
+          inteira e não a cozinha. A conferência na tela continua pela cor da casca. A reta da caixa inteira, com a
+          altura média verdadeira, fica em 0,7% nessas mesmas tangerinas. A foto de lado através do plástico não mede
+          essa altura.
         </p>
       </section>
 

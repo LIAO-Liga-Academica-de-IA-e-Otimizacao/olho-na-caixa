@@ -20,6 +20,7 @@ sim/assets/filled-crate/*
 sim/assets/preview/**/*.png
 sim/assets/preview/*.png
 sim/assets/detect/images/
+sim/assets/detect/sides/
 sim/assets/detect/labels/
 sim/assets/detect/meta/
 sim/assets/detect/runs/
