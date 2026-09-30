@@ -4,7 +4,8 @@ seed: 5
 drawn: 69
 count: 69
 fraction: 0.359
-top_cm: 16.5
+mean_cm: 12.3
+top_cm: 13.9
 photos: top, side
 opening_cm: 28.2 x 39.2 x 25.7
-note: drawn is the count released; count is how many stayed inside; top_cm is from the inner floor to the highest fruit
+note: mean_cm is the side profile of the posed mesh and the height the count uses; top_cm is the highest point

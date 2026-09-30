@@ -63,8 +63,9 @@ export default function SimulationPage() {
           lidos certo. A massa de um tomate real não aparece da renderização.
         </p>
         <p>
-          O gerador proposto é o Isaac Sim, porque a placa é NVIDIA. O Blender com corpo rígido vale se o Isaac não
-          estiver instalado. Não há um motor de física escrito neste repositório.
+          O gerador das fotos de prova assenta esferas e repete uma malha só, com o buraco do talo em direção
+          aleatória. A noite proposta continua no Isaac Sim. As fotos antigas, de corpo rígido, ficam em
+          sim/assets/preview/rigid-body/.
         </p>
         <p className="flag">
           A noite não foi autorizada. As fotos de prova não entram no relatório.

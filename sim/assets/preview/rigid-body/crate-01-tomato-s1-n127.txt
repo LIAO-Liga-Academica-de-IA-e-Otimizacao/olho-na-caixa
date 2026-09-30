@@ -1,0 +1,10 @@
+crate: plastic-crate-01
+fruit: tomato
+seed: 1
+drawn: 127
+count: 127
+fraction: 0.661
+top_cm: 25.4
+photos: top, side
+opening_cm: 28.2 x 39.2 x 25.7
+note: drawn is the count released; count is how many stayed inside; top_cm is from the inner floor to the highest fruit

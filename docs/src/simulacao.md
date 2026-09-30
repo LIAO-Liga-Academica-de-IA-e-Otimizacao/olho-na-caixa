@@ -24,7 +24,7 @@ Esferas perfeitas, empilhadas do jeito que a fórmula já supõe, fazem o erro c
 
 ## Como as cenas são feitas
 
-Os meshes ficam em `sim/assets/`: uma tangerina, um tomate, as caixas vazias e a caixa já cheia de referência. O gerador proposto para a noite é o Isaac Sim, porque a placa disponível é NVIDIA. O Blender com corpo rígido continua válido se o Isaac não estiver instalado. Não há um motor de física escrito para este projeto. A noite das 20 cenas, e a das 300, não começa sem autorização.
+Os meshes ficam em `sim/assets/`: uma tangerina, um tomate, as caixas vazias e a caixa já cheia de referência. As fotos de prova assentam esferas com o volume da caixa envolvente da malha e repetem essa malha uma vez só. O tamanho vai na escala do objeto. A rotação é aleatória, então o buraco do talo, que é o polo +Z, não fica virado para cima. A altura guardada para a conta é a média do perfil de lado da malha já posicionada. O pico fica no mesmo arquivo, e não multiplica a camada de cima. O Cycles só entra na foto. O corpo rígido do Bullet foi o método das fotos guardadas em `sim/assets/preview/rigid-body/`. A noite das 20 cenas, e a das 300, continua proposta no Isaac Sim e não começa sem autorização.
 
 ## O que as fotos de prova já mostram
 
@@ -32,20 +32,20 @@ Antes dessa noite, o computador gera fotos para uma pessoa olhar. Elas não entr
 
 A variação de uma fruta só está em `sim/render-variants.py`. A grade tem 48 sementes por fruta. A semente 0, no canto de trás à esquerda, é a malha como foi publicada. As outras ficam dentro de uma classe comercial, não atravessam cultivares. O deslocamento da casca é relevo de bump, para o Cycles não tesselar uma cópia por fruta.
 
-A primeira caixa cheia é a plástica 01, com 240 tangerinas, em `sim/assets/preview/crate-01-full-top.png` e `crate-01-full-side.png`. O vão interno medido no mesh é 28,2 cm por 39,2 cm, com 25,7 cm de altura. As frutas começam em posições e rotações aleatórias, em grupos pequenos, pouco acima do monte, e caem com corpo rígido. A contagem é a das que ficam dentro. Nessa cena o topo passa da boca. Pela regra de [Captura em arco](captura.md), a altura dessa caixa é a leitura de lado, não a altura interna menos a coroa. A caixa de tomate com 192 frutos, nas fotos `crate-01-tomato-top.png` e `crate-01-tomato-side.png`, é o mesmo caso: o gerador só parava depois de passar da boca.
+A primeira caixa cheia é a plástica 01, com 240 tangerinas. O vão interno medido no mesh é 28,2 cm por 39,2 cm, com 25,7 cm de altura. Essas fotos, e a caixa de tomate com 192 frutos, foram feitas com corpo rígido e estão em `sim/assets/preview/rigid-body/`. Nelas o gerador só parava depois de passar da boca. Pela regra de [Captura em arco](captura.md), a altura dessa caixa é a leitura de lado, não a altura interna menos a coroa.
 
-Daqui para a frente cada cena de prova sorteia a quantidade. O sorteio é uniforme entre 35% e 100% da contagem que já coroou essa caixa: 240 tangerinas, ou 192 tomates. O piso dá um monte baixo. O teto repete o monte acima da boca. A altura usada como verdade é medida depois da queda, do fundo interno até o topo da fruta mais alta, e pode ficar abaixo ou acima da parede. O arquivo ao lado das fotos guarda a quantidade sorteada, a que ficou dentro e essa altura. A primeira leva, a das esferas iguais, continua rente à borda: ela verifica a álgebra, e não é este sorteio.
+Daqui para a frente cada cena de prova sorteia a quantidade e assenta esferas. Cada esfera cabe no volume da caixa envolvente daquela malha e desce até o buraco mais baixo que ainda a toca. A malha é uma só, e a escala do objeto dá o tamanho. A rotação de cada fruta é aleatória. O sorteio é uniforme entre 35% e 100% da contagem que já coroou essa caixa: 240 tangerinas, ou 192 tomates. O piso dá um monte baixo. O teto repete o monte acima da boca. A altura usada como verdade é a média do perfil de lado da malha já posicionada. O pico fica no mesmo arquivo e não multiplica a camada de cima. O arquivo ao lado das fotos guarda a quantidade sorteada, a que ficou dentro, a média e o pico. A primeira leva, a das esferas iguais, continua rente à borda: ela verifica a álgebra, e não é este sorteio.
 
-O atalho é `make render-crate FRUIT=tomato SEED=5`. Sem `SEED`, a semente é 1. `COUNT=127` fixa a quantidade e pula o sorteio. `BLENDER=/caminho/do/blender` aponta o binário. `make help` lista os comandos. O script por baixo é `sim/render-crate.py`. O nome do arquivo é `crate-01-<fruta>-s<semente>-n<quantidade>.txt`. Quatro sorteios já medidos, com a parede em 25,7 cm:
+O atalho é `make render-crate FRUIT=tomato SEED=5`. Sem `SEED`, a semente é 1. `COUNT=127` fixa a quantidade e pula o sorteio. `BLENDER=/caminho/do/blender` aponta o binário. `make help` lista os comandos. O Blender entra por `sim/render-crate.py`. As quatro caixas de prova juntas saem de um processo só, com `--batch`. A classe `Renderer` e os módulos ficam em `sim/render_crate/`, e os números da cena em `crate.toml`. O nome do arquivo é `crate-01-<fruta>-s<semente>-n<quantidade>.txt`. Quatro sorteios já medidos com esse assentamento, com a parede em 25,7 cm:
 
-| Fruta | Semente | Sorteada | Dentro | Topo |
-| :--- | ---: | ---: | ---: | ---: |
-| Tomate | 5 | 69 | 69 | 16,5 cm |
-| Tangerina | 5 | 86 | 86 | 16,5 cm |
-| Tomate | 1 | 127 | 127 | 25,4 cm |
-| Tangerina | 1 | 159 | 159 | 24,1 cm |
+| Fruta | Semente | Sorteada | Dentro | Média | Topo |
+| :--- | ---: | ---: | ---: | ---: | ---: |
+| Tomate | 5 | 69 | 69 | 12,3 cm | 13,9 cm |
+| Tangerina | 5 | 86 | 86 | 12,1 cm | 13,0 cm |
+| Tomate | 1 | 127 | 127 | 20,5 cm | 21,7 cm |
+| Tangerina | 1 | 159 | 159 | 20,1 cm | 21,3 cm |
 
-As duas primeiras ficam abaixo da boca. As outras duas chegam perto da borda. As caixas de 240 tangerinas e de 192 tomates continuam sendo o extremo alto.
+As quatro ficam abaixo da boca. As caixas de 240 tangerinas e de 192 tomates, no arquivo de corpo rígido, continuam sendo o extremo alto. As oito fotos saíram em 12 s dentro de um processo só do Blender. O relógio de parede marcou 13 s.
 
 ## Onde a renderização roda
 

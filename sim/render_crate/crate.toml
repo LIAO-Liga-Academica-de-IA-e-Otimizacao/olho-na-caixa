@@ -1,0 +1,108 @@
+# One crate, two Cycles stills. Paths are relative to sim/.
+
+assets_dir = "assets"
+preview_dir = "assets/preview"
+variants_script = "render-variants.py"
+crate_blend = "assets/crates/plastic-crate-01/plastic-crate-01.blend"
+crate_object = "plastic_crate_01"
+crate_id = "plastic-crate-01"
+file_pattern = "crate-01-{label}-s{seed}-n{count}"
+default_fruit = "tangerine"
+default_seed = 1
+
+[fill]
+min_fraction = 0.35
+max_fraction = 1.0
+fraction_salt = 4400
+keep_fraction = 0.85
+
+[fruits.tangerine]
+blend = "assets/tangerine/tangerine-01.blend"
+source = "Tangerine01"
+crowned = 240
+
+[fruits.tomato]
+blend = "assets/tomato/tomato-01.blend"
+source = "Tomato_01"
+crowned = 192
+
+[mesh]
+subsurf_viewport = 0
+subsurf_render = 0
+progress_every = 40
+park_z_m = -2.0
+pose_salt = 5000
+# Shader neutral. Hue and cast attributes store this plus the variant offset.
+attribute_center = 0.5
+
+[neutral]
+saturation = 1.0
+value = 1.0
+roughness = 1.0
+green = 0.0
+shade = 1.0
+spot = 0.5
+band = 0.5
+coat = 0.0
+frequency = 12.0
+
+[opening]
+step_m = 0.003
+hit_m = 0.012
+floor_lift_m = 0.05
+floor_limit_extra_m = 0.2
+wall_limit_m = 0.28
+sample_heights_m = [0.03, 0.07, 0.11, 0.15, 0.19, 0.23]
+
+[settle]
+max_passes = 240
+sweeps = 8
+gravity_m = 0.004
+drop_span_m = 0.20
+# Stop after the pile moves less than this for two passes in a row.
+rest_m = 0.0004
+salt = 4100
+crown_above_rim_m = 0.07
+wall_slack_m = 0.01
+overlap_epsilon = 1.0e-12
+tie_break_m = 0.001
+# Horizontal share of an overlap. The upper fruit takes the whole vertical correction.
+push_share = 0.5
+# A pair at this value in the ellipsoid metric is touching. Below it, the fruits intersect.
+clear_gap = 1.0
+# Sideways kick while the pile is still falling, so a fruit can walk into a pocket.
+jitter_m = 0.007
+
+[cycles]
+samples = 4
+use_denoising = true
+denoiser = "OPENIMAGEDENOISE"
+width = 1280
+height = 960
+view_transform = "AgX"
+look = "AgX - Punchy"
+
+[studio]
+world_color = [0.74, 0.73, 0.70]
+sun_energy = 4.0
+sun_angle = 0.18
+sun_rotation = [0.65, 0.12, 0.45]
+floor_size_m = 4.0
+floor_z_m = -0.002
+floor_color = [0.62, 0.61, 0.58, 1.0]
+floor_roughness = 0.85
+lens_mm = 35
+sensor_fit = "HORIZONTAL"
+
+[views.top]
+suffix = "top"
+offset_y_m = -0.16
+height_above_rim_m = 0.52
+aim_below_rim_m = 0.04
+
+[views.side]
+suffix = "side"
+past_min_x_m = 0.70
+offset_y_m = -0.02
+offset_z_m = 0.04
+aim_z_m = 0.02

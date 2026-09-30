@@ -16,4 +16,5 @@ sim/.tools/
 sim/assets/filled-crate/*
 !sim/assets/filled-crate/.gitkeep
 !sim/assets/filled-crate/LICENSE
+sim/assets/preview/**/*.png
 sim/assets/preview/*.png
