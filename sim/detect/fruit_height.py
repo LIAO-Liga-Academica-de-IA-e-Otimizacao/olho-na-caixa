@@ -14,6 +14,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+from detect.produce import require_peel
 from detect.profile import count_from_height
 
 ROOT = Path(__file__).resolve().parents[1] / "assets" / "detect"
@@ -99,14 +100,7 @@ def fruit_centers(image: Path, camera: dict, kind: str = "tangerine") -> list[di
     bgr = cv2.imread(str(image))
     rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
     red, green, blue = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
-    peak = np.maximum(np.maximum(red, green), blue)
-    grey = (np.abs(red - green) < 0.05) & (np.abs(green - blue) < 0.05)
-    if kind == "tomato":
-        # Ripe tomato is red with little green, like the crate, but brighter.
-        mask = (peak >= 0.22) & ~grey & (red + green > blue + 0.10)
-    else:
-        mask = (peak >= 0.28) & ~((green < 0.18) & (blue < 0.15))
-        mask &= ((np.abs(red - green) >= 0.05) | (np.abs(green - blue) >= 0.05)) & (red + green > blue + 0.15)
+    mask = _MASKS[require_peel(kind)](red, green, blue)
     binary = mask.astype(np.uint8) * 255
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
     binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
@@ -123,6 +117,24 @@ def fruit_centers(image: Path, camera: dict, kind: str = "tangerine") -> list[di
         disk = rgb[max(0, row - 3) : row + 4, max(0, column - 3) : column + 4]
         centers.append({"column": float(column), "row": float(row), "radius": radius, "color": disk.mean(axis=(0, 1))})
     return centers
+
+
+def _tangerine_peel(red, green, blue):
+    """Orange peel keeps a green channel. The dark red crate does not."""
+    peak = np.maximum(np.maximum(red, green), blue)
+    grey = (np.abs(red - green) < 0.05) & (np.abs(green - blue) < 0.05)
+    mask = (peak >= 0.28) & ~((green < 0.18) & (blue < 0.15))
+    return mask & ~grey & (red + green > blue + 0.15)
+
+
+def _tomato_peel(red, green, blue):
+    """Ripe tomato is red with little green, like the crate, but brighter."""
+    peak = np.maximum(np.maximum(red, green), blue)
+    grey = (np.abs(red - green) < 0.05) & (np.abs(green - blue) < 0.05)
+    return (peak >= 0.22) & ~grey & (red + green > blue + 0.10)
+
+
+_MASKS = {"tangerine": _tangerine_peel, "tomato": _tomato_peel}
 
 
 def _in_crate(point: np.ndarray) -> bool:

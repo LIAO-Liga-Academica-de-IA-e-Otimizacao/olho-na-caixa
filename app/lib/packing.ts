@@ -1,9 +1,10 @@
 /**
  * The count the screens run today.
  *
- * Tangerines are a top-layer count times a number of layers. Tomatoes are
- * liters times a kilograms-per-liter typed from the lot. The height-to-count
- * line and the tomato median live in `sim/detect/` and are not called from here.
+ * Tangerines are a top-layer count times a number of layers. Tomatoes and
+ * carrots are liters times a kilograms-per-liter typed from the lot. Bananas
+ * are hands times fingers times hand layers. The photo height readers live in
+ * `sim/detect/` and are not called from here.
  */
 
 /** Vertical step of hexagonal sphere packing, in diameters. About 0.816, written 0.82 in the book. */
@@ -77,9 +78,11 @@ export function tangerineCount(
 /**
  * Kilograms: liters of the pile times the lot's kilograms per liter.
  *
- * The density is typed from a weighing. A photo does not produce it.
+ * Tomato and carrot share this account. The density is typed from a weighing
+ * of that lot. A thin carrot and a thick carrot do not share the number.
+ * A photo does not produce it.
  */
-export function tomatoMassKg(
+export function massFromLiters(
   crate: Crate,
   fillHeightCm: number,
   bulkDensityKgPerLiter: number,
@@ -95,6 +98,38 @@ export function tomatoMassKg(
     unit: "kg",
     relativeSigma: Math.hypot(0.02, 0.05, 0.06),
     flags: [],
+  };
+}
+
+/** Tomato mass. The carrot will call `massFromLiters` with its own lot density. */
+export function tomatoMassKg(
+  crate: Crate,
+  fillHeightCm: number,
+  bulkDensityKgPerLiter: number,
+): Estimate {
+  return massFromLiters(crate, fillHeightCm, bulkDensityKgPerLiter);
+}
+
+/**
+ * Banana fingers: visible hands times fingers per hand times hand layers.
+ *
+ * This phase does not offer banana. The flag keeps the estimate from being
+ * published if a screen calls it early. The hand thickness that sets the
+ * layer count is measured on the lot.
+ */
+export function bananaFingers(
+  visibleHands: number,
+  fingersPerHand: number,
+  handLayers: number,
+): Estimate {
+  if (visibleHands <= 0 || fingersPerHand <= 0 || handLayers <= 0) {
+    throw new Error("hands, fingers, and layers must be positive");
+  }
+  return {
+    value: visibleHands * fingersPerHand * handLayers,
+    unit: "un",
+    relativeSigma: Math.hypot(0.03, 0.04, 0.03, 0.04),
+    flags: ["not_in_this_phase"],
   };
 }
 

@@ -22,7 +22,7 @@ O menu fica em `app/components/Shell.tsx`. São quatro entradas.
 
 A pasta `app/lib/` é a conta e o estado, separados da tela. A tela chama essas funções. Ela não reimplementa a fórmula.
 
-`packing.ts` é a conta que a tela usa hoje. `tangerineCount` multiplica as frutas visíveis pelo número de camadas. `tomatoMassKg` multiplica os litros pelo quilo por litro. `fitsTolerance` diz se o intervalo cabe em 10%. Nenhuma dessas funções lê pixel.
+`packing.ts` é a conta que a tela usa hoje. `tangerineCount` multiplica as frutas visíveis pelo número de camadas. `massFromLiters` multiplica os litros pelo quilo por litro: o tomate chama essa função, e a cenoura vai chamar a mesma, com o quilo por litro do lote dela. `bananaFingers` multiplica pencas, dedos por penca e camadas de penca, e marca a estimativa como fora desta fase para a tela não publicar. `fitsTolerance` diz se o intervalo cabe em 10%. Nenhuma dessas funções lê pixel. O catálogo de qual item usa qual conta está em `produce.ts`. A tela Conferir continua oferecendo só tangerina e tomate.
 
 `top-layer.ts` marca a camada de cima pela cor. Laranja conta como tangerina. Vermelho conta como tomate. É um encaixe, para a jornada existir antes do modelo no aparelho. O clipe de teste foi desenhado para essa marca.
 

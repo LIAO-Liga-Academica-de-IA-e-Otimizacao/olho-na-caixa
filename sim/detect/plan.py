@@ -1,19 +1,20 @@
 """Train and val stills for the top-layer detector. No side photo, simplified Cycles."""
 
-TANGERINES = 80
-TOMATOES = 40
+from detect.produce import ITEMS, detector_classes
+
 POUR_SALT = 9100
 LIGHT_SALT = 9200
-CLASSES = {"tangerine": 0, "tomato": 1}
+CLASSES = detector_classes()
 
 
 def jobs() -> list[dict]:
-    """Fixed scenes. A seed divisible by 5 is validation and never trains."""
+    """Scenes for items that already have a seed range. A seed divisible by 5 is validation."""
     rows = []
-    for seed in range(1, TANGERINES + 1):
-        rows.append(_row("tangerine", seed))
-    for offset in range(1, TOMATOES + 1):
-        rows.append(_row("tomato", 1000 + offset))
+    for found in ITEMS.values():
+        if found.seeds is None:
+            continue
+        for seed in found.seeds:
+            rows.append(_row(found.label, seed))
     return rows
 
 

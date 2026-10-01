@@ -36,9 +36,10 @@ class DatasetWriter:
 
     ``run`` chooses the job from the command line. No flag writes the top stills
     and the YOLO boxes. ``--sides`` and ``--third`` are the tangerine arc.
-    ``--tomato`` is the tomato arc and the true lid height. ``--pairs`` rescores
-    the silhouette shift. ``--sides`` rewrites ``height-sheet.csv`` from scratch,
-    so it drops columns that a later scorer added.
+    ``--arc tomato`` (or ``--tomato``) writes that item's three frames and the
+    true lid height. A later item uses the same flag once it has a mesh and a
+    seed range. ``--pairs`` rescores the silhouette shift. ``--sides`` rewrites
+    ``height-sheet.csv`` from scratch, so it drops columns that a later scorer added.
     """
 
     def __init__(self, cfg: Config | None = None, argv: list[str] | None = None):
@@ -55,8 +56,11 @@ class DatasetWriter:
         if "--pairs" in self.argv:
             self.score_pairs()
             return
+        if "--arc" in self.argv:
+            self.run_arc(_option(self.argv, "--arc"))
+            return
         if "--tomato" in self.argv:
-            self.run_tomatoes()
+            self.run_arc("tomato")
             return
         if "--third" in self.argv:
             self.run_third()
@@ -157,18 +161,30 @@ class DatasetWriter:
             written += 1
         print(f"THIRD scenes={written} wall_s={time.perf_counter() - started:.1f}", flush=True)
 
-    def run_tomatoes(self) -> None:
-        """Three arc frames of each tomato scene, plus the true mean lid height."""
+    def run_arc(self, label: str) -> None:
+        """Three arc frames and the true mean lid, for one item that already has scenes.
+
+        The pixel reader is separate. An item with no peel, such as carrot or
+        banana, can be rendered once it has a mesh and a seed range. Matching
+        centers across frames still refuses it until a peel and a height reader
+        exist. ``--tomato`` is this method for the tomato.
+        """
         import csv
 
         from cycles_gpu import use_gpu
+        from detect.produce import item
 
+        found = item(label)
+        if found.seeds is None:
+            raise SystemExit(found.note)
         started = time.perf_counter()
         variants = load_variants(self.cfg.path(self.cfg.VARIANTS_SCRIPT))
         bpy.ops.wm.open_mainfile(filepath=str(self.cfg.path(self.cfg.CRATE_BLEND)))
         scene = bpy.context.scene
         bounds = self.probe.measure(bpy.data.objects[self.cfg.CRATE_OBJECT])
-        fruit = self.cfg.FRUITS.get("tomato")
+        fruit = self.cfg.FRUITS.get(label)
+        if fruit is None:
+            raise SystemExit(f"{label} has scenes but no mesh in crate.toml")
         source = variants.load_source(self.cfg.path(fruit.BLEND), fruit.SOURCE)
         source.location = (0.0, 0.0, self.cfg.MESH.PARK_Z_M)
         use_gpu(scene)
@@ -178,17 +194,17 @@ class DatasetWriter:
         scene.render.image_settings.file_format = "PNG"
         rows = []
         for job in jobs():
-            if job["label"] != "tomato":
+            if job["label"] != label:
                 continue
             if self.limit is not None and len(rows) >= self.limit:
                 break
-            rows.append(self._tomato_scene(scene, variants, source, bounds, job))
-        sheet = self.root / "tomato-height-sheet.csv"
+            rows.append(self._arc_scene(scene, variants, source, bounds, job, label))
+        sheet = self.root / f"{label}-height-sheet.csv"
         with sheet.open("w", newline="") as handle:
             writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
             writer.writeheader()
             writer.writerows(rows)
-        print(f"TOMATO scenes={len(rows)} wall_s={time.perf_counter() - started:.1f} sheet={sheet}", flush=True)
+        print(f"ARC {label} scenes={len(rows)} wall_s={time.perf_counter() - started:.1f} sheet={sheet}", flush=True)
 
     def score_pairs(self) -> None:
         """Height from the shift between the two arc frames. The stills are already on disk."""
@@ -224,14 +240,15 @@ class DatasetWriter:
                 writer.writerows(rows)
         print(f"PAIRS scenes={len(rows)} sheet={sheet}", flush=True)
 
-    def _side_scene(self, scene, variants, source, bounds, job, is_fruit, profile_mean, profile_meters) -> dict:
+    def _settle(self, variants, source, bounds, job, label: str):
+        """Drop one item's fruit into the opening. The same path serves every label."""
         seed = job["seed"]
-        fruit = self.cfg.FRUITS.get("tangerine")
+        fruit = self.cfg.FRUITS.get(label)
         fraction = random.Random(seed + self.cfg.FILL.FRACTION_SALT).uniform(
             self.cfg.FILL.MIN_FRACTION, self.cfg.FILL.MAX_FRACTION
         )
         count = max(1, round(fraction * fruit.CROWNED))
-        builder = FruitBuilder(self.cfg, variants, source, "tangerine")
+        builder = FruitBuilder(self.cfg, variants, source, label)
         fruits = builder.build(count)
         random.Random(seed + POUR_SALT).shuffle(fruits)
         bodies = [[0.0, 0.0, 0.0, *sphere_record(obj, builder.axes)] for obj in fruits]
@@ -246,6 +263,11 @@ class DatasetWriter:
         for body in kept_bodies:
             body[4] = body[3]
             body[5] = body[3]
+        return fruits, kept, kept_bodies
+
+    def _side_scene(self, scene, variants, source, bounds, job, is_fruit, profile_mean, profile_meters) -> dict:
+        seed = job["seed"]
+        fruits, kept, kept_bodies = self._settle(variants, source, bounds, job, "tangerine")
         stem = f"tangerine-s{seed}"
         image = self.root / "sides" / job["split"] / f"{stem}.png"
         light = _light(seed)
@@ -279,21 +301,7 @@ class DatasetWriter:
 
     def _third_scene(self, scene, variants, source, bounds, job) -> None:
         seed = job["seed"]
-        fruit = self.cfg.FRUITS.get("tangerine")
-        fraction = random.Random(seed + self.cfg.FILL.FRACTION_SALT).uniform(
-            self.cfg.FILL.MIN_FRACTION, self.cfg.FILL.MAX_FRACTION
-        )
-        count = max(1, round(fraction * fruit.CROWNED))
-        builder = FruitBuilder(self.cfg, variants, source, "tangerine")
-        fruits = builder.build(count)
-        random.Random(seed + POUR_SALT).shuffle(fruits)
-        bodies = [[0.0, 0.0, 0.0, *sphere_record(obj, builder.axes)] for obj in fruits]
-        self.settler.settle(bodies, bounds, seed)
-        for obj, body in zip(fruits, bodies):
-            apply_visual_profile(obj, body, builder.axes)
-            obj.location = (body[0] - body[6], body[1] - body[7], body[2] - body[8])
-        bpy.context.view_layer.update()
-        kept = self.settler.keep_inside(fruits, bounds)
+        fruits, kept, _bodies = self._settle(variants, source, bounds, job, "tangerine")
         image = self.root / "sides" / job["split"] / f"tangerine-s{seed}.png"
         shot = _third_shot(bounds, image)
         self.studio.render_views(scene, bounds, (shot,), len(kept), _light(seed))
@@ -301,29 +309,10 @@ class DatasetWriter:
             bpy.data.objects.remove(obj, do_unlink=True)
         print(f"THIRD tangerine-s{seed} split={job['split']} inside={len(kept)}", flush=True)
 
-    def _tomato_scene(self, scene, variants, source, bounds, job) -> dict:
+    def _arc_scene(self, scene, variants, source, bounds, job, label: str) -> dict:
         seed = job["seed"]
-        fruit = self.cfg.FRUITS.get("tomato")
-        fraction = random.Random(seed + self.cfg.FILL.FRACTION_SALT).uniform(
-            self.cfg.FILL.MIN_FRACTION, self.cfg.FILL.MAX_FRACTION
-        )
-        count = max(1, round(fraction * fruit.CROWNED))
-        builder = FruitBuilder(self.cfg, variants, source, "tomato")
-        fruits = builder.build(count)
-        random.Random(seed + POUR_SALT).shuffle(fruits)
-        bodies = [[0.0, 0.0, 0.0, *sphere_record(obj, builder.axes)] for obj in fruits]
-        self.settler.settle(bodies, bounds, seed)
-        for obj, body in zip(fruits, bodies):
-            apply_visual_profile(obj, body, builder.axes)
-            obj.location = (body[0] - body[6], body[1] - body[7], body[2] - body[8])
-        bpy.context.view_layer.update()
-        kept = self.settler.keep_inside(fruits, bounds)
-        kept_ids = {obj.as_pointer() for obj in kept}
-        kept_bodies = [body for obj, body in zip(fruits, bodies) if obj.as_pointer() in kept_ids]
-        for body in kept_bodies:
-            body[4] = body[3]
-            body[5] = body[3]
-        image = self.root / "sides" / "tomato" / job["split"] / f"tomato-s{seed}.png"
+        fruits, kept, kept_bodies = self._settle(variants, source, bounds, job, label)
+        image = self.root / "sides" / label / job["split"] / f"{label}-s{seed}.png"
         light = _light(seed)
         for shot in (*_rim_shots(bounds, image), _third_shot(bounds, image)):
             self.studio.render_views(scene, bounds, (shot,), len(kept), light)
@@ -337,7 +326,7 @@ class DatasetWriter:
         for obj in fruits:
             bpy.data.objects.remove(obj, do_unlink=True)
         print(
-            f"TOMATO tomato-s{seed} split={job['split']} inside={row['inside']} area={row['h_area_cm']}",
+            f"ARC {label}-s{seed} split={job['split']} inside={row['inside']} area={row['h_area_cm']}",
             flush=True,
         )
         return row
@@ -345,23 +334,7 @@ class DatasetWriter:
     def _scene(self, scene, variants, sources, bounds, job) -> None:
         label = job["label"]
         seed = job["seed"]
-        fruit = self.cfg.FRUITS.get(label)
-        fraction = random.Random(seed + self.cfg.FILL.FRACTION_SALT).uniform(
-            self.cfg.FILL.MIN_FRACTION, self.cfg.FILL.MAX_FRACTION
-        )
-        count = max(1, round(fraction * fruit.CROWNED))
-        builder = FruitBuilder(self.cfg, variants, sources[label], label)
-        fruits = builder.build(count)
-        random.Random(seed + POUR_SALT).shuffle(fruits)
-        bodies = [[0.0, 0.0, 0.0, *sphere_record(obj, builder.axes)] for obj in fruits]
-        self.settler.settle(bodies, bounds, seed)
-        for obj, body in zip(fruits, bodies):
-            apply_visual_profile(obj, body, builder.axes)
-            obj.location = (body[0] - body[6], body[1] - body[7], body[2] - body[8])
-        bpy.context.view_layer.update()
-        kept = self.settler.keep_inside(fruits, bounds)
-        kept_ids = {obj.as_pointer() for obj in kept}
-        kept_bodies = [body for obj, body in zip(fruits, bodies) if obj.as_pointer() in kept_ids]
+        fruits, kept, kept_bodies = self._settle(variants, sources[label], bounds, job, label)
         stem = f"{label}-s{seed}"
         image = self.root / "images" / job["split"] / f"{stem}.png"
         light = _light(seed)
@@ -762,16 +735,21 @@ def _write_label(path: Path, class_id: int, boxes: list[tuple[float, float, floa
 
 
 def _write_yaml(root: Path) -> None:
+    """Class names for items that already have a detector id. Later items stay out."""
+    from detect.produce import detector_classes
+
     root.mkdir(parents=True, exist_ok=True)
-    text = (
-        "path: .\n"
-        "train: images/train\n"
-        "val: images/val\n"
-        "names:\n"
-        "  0: tangerine\n"
-        "  1: tomato\n"
-    )
+    names = "\n".join(f"  {class_id}: {label}" for label, class_id in sorted(detector_classes().items(), key=lambda pair: pair[1]))
+    text = f"path: .\ntrain: images/train\nval: images/val\nnames:\n{names}\n"
     (root / "data.yaml").write_text(text, encoding="utf-8")
+
+
+def _option(argv: list[str], name: str) -> str:
+    """Value of a ``--name value`` flag on the Blender command tail."""
+    index = argv.index(name)
+    if index + 1 >= len(argv):
+        raise SystemExit(f"{name} needs a value")
+    return argv[index + 1]
 
 
 def _check_center(image: Path, box, label: str) -> None:

@@ -32,7 +32,7 @@ O Python que o Blender executa não é o `sim/.venv`. O Blender traz o próprio 
 
 `dataset.py` amarra isso num processo só do Blender. Sem bandeira, ele grava a foto de cima e o arquivo de caixas do YOLO. Com `--sides`, grava dois quadros do arco das tangerinas e uma planilha de silhueta. Com `--third`, grava o terceiro quadro. Com `--tomato`, grava os três quadros de cada tomate e a altura média verdadeira. Essas bandeiras reescrevem planilhas. Não rode `--sides` outra vez se a planilha da tangerina já tem as colunas dos centros: esse comando recomeça o arquivo.
 
-`sim/detect/plan.py` é a lista de cenas. A regra da prova é uma só: semente divisível por 5 não treina.
+`sim/detect/produce.py` é o catálogo dos itens. Tangerina e tomate já têm máscara, sementes e classe do detector. Cenoura e banana já têm a conta, e mais nada: a cenoura reusa os litros do tomate, a banana reusa a conta das pencas. As duas ainda pedem malha, máscara de casca e um leitor de altura, porque não são frutas redondas. A mediana do tomate não passa para elas. Uma fruta nova é uma linha nesse catálogo, uma entrada em `crate.toml` e, se for redonda, o mesmo arco. `plan.py` só lista quem já tem faixa de sementes. A regra da prova é uma só: semente divisível por 5 não treina.
 
 `train.py` e `score.py` treinam e medem o YOLO nano na foto de cima. O modelo responde a camada visível, não a caixa inteira. Nas 24 cenas de prova, com confiança 0,55 e supressão 0,45, a contagem visível erra cerca de 5% em média. O pior caso ficou em 14%, num tomate.
 
