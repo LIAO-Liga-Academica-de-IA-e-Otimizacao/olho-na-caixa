@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1] / "assets" / "detect"
 
 
 def main() -> None:
+    """Train the nano on the top stills. The working directory must be ``sim/assets/detect``."""
     model = YOLO("yolo11n.pt")
     model.train(
         data=str(ROOT / "data.yaml"),

@@ -39,6 +39,7 @@ def project(camera: dict, point: np.ndarray) -> np.ndarray | None:
 
 
 def pixel_ray(camera: dict, column: float, row: float) -> tuple[np.ndarray, np.ndarray]:
+    """Ray from the lens through a pixel. Row 0 is the top of the image."""
     sensor_width = camera["sensor_width"]
     sensor_height = sensor_width * HEIGHT / WIDTH
     lens = camera["lens"]

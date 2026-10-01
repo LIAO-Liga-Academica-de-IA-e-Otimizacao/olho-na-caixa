@@ -32,6 +32,15 @@ DETECT_DIR = "assets/detect"
 
 
 class DatasetWriter:
+    """One Blender process that settles crates and writes the stills the detector reads.
+
+    ``run`` chooses the job from the command line. No flag writes the top stills
+    and the YOLO boxes. ``--sides`` and ``--third`` are the tangerine arc.
+    ``--tomato`` is the tomato arc and the true lid height. ``--pairs`` rescores
+    the silhouette shift. ``--sides`` rewrites ``height-sheet.csv`` from scratch,
+    so it drops columns that a later scorer added.
+    """
+
     def __init__(self, cfg: Config | None = None, argv: list[str] | None = None):
         self.cfg = cfg or Config()
         self.argv = list(sys.argv if argv is None else argv)
@@ -42,6 +51,7 @@ class DatasetWriter:
         self.studio = StillStudio(self.cfg)
 
     def run(self) -> None:
+        """Dispatch to the top-stills job or to one of the arc jobs."""
         if "--pairs" in self.argv:
             self.score_pairs()
             return

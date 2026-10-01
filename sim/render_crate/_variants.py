@@ -7,6 +7,7 @@ from pathlib import Path
 
 
 def load_variants(script: Path):
+    """Import the hyphenated variation script so the settler can call it."""
     spec = importlib.util.spec_from_file_location("render_variants", script)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

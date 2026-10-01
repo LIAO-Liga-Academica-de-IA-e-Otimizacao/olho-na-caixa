@@ -48,6 +48,7 @@ def visible_indices(bodies: list[list[float]], bounds: dict, half_disk: float = 
 
 
 def median_diameter(bodies: list[list[float]], indices: list[int]) -> float:
+    """Median sphere diameter of the visible fruits, or of every fruit if none is visible."""
     diameters = sorted(2.0 * bodies[index][3] for index in indices)
     if not diameters:
         diameters = sorted(2.0 * body[3] for body in bodies)

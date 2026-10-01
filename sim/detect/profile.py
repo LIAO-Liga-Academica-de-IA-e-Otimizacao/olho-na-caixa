@@ -60,6 +60,11 @@ def profile_mean(hits: list[tuple[float, float]], y0: float, y1: float, floor: f
 
 
 def count_from_height(height_cm: float, diameter_cm: float) -> float:
+    """Tangerine units from the floor-average lid height.
+
+    Below 5.5 cm the lid is still a dome and the packing fraction applies.
+    Above that, units rise by about 8.9 fruits per centimeter on this crate.
+    """
     if height_cm < SWITCH_CM:
         radius = 0.5 * diameter_cm
         volume = (4.0 / 3.0) * math.pi * radius ** 3

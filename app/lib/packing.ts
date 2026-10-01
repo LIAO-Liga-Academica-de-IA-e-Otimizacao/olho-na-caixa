@@ -1,4 +1,12 @@
-/** Vertical step of hexagonal sphere packing, in diameters. */
+/**
+ * The count the screens run today.
+ *
+ * Tangerines are a top-layer count times a number of layers. Tomatoes are
+ * liters times a kilograms-per-liter typed from the lot. The height-to-count
+ * line and the tomato median live in `sim/detect/` and are not called from here.
+ */
+
+/** Vertical step of hexagonal sphere packing, in diameters. About 0.816, written 0.82 in the book. */
 export const HCP_PITCH = Math.sqrt(2 / 3);
 
 export type Crate = {
@@ -15,14 +23,23 @@ export type Estimate = {
   flags: string[];
 };
 
+/** Inner length times inner width, in square centimeters. */
 export function baseAreaCm2(crate: Crate): number {
   return crate.lengthCm * crate.widthCm;
 }
 
+/** Pile volume. One liter is 1000 cm³, so the height in centimeters divides by 1000. */
 export function volumeLiters(crate: Crate, fillHeightCm: number): number {
   return (baseAreaCm2(crate) * fillHeightCm) / 1000;
 }
 
+/**
+ * How many layers fit in the fill height.
+ *
+ * The first layer is one diameter tall. Each later layer rises `pitchFactor`
+ * diameters. `residual` is how far the raw value sits from the nearest integer.
+ * Above 0.25 the stack is irregular and the screen should ask for another arc.
+ */
 export function layerCount(
   fillHeightCm: number,
   diameterCm: number,
@@ -39,6 +56,7 @@ export function layerCount(
   };
 }
 
+/** Units: visible fruits on top times the rounded layer count. */
 export function tangerineCount(
   topCount: number,
   diameterCm: number,
@@ -56,6 +74,11 @@ export function tangerineCount(
   };
 }
 
+/**
+ * Kilograms: liters of the pile times the lot's kilograms per liter.
+ *
+ * The density is typed from a weighing. A photo does not produce it.
+ */
 export function tomatoMassKg(
   crate: Crate,
   fillHeightCm: number,
@@ -75,6 +98,7 @@ export function tomatoMassKg(
   };
 }
 
+/** Approximate 95% interval from the estimate's relative sigma. */
 export function interval(estimate: Estimate): { low: number; high: number } {
   return {
     low: estimate.value * (1 - 1.96 * estimate.relativeSigma),
@@ -82,6 +106,7 @@ export function interval(estimate: Estimate): { low: number; high: number } {
   };
 }
 
+/** True when that interval fits inside the relative tolerance, 0.10 for this phase. */
 export function fitsTolerance(estimate: Estimate, tolerance: number): boolean {
   return 1.96 * estimate.relativeSigma <= tolerance;
 }

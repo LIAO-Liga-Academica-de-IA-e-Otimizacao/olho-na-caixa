@@ -8,6 +8,8 @@ from ._settle import profile_meters
 
 
 class TruthWriter:
+    """Writes the known count and the true heights beside the stills."""
+
     def __init__(self, cfg: Config):
         self.cfg = cfg
 

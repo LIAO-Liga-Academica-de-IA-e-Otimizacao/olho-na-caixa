@@ -8,6 +8,8 @@ from ._config import Config
 
 
 class StillStudio:
+    """Sets the simplified Cycles look and renders one camera at a time."""
+
     def __init__(self, cfg: Config):
         self.cfg = cfg
 

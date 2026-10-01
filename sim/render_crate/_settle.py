@@ -11,6 +11,8 @@ _WALK_STEPS = 16
 
 
 class SphereSettler:
+    """Drops each sphere into the lowest pocket it can reach inside the opening."""
+
     def __init__(self, cfg: Config):
         self.cfg = cfg
 

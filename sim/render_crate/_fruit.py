@@ -12,6 +12,8 @@ from ._config import Config
 
 
 class FruitBuilder:
+    """Makes scaled, colored copies of one mesh that waits below the crate."""
+
     def __init__(self, cfg: Config, variants, source, label: str):
         self.cfg = cfg
         self.variants = variants

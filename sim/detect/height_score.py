@@ -12,6 +12,7 @@ SHEET = Path(__file__).resolve().parents[1] / "assets" / "detect" / "height-shee
 
 
 def main() -> None:
+    """Fit a line on the training rows of the height sheet and print the held-out count error."""
     rows = list(csv.DictReader(SHEET.open()))
     for row in rows:
         for key in ("inside", "d_cm", "h_area_cm", "h_sky_cm", "h_photo_cm"):

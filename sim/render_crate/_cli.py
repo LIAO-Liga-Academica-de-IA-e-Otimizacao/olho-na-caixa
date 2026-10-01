@@ -12,6 +12,7 @@ from ._config import Config
 
 @dataclass(frozen=True)
 class SceneRequest:
+    """Which fruit, which seed, and how full the crate should be drawn."""
     label: str
     seed: int
     count: int
@@ -24,6 +25,7 @@ class SceneRequest:
 
 
 def request_from_argv(cfg: Config, argv: list[str] | None = None) -> SceneRequest:
+    """Build one scene request from the arguments that follow Blender's ``--``."""
     label, seed, requested = _parse(cfg, argv if argv is not None else sys.argv)
     fruit = cfg.FRUITS.get(label)
     if fruit is None:

@@ -24,6 +24,13 @@ export const CLASS_ID: Record<ProduceItem, number> = {
 const SCORE_MIN = 0.55;
 const NMS_IOU = 0.45;
 
+/**
+ * Turn YOLO boxes into the same top-layer record the color marks use.
+ *
+ * Keeps boxes of the chosen item inside the opening, at or above the score
+ * cutoff, after overlapping boxes are suppressed. Buried fruit is not in the
+ * image, so it is not in the count.
+ */
 export function layerFromDetections(
   detections: Detection[],
   corners: Point[],

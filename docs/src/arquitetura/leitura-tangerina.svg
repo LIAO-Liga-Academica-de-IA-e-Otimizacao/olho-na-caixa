@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 280" font-family="sans-serif">
+  <rect width="920" height="280" fill="#f7f4ef"/>
+  <text x="460" y="32" text-anchor="middle" font-size="20" fill="#1c1917">Tangerina: das três fotos até as unidades</text>
+  <rect x="24" y="70" width="150" height="72" rx="8" fill="#fff" stroke="#44403c"/>
+  <text x="99" y="100" text-anchor="middle" font-size="14" fill="#1c1917">Três fotos</text>
+  <text x="99" y="122" text-anchor="middle" font-size="13" fill="#57534e">do arco</text>
+  <rect x="214" y="70" width="160" height="72" rx="8" fill="#fff" stroke="#44403c"/>
+  <text x="294" y="100" text-anchor="middle" font-size="14" fill="#1c1917">Centros que</text>
+  <text x="294" y="122" text-anchor="middle" font-size="13" fill="#57534e">casam de cor</text>
+  <rect x="414" y="56" width="170" height="100" rx="8" fill="#fff" stroke="#44403c"/>
+  <text x="499" y="90" text-anchor="middle" font-size="14" fill="#1c1917">Média de 2</text>
+  <text x="499" y="112" text-anchor="middle" font-size="14" fill="#1c1917">e média de 3</text>
+  <text x="499" y="134" text-anchor="middle" font-size="13" fill="#57534e">fica a menor</text>
+  <rect x="624" y="70" width="130" height="72" rx="8" fill="#fff" stroke="#44403c"/>
+  <text x="689" y="100" text-anchor="middle" font-size="14" fill="#1c1917">Menos</text>
+  <text x="689" y="122" text-anchor="middle" font-size="13" fill="#57534e">4,22 cm</text>
+  <rect x="784" y="70" width="112" height="72" rx="8" fill="#ecfccb" stroke="#3f6212"/>
+  <text x="840" y="100" text-anchor="middle" font-size="14" fill="#1c1917">Unidades</text>
+  <text x="840" y="122" text-anchor="middle" font-size="13" fill="#3f6212">reta da altura</text>
+  <path d="M174 106 H214 M374 106 H414 M584 106 H624 M754 106 H784" stroke="#44403c" stroke-width="2" fill="none"/>
+  <text x="460" y="210" text-anchor="middle" font-size="15" fill="#44403c">Se a média dos três quadros está mais alta, a terceira câmera só viu a coroa.</text>
+  <text x="460" y="236" text-anchor="middle" font-size="15" fill="#44403c">Abaixo de 5,5 cm a reta não vale: entra a fórmula da cúpula.</text>
+  <text x="460" y="262" text-anchor="middle" font-size="15" fill="#9a3412">Esse caminho está em sim/detect/. O aplicativo ainda não o chama.</text>
+</svg>

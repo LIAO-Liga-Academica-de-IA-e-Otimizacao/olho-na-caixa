@@ -9,6 +9,8 @@ from ._config import Config
 
 
 class OpeningProbe:
+    """Measures the inner floor, the rim, and the four walls, in meters."""
+
     def __init__(self, cfg: Config):
         self.cfg = cfg
 

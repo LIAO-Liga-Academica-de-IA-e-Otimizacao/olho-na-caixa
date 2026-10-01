@@ -1,10 +1,12 @@
 # Simulação no computador
 
-Esta etapa vem por último. Ela não entra na conferência da cozinha. O celular continua calculando a partir do vídeo, sem física 3D. A placa de vídeo do computador gera caixas cuja quantidade já é conhecida, porque a cena foi montada aqui, e o mesmo cálculo do celular é testado nessas imagens.
+Esta etapa vem por último. Ela não entra na conferência da cozinha. O celular continua calculando a partir do vídeo, sem física 3D. A placa de vídeo do computador gera caixas cuja quantidade já é conhecida, porque a cena foi montada aqui.
+
+A leitura de altura que este capítulo descreve mora em `sim/detect/`. Ela ainda não é a função que a tela chama. O mapa dos dois programas está em [Arquitetura do repositório](arquitetura/visao-geral.md), e o passo a passo do código está em [A leitura que a simulação mediu](arquitetura/leitura.md).
 
 ## Para que serve
 
-Cada cena tem uma verdade anotada na hora em que é criada: tantas tangerinas, ou tantos quilos de tomate. O aplicativo não recebe essa lista. Ele recebe fotos renderizadas, no mesmo tipo de arco que o operador filma. A diferença entre a resposta do aplicativo e a verdade da cena é o erro.
+Cada cena tem uma verdade anotada na hora em que é criada: tantas tangerinas, ou tantos quilos de tomate. O aplicativo não recebe essa lista. Na prática desta fase, ele também ainda não recebe as fotos. Quem compara a leitura com a lista de esferas é o Python em `sim/detect/`. O plano abaixo, de o aplicativo olhar a imagem, continua valendo para a conta de camadas que a tela executa. A leitura nova ainda não fez essa viagem.
 
 Há dois laços separados.
 

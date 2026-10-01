@@ -17,6 +17,7 @@ NMS_IOU = 0.45
 
 
 def main() -> None:
+    """Score the saved weights on the held-out stills and print the visible-count error."""
     model = YOLO(str(WEIGHTS))
     measured = model.val(data=str(ROOT / "data.yaml"), imgsz=320, device=0, plots=False, verbose=False)
     rows = []

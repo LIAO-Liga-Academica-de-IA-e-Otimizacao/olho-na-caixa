@@ -4,6 +4,7 @@ __all__ = ["Renderer"]
 
 
 def __getattr__(name: str):
+    """Load ``Renderer`` on first use so importing this package does not import Blender."""
     if name == "Renderer":
         from .renderer import Renderer
 
