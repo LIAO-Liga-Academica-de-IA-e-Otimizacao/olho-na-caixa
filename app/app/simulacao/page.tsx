@@ -46,6 +46,10 @@ export default function SimulationPage() {
           inteira e não a cozinha. A conferência na tela continua pela cor da casca. A reta da caixa inteira, com a
           altura média verdadeira, fica em 0,7% nessas mesmas tangerinas. A foto colada na grade não mede essa altura.
           Uma vista por cima da borda, nas 16 tangerinas de prova, fica em 6,8% em média, e quatro delas passam de 10%.
+          Dois quadros do arco, ficando com a leitura mais alta, vão a 7,9%, e seis ficam fora de 10%. Os centros das
+          frutas, cruzados nos dois quadros, ficam em 4,1% em média, e duas delas passam de 10%. Com um terceiro quadro,
+          e a fruta tendo de aparecer nos três, o erro médio fica em 3,8%, e duas ainda passam de 10%. Ficando com a
+          menor das duas leituras, e tirando 4,2 cm medidos no treino, as 16 ficam em 2,2%, e nenhuma passa de 10%.
         </p>
       </section>
 

@@ -42,6 +42,12 @@ class DatasetWriter:
         self.studio = StillStudio(self.cfg)
 
     def run(self) -> None:
+        if "--pairs" in self.argv:
+            self.score_pairs()
+            return
+        if "--third" in self.argv:
+            self.run_third()
+            return
         if "--sides" in self.argv:
             self.run_sides()
             return
@@ -110,6 +116,68 @@ class DatasetWriter:
             writer.writerows(rows)
         print(f"SIDES scenes={len(rows)} wall_s={time.perf_counter() - started:.1f} sheet={sheet}", flush=True)
 
+    def run_third(self) -> None:
+        """One more arc frame, on the other side of the first two. The stills already rendered stay."""
+        from cycles_gpu import use_gpu
+
+        started = time.perf_counter()
+        variants = load_variants(self.cfg.path(self.cfg.VARIANTS_SCRIPT))
+        bpy.ops.wm.open_mainfile(filepath=str(self.cfg.path(self.cfg.CRATE_BLEND)))
+        scene = bpy.context.scene
+        bounds = self.probe.measure(bpy.data.objects[self.cfg.CRATE_OBJECT])
+        fruit = self.cfg.FRUITS.get("tangerine")
+        source = variants.load_source(self.cfg.path(fruit.BLEND), fruit.SOURCE)
+        source.location = (0.0, 0.0, self.cfg.MESH.PARK_Z_M)
+        use_gpu(scene)
+        self.studio.apply_cycles(scene)
+        scene.render.resolution_x = WIDTH
+        scene.render.resolution_y = HEIGHT
+        scene.render.image_settings.file_format = "PNG"
+        _record_third_camera(scene, self.cfg, bounds)
+        written = 0
+        for job in jobs():
+            if job["label"] != "tangerine":
+                continue
+            if self.limit is not None and written >= self.limit:
+                break
+            self._third_scene(scene, variants, source, bounds, job)
+            written += 1
+        print(f"THIRD scenes={written} wall_s={time.perf_counter() - started:.1f}", flush=True)
+
+    def score_pairs(self) -> None:
+        """Height from the shift between the two arc frames. The stills are already on disk."""
+        import csv
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.cfg.path(self.cfg.CRATE_BLEND)))
+        scene = bpy.context.scene
+        bounds = self.probe.measure(bpy.data.objects[self.cfg.CRATE_OBJECT])
+        sheet = self.root / "height-sheet.csv"
+        rows = list(csv.DictReader(sheet.open()))
+        if self.limit is not None:
+            rows = rows[: self.limit]
+        for row in rows:
+            seed = int(float(row["seed"]))
+            image = self.root / "sides" / row["split"] / f"tangerine-s{seed}.png"
+            shots = _rim_shots(bounds, image)
+            rays = []
+            for path, location, aim in shots:
+                camera = _aim_camera(scene, self.cfg, location, aim)
+                rays.append(_boundary_rays(path, camera, scene, bounds))
+            height_m, met = _stereo_mean(rays[0], rays[1], bounds)
+            row["h_stereo_cm"] = round(height_m * 100, 2)
+            row["stereo_hit"] = round(met, 2)
+            print(
+                f"PAIR s{seed} stereo={row['h_stereo_cm']} hit={row['stereo_hit']} "
+                f"photo={row['h_photo_cm']} area={row['h_area_cm']}",
+                flush=True,
+            )
+        if self.limit is None:
+            with sheet.open("w", newline="") as handle:
+                writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+                writer.writeheader()
+                writer.writerows(rows)
+        print(f"PAIRS scenes={len(rows)} sheet={sheet}", flush=True)
+
     def _side_scene(self, scene, variants, source, bounds, job, is_fruit, profile_mean, profile_meters) -> dict:
         seed = job["seed"]
         fruit = self.cfg.FRUITS.get("tangerine")
@@ -135,11 +203,13 @@ class DatasetWriter:
         stem = f"tangerine-s{seed}"
         image = self.root / "sides" / job["split"] / f"{stem}.png"
         light = _light(seed)
-        camera, _target = self.studio.render_views(
-            scene, bounds, (_side_shot(self.cfg, bounds, image),), len(kept), light
-        )
-        bpy.context.view_layer.update()
-        photo_m = _photo_profile(image, camera, scene, bounds, is_fruit, profile_mean)
+        frames = []
+        for shot in _rim_shots(bounds, image):
+            camera, _target = self.studio.render_views(scene, bounds, (shot,), len(kept), light)
+            bpy.context.view_layer.update()
+            frames.append(_station_hits(shot[0], camera, scene, bounds))
+        photo_m = _mean_height(_higher_tops(frames), bounds, profile_mean)
+        frame_m = [_mean_height(frame, bounds, profile_mean) for frame in frames]
         peak_m, sky_m = profile_meters(kept_bodies, bounds)
         row = {
             "seed": seed,
@@ -155,10 +225,35 @@ class DatasetWriter:
             bpy.data.objects.remove(obj, do_unlink=True)
         print(
             f"SIDE {stem} split={job['split']} inside={row['inside']} "
-            f"photo={row['h_photo_cm']} sky={row['h_sky_cm']} area={row['h_area_cm']}",
+            f"photo={row['h_photo_cm']} frames={[round(height * 100, 2) for height in frame_m]} "
+            f"sky={row['h_sky_cm']} area={row['h_area_cm']}",
             flush=True,
         )
         return row
+
+    def _third_scene(self, scene, variants, source, bounds, job) -> None:
+        seed = job["seed"]
+        fruit = self.cfg.FRUITS.get("tangerine")
+        fraction = random.Random(seed + self.cfg.FILL.FRACTION_SALT).uniform(
+            self.cfg.FILL.MIN_FRACTION, self.cfg.FILL.MAX_FRACTION
+        )
+        count = max(1, round(fraction * fruit.CROWNED))
+        builder = FruitBuilder(self.cfg, variants, source, "tangerine")
+        fruits = builder.build(count)
+        random.Random(seed + POUR_SALT).shuffle(fruits)
+        bodies = [[0.0, 0.0, 0.0, *sphere_record(obj, builder.axes)] for obj in fruits]
+        self.settler.settle(bodies, bounds, seed)
+        for obj, body in zip(fruits, bodies):
+            apply_visual_profile(obj, body, builder.axes)
+            obj.location = (body[0] - body[6], body[1] - body[7], body[2] - body[8])
+        bpy.context.view_layer.update()
+        kept = self.settler.keep_inside(fruits, bounds)
+        image = self.root / "sides" / job["split"] / f"tangerine-s{seed}.png"
+        shot = _third_shot(bounds, image)
+        self.studio.render_views(scene, bounds, (shot,), len(kept), _light(seed))
+        for obj in fruits:
+            bpy.data.objects.remove(obj, do_unlink=True)
+        print(f"THIRD tangerine-s{seed} split={job['split']} inside={len(kept)}", flush=True)
 
     def _scene(self, scene, variants, sources, bounds, job) -> None:
         label = job["label"]
@@ -219,30 +314,79 @@ class DatasetWriter:
         )
 
 
-def _side_shot(cfg: Config, bounds: dict, image: Path):
-    """Above the near rim, looking down into the opening.
+def _rim_shots(bounds: dict, image: Path):
+    """Two frames a few centimeters apart along the arc, both over the near rim.
 
-    A camera level with the wall looks through the lattice. This one sees the
-    fruit surface over the near lip. The lip is the ruler.
+    A bar that hides the fruit in one frame does not hide it in the other.
+    Each station keeps the higher reading.
     """
     center = bounds["center"]
-    location = (
-        bounds["min_x"] - 0.22,
-        center.y,
-        bounds["rim_z"] + 0.32,
-    )
     aim = (center.x, center.y, bounds["rim_z"] - 0.05)
-    return image, location, aim
+    return (
+        (image, (bounds["min_x"] - 0.22, center.y, bounds["rim_z"] + 0.32), aim),
+        (
+            image.with_name(image.stem + "-b" + image.suffix),
+            (bounds["min_x"] - 0.18, center.y + 0.08, bounds["rim_z"] + 0.38),
+            aim,
+        ),
+    )
 
 
-def _photo_profile(image, camera, scene, bounds, is_fruit, profile_mean) -> float:
-    """Mean height of the fruit against the far wall, in meters.
+def _third_shot(bounds: dict, image: Path):
+    """A third arc frame, shifted the other way along the crate and a little higher."""
+    center = bounds["center"]
+    aim = (center.x, center.y, bounds["rim_z"] - 0.05)
+    return (
+        image.with_name(image.stem + "-c" + image.suffix),
+        (bounds["min_x"] - 0.15, center.y - 0.08, bounds["rim_z"] + 0.44),
+        aim,
+    )
 
-    The camera looks over the near rim, so the far wall is the backdrop. Along
-    the length, the first peel pixel inside that lip is the back row. Its ray
-    meets the plane one radius inside the far wall. Stations with no peel
-    count as the bare floor.
-    """
+
+def _record_third_camera(scene, cfg: Config, bounds: dict) -> None:
+    """Store the third camera next to the two already used to match fruits."""
+    path = Path(__file__).resolve().parents[1] / "detect" / "pair_cameras.json"
+    data = json.loads(path.read_text())
+    _image, location, aim = _third_shot(bounds, Path("frame.png"))
+    camera = _aim_camera(scene, cfg, location, aim)
+    record = {
+        "origin": list(camera.matrix_world.translation),
+        "rotation": [list(row) for row in camera.matrix_world.to_3x3()],
+        "lens": camera.data.lens,
+        "sensor_width": camera.data.sensor_width,
+    }
+    if len(data["cameras"]) >= 3:
+        data["cameras"][2] = record
+    else:
+        data["cameras"].append(record)
+    path.write_text(json.dumps(data, indent=2) + "\n")
+
+
+def _aim_camera(scene, cfg: Config, location, aim):
+    """Same lens and track constraint as the still, without rendering."""
+    target = bpy.data.objects.get("pair-target")
+    if target is None:
+        target = bpy.data.objects.new("pair-target", None)
+        bpy.context.collection.objects.link(target)
+    camera = bpy.data.objects.get("pair-camera")
+    if camera is None:
+        data = bpy.data.cameras.new("pair-camera")
+        data.lens = cfg.STUDIO.LENS_MM
+        data.sensor_fit = cfg.STUDIO.SENSOR_FIT
+        camera = bpy.data.objects.new("pair-camera", data)
+        bpy.context.collection.objects.link(camera)
+        track = camera.constraints.new("TRACK_TO")
+        track.target = target
+        track.track_axis = "TRACK_NEGATIVE_Z"
+        track.up_axis = "UP_Y"
+    target.location = aim
+    camera.location = location
+    scene.camera = camera
+    bpy.context.view_layer.update()
+    return camera
+
+
+def _peel_mask(image, camera, scene, bounds):
     loaded = bpy.data.images.load(str(image))
     width, height = loaded.size
     pixels = np.empty(width * height * 4, dtype=np.float32)
@@ -255,21 +399,53 @@ def _photo_profile(image, camera, scene, bounds, is_fruit, profile_mean) -> floa
         (np.abs(red - green) >= 0.05) | (np.abs(green - blue) >= 0.05)
     ) & (red + green > blue + 0.15)
     mask &= ~_far_lip_band(scene, camera, bounds, width, height)
-    y0, y1 = bounds["min_y"], bounds["max_y"]
+    return mask, width, height
+
+
+def _station_hits(image, camera, scene, bounds) -> list:
+    """Fruit height at each station along the length. None where no pile is seen.
+
+    The camera looks over the near rim, so the far wall is the backdrop. The
+    peel pixel inside that lip is the back row. Its ray meets the plane one
+    radius inside the far wall.
+    """
+    mask, width, height = _peel_mask(image, camera, scene, bounds)
     floor = bounds["floor_z"]
     plane_x = bounds["max_x"] - 0.026
+    y0, y1 = bounds["min_y"], bounds["max_y"]
     stations = 80
-    hits = []
+    tops = []
     for index in range(stations):
         y = y0 + (y1 - y0) * (index + 0.5) / stations
         pixel = _first_peel_inside_far_rim(mask, scene, camera, bounds, y, width, height)
-        if pixel is None:
-            continue
-        point = _ray_on_plane(camera, pixel[0], pixel[1], width, height, plane_x)
+        point = None if pixel is None else _ray_on_plane(camera, pixel[0], pixel[1], width, height, plane_x)
         if point is None or not (floor < point[2] < bounds["rim_z"] + 0.08):
+            tops.append(None)
+        else:
+            tops.append(point[2])
+    return tops
+
+
+def _higher_tops(frames: list[list]) -> list:
+    """Per station, the frame in which the lattice hid less of the fruit."""
+    combined = []
+    for index in range(len(frames[0])):
+        found = [frame[index] for frame in frames if frame[index] is not None]
+        combined.append(max(found) if found else None)
+    return combined
+
+
+def _mean_height(tops: list, bounds: dict, profile_mean) -> float:
+    """Mean silhouette. A station with no peel is the bare floor."""
+    y0, y1 = bounds["min_y"], bounds["max_y"]
+    stations = len(tops)
+    hits = []
+    for index, top in enumerate(tops):
+        if top is None:
             continue
-        hits.append((y, point[2]))
-    return profile_mean(hits, y0, y1, floor, bins=stations)
+        y = y0 + (y1 - y0) * (index + 0.5) / stations
+        hits.append((y, top))
+    return profile_mean(hits, y0, y1, bounds["floor_z"], bins=stations)
 
 
 def _far_lip_band(scene, camera, bounds, width: int, height: int, radius: int = 16):
@@ -344,7 +520,7 @@ def _pixel(scene, camera, point, width: int, height: int):
     return (ndc.x * width, (1.0 - ndc.y) * height)
 
 
-def _ray_on_plane(camera, column: int, row: int, width: int, height: int, plane_x: float):
+def _pixel_ray(camera, column: int, row: int, width: int, height: int):
     sensor_width = camera.data.sensor_width
     sensor_height = sensor_width * height / width
     lens = camera.data.lens
@@ -352,13 +528,85 @@ def _ray_on_plane(camera, column: int, row: int, width: int, height: int, plane_
     cam_y = (0.5 - (row + 0.5) / height) * sensor_height / lens
     rotation = np.array(camera.matrix_world.to_3x3())
     direction = np.array((cam_x, cam_y, -1.0)) @ rotation.T
+    origin = np.array(camera.matrix_world.translation)
+    return origin, direction
+
+
+def _ray_on_plane(camera, column: int, row: int, width: int, height: int, plane_x: float):
+    origin, direction = _pixel_ray(camera, column, row, width, height)
     if abs(direction[0]) < 1e-8:
         return None
-    origin = np.array(camera.matrix_world.translation)
     scale = (plane_x - origin[0]) / direction[0]
     if scale <= 0.0:
         return None
     return origin + scale * direction
+
+
+def _boundary_rays(image, camera, scene, bounds) -> list:
+    """Ray through the fruit edge at each station, or None when the station is bare."""
+    mask, width, height = _peel_mask(image, camera, scene, bounds)
+    y0, y1 = bounds["min_y"], bounds["max_y"]
+    rays = []
+    for index in range(80):
+        y = y0 + (y1 - y0) * (index + 0.5) / 80
+        pixel = _first_peel_inside_far_rim(mask, scene, camera, bounds, y, width, height)
+        rays.append(None if pixel is None else _pixel_ray(camera, pixel[0], pixel[1], width, height))
+    return rays
+
+
+def _closest_point(origin_a, direction_a, origin_b, direction_b, gap_m: float = 0.03):
+    """Midpoint where the two rays pass within gap_m. None when they miss."""
+    direction_a = direction_a / np.linalg.norm(direction_a)
+    direction_b = direction_b / np.linalg.norm(direction_b)
+    across = origin_a - origin_b
+    cross = float(np.dot(direction_a, direction_b))
+    denom = 1.0 - cross * cross
+    if denom < 1e-6:
+        return None
+    along_a = float(np.dot(direction_a, across))
+    along_b = float(np.dot(direction_b, across))
+    ta = (cross * along_b - along_a) / denom
+    tb = (along_b - cross * along_a) / denom
+    if ta <= 0.0 or tb <= 0.0:
+        return None
+    point_a = origin_a + ta * direction_a
+    point_b = origin_b + tb * direction_b
+    if np.linalg.norm(point_a - point_b) > gap_m:
+        return None
+    return (point_a + point_b) / 2.0
+
+
+def _stereo_mean(rays_a: list, rays_b: list, bounds: dict) -> tuple[float, float]:
+    """Mean height where the two frames see the same edge. A bare station is the floor.
+
+    A station seen in only one frame, or whose rays miss, stays out of the mean:
+    it is not proof of an empty stretch.
+    """
+    y0, y1 = bounds["min_y"], bounds["max_y"]
+    floor = bounds["floor_z"]
+    decided = []
+    met = 0
+    for ray_a, ray_b in zip(rays_a, rays_b):
+        if ray_a is None and ray_b is None:
+            decided.append(0.0)
+            continue
+        if ray_a is None or ray_b is None:
+            continue
+        mid = _closest_point(ray_a[0], ray_a[1], ray_b[0], ray_b[1])
+        if mid is None:
+            continue
+        inside = (
+            bounds["min_x"] < mid[0] < bounds["max_x"]
+            and y0 <= mid[1] < y1
+            and floor < mid[2] < bounds["rim_z"] + 0.08
+        )
+        if not inside:
+            continue
+        met += 1
+        decided.append(float(mid[2] - floor))
+    if not decided:
+        return 0.0, 0.0
+    return sum(decided) / len(decided), met / len(rays_a)
 
 
 def _top_shot(cfg: Config, bounds: dict, image: Path, light: dict):

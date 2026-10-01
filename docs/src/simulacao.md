@@ -53,6 +53,14 @@ A reta da contagem, N = 15,57 + 8,859 h, com h em centímetros da altura média 
 
 A vista seguinte fica acima da borda próxima e olha a parede do fundo. A faixa vazia entre a boca e a fruta é a altura. Nas mesmas 80 tangerinas essa leitura acompanha a altura média com correlação 0,974. Sem correção, a reta erra as 16 cenas de prova em 9,2% em média, e o pior caso fica 36% abaixo, porque a grade ainda esconde o topo dos montes baixos. Uma correção reta, ajustada só nas outras 64, deixa a média em 6,8%. Quatro das 16 passam de 10%, e o pior caso é +18,9%: a correção levanta um monte cuja foto já estava perto da altura certa.
 
+Dois quadros do mesmo arco, separados por cerca de 10 cm, com a leitura mais alta em cada trecho, pioram esse número. Nas 16 de prova o erro absoluto médio vai a 7,9%, e seis ficam fora de 10%. A leitura mais alta muitas vezes é uma fruta vista por um furo da grade, acima do monte. O cruzamento das duas linhas de visão do contorno também não serve: elas se encontram no ar, acima da casca. Com correção, o erro médio fica em 18%, e nove das 16 passam de 10%.
+
+O centro de cada fruta, visto nos dois quadros, é outra conta. O disco da tangerina tem o centro na projeção do centro da fruta, então as duas retas se encontram na fruta. Em média 22 frutas casam por caixa. Essa altura acompanha a altura média com correlação 0,990, e fica cerca de 5 cm acima, quase o mesmo tanto em toda caixa. Uma correção reta, ajustada só nas 64 de treino, deixa as 16 de prova com erro absoluto médio de 4,1%, entre −6,8% e +14,8%. Duas passam de 10%: uma em +10,1% e outra em +14,8%.
+
+Um terceiro quadro, do outro lado do arco e um pouco mais alto, exige que a mesma fruta apareça nos três. Sozinho, esse quadro deixa duas das 16 fora de 10%, porque poucas frutas concordam e elas são as mais altas.
+
+A leitura que fica é a menor das duas: a dos dois quadros e a dos três. Quando a dos três está mais alta, a terceira câmera só viu a coroa. O deslocamento de 4,22 cm, medido nas 64 de treino, é o mesmo em toda caixa. Nas 16 de prova o erro absoluto médio é 2,2%, entre −6,0% e +4,5%. Nenhuma passa de 10%. Nas 64, a pior fica em 8,4%. Uma caixa, no computador, leva uma fração de segundo.
+
 Um colega contou 42 tangerinas na caixa da semente 5 e 45 na da semente 1, em fotos de cima anteriores. Esses pixels foram substituídos. As contagens 42 e 45 não são uma leitura dos arquivos atuais. Com diâmetro 5,3 cm e passo 0,82, as médias de 12,1 cm e 20,1 cm não publicam as verdades 86 e 159. Nas duas a conta pede outro arco.
 
 ## Onde a renderização roda
