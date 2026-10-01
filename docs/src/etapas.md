@@ -64,18 +64,16 @@ O que você me diz: se uma pessoa da cozinha entenderia esses passos, e se a uni
 
 ## Etapa 3. O detector no aparelho
 
-O quadro de cima recebe marcas uma vez, dentro da borda. Por enquanto a marca é a cor da casca: laranja conta como tangerina, vermelho como tomate. O diâmetro mediano dessas marcas usa a borda como régua e entra na conta. O YOLO nano ainda não está no aparelho. A cor é o encaixe, para a marca aparecer antes do modelo. O tempo da passagem aparece na última tela, medido neste computador. O minuto oficial continua esperando o celular de referência, que ainda não foi escolhido.
+O quadro de cima recebe as caixas do YOLO nano, uma vez, dentro da borda. O arquivo é a exportação ONNX do peso treinado no simulador. O diâmetro mediano dessas caixas usa a borda como régua. A marca pela cor continua no código, e a tela não a desenha. O tempo da passagem aparece na última tela, medido neste computador. O minuto oficial continua esperando o celular de referência, que ainda não foi escolhido. O formato do celular ainda é o ONNX no navegador, não o LiteRT.
 
-O clipe de teste agora tem círculos laranja dentro da caixa marrom, para as marcas terem o que pegar sem a foto do kit.
+A página Marcas abre sozinha as 120 fotos de cima do simulador. Você não escolhe a pasta.
 
-O que você faz, sem a foto do kit e sem webcam:
+O que você faz:
 
-1. Com `make dev` no ar, percorra Conferir até o quadro de cima. Grave o clipe de teste e escolha um instante em que os círculos laranja estejam dentro da caixa.
-2. Marque os quatro cantos da caixa marrom, não o fundo bege.
-3. Na última tela, cada círculo dentro da borda deve ganhar um anel. A contagem e o diâmetro mediano devem seguir esses anéis. O quadrado laranja que anda fora da caixa não entra.
-4. Volte, escolha tomate, e percorra de novo. A tela deve dizer que não há tomate dentro da borda.
+1. Com `make dev` no ar, abra `http://localhost:3001/marcas/`.
+2. Espere a primeira foto. No tomate da semente 1010, a contagem fica perto de 36 caixas. Na tangerina da semente 46, perto de 50. A lista deixa você pular para esses nomes enquanto o resto carrega.
 
-O que você me diz: se os anéis caíram nos círculos, e se a contagem ficou igual ao que você viu. A foto do kit, quando existir, entra no mesmo lugar do clipe. O minuto no celular de referência fica para quando esse aparelho estiver escolhido.
+O clipe de teste da Conferir tem círculos laranja desenhados. O modelo não foi treinado neles, então essa tela não é a prova das caixas. A prova é a página Marcas.
 
 ## Etapa 4. O número que vai para o edital
 

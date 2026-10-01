@@ -50,19 +50,46 @@ export default function MeasuresPage() {
       >
         <label>
           Nome do modelo
-          <input value={name} onChange={(event) => setName(event.target.value)} />
+          <input
+            value={name}
+            onChange={(event) => {
+              setSaved(false);
+              setName(event.target.value);
+            }}
+          />
         </label>
         <label>
           Comprimento (cm)
-          <input inputMode="decimal" value={lengthCm} onChange={(event) => setLengthCm(event.target.value)} />
+          <input
+            inputMode="decimal"
+            value={lengthCm}
+            onChange={(event) => {
+              setSaved(false);
+              setLengthCm(event.target.value);
+            }}
+          />
         </label>
         <label>
           Largura (cm)
-          <input inputMode="decimal" value={widthCm} onChange={(event) => setWidthCm(event.target.value)} />
+          <input
+            inputMode="decimal"
+            value={widthCm}
+            onChange={(event) => {
+              setSaved(false);
+              setWidthCm(event.target.value);
+            }}
+          />
         </label>
         <label>
           Altura (cm)
-          <input inputMode="decimal" value={heightCm} onChange={(event) => setHeightCm(event.target.value)} />
+          <input
+            inputMode="decimal"
+            value={heightCm}
+            onChange={(event) => {
+              setSaved(false);
+              setHeightCm(event.target.value);
+            }}
+          />
         </label>
         <div className="actions">
           <button type="submit" disabled={!valid}>

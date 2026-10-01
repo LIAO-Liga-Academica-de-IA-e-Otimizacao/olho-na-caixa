@@ -4,7 +4,7 @@ A câmera vê a camada de cima. O fundo da caixa fica escondido. Tudo o que est�
 
 Há duas contas. A tangerina usa a primeira. O tomate usa a segunda. As duas começam do mesmo lugar: o tamanho interno da caixa e a altura até onde a fruta chega.
 
-A conta deste capítulo é a que o aplicativo executa hoje, em `app/lib/packing.ts`. A simulação mediu a altura de outro jeito e, para a tangerina, passou a usar uma reta em vez das camadas. Essa reta está em [A leitura que a simulação mediu](arquitetura/leitura.md). Ela ainda não substitui as funções daqui. Até isso acontecer, os dois textos convivem de propósito: um descreve a tela, o outro descreve o experimento.
+A conta deste capítulo é a da página Conta, em `app/lib/packing.ts`. A tela Conferir, quando recebe os quadros do arco, usa a leitura descrita em [A leitura que a simulação mediu](arquitetura/leitura.md): a reta da tangerina e a mediana do tomate, em `app/lib/arc-height.ts`. As funções daqui não foram substituídas. Os dois textos convivem porque as duas telas não fazem a mesma conta.
 
 ## O que é medido em toda caixa
 

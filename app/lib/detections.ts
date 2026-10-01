@@ -109,6 +109,8 @@ function toMark(box: Detection, toPlane: (point: Point) => Point): Mark {
     x: box.cx,
     y: box.cy,
     radius: Math.max(box.width, box.height) / 2,
+    width: box.width,
+    height: box.height,
     diameterCm: (across + down) / 2,
   };
 }

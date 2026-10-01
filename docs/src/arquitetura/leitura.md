@@ -1,6 +1,6 @@
 # A leitura que a simulação mediu
 
-Este capítulo explica o código que produziu o erro citado no livro. Ele não é a conta de `app/lib/packing.ts`. Se você abrir a tela Conferir, não vai ver estes passos.
+Este capítulo explica o código que produziu o erro citado no livro. A mesma leitura, para as fotos de 640 por 480 pixels, também roda na tela Conferir, em `app/lib/arc-height.ts`. A página Conta continua na conta de camadas de `app/lib/packing.ts`.
 
 A ideia, nas duas frutas, é a mesma. A câmera fica acima da borda próxima e olha o monte. Uma fruta redonda aparece como um disco, e o centro do disco é a projeção do centro da fruta. Duas fotos do mesmo arco, de lugares um pouco diferentes, dão duas retas. As retas se encontram na fruta. O encontro da silhueta, aquele contorno escuro contra o fundo, cai no ar, fora da casca, e foi abandonado.
 
@@ -65,3 +65,28 @@ Ficar com o pixel mais alto entre dois quadros piora, porque o furo da grade mos
 Para o tomate, a mesma média da tangerina, com o raio somado, deixou uma caixa de prova 18% acima. A mediana sem o raio foi o que coube em 10% na prova. Ela não coube nas duas caixas baixas do treino.
 
 A ordem dessas tentativas, com o número de cada uma, está em [Histórico dos experimentos](../simulacao/historico.md).
+
+## Como conferir na tela
+
+As fotos abaixo foram geradas neste computador e não entram no Git. Se a pasta não existir, a tela não tem o que ler.
+
+1. Na raiz do repositório, rode `make dev`.
+2. Abra `http://localhost:3001`. O livro, se estiver aberto, usa a porta 3000.
+3. Em Conferir, escolha **Tomate**.
+4. Na caixa, digite comprimento 39,2, largura 28,2 e altura 26. A conta dos litros ignora esses três números e usa a boca da caixa plástica 01, 28,2 cm por 39,2 cm. Continuar.
+5. Em Filme, continue sem gravar.
+6. Em Quadros, abra estes arquivos, nesta ordem:
+   - Vista de cima: `sim/assets/detect/images/val/tomato-s1005.png`
+   - Quadro A: `sim/assets/detect/sides/tomato/val/tomato-s1005.png`
+   - Quadro B: `sim/assets/detect/sides/tomato/val/tomato-s1005-b.png`
+7. Continuar. Toque os quatro cantos internos da boca, na ordem que a tela pede.
+8. O resultado mostra a altura lida e os quilos. O quilo por litro ainda é o exemplo, 0,55. Nesta caixa a tela lê cerca de 11,9 cm, o que dá cerca de 7,2 kg. A planilha do Python, na mesma foto, lê 12,1 cm. A diferença é a transformada de distância do navegador, que não é a do OpenCV. As duas ficam dentro de 10% da altura verdadeira, 12,7 cm.
+
+Para a tangerina, o item é **Tangerina** e os quatro arquivos são:
+
+- Vista de cima: `sim/assets/detect/images/val/tangerine-s5.png`
+- Quadro A: `sim/assets/detect/sides/val/tangerine-s5.png`
+- Quadro B: `sim/assets/detect/sides/val/tangerine-s5-b.png`
+- Quadro C: `sim/assets/detect/sides/val/tangerine-s5-c.png`
+
+O total é a reta da altura, não a quantidade de anéis coloridos. Nesta caixa a tela lê cerca de 7,1 cm e cerca de 79 unidades. A leitura em Python, na mesma foto, é 7,5 cm e cerca de 82 unidades. A cena tem 86 frutas. O clipe de teste continua disponível em Filme, mas ele não mede altura.

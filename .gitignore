@@ -7,7 +7,12 @@ docs/src/.obsidian/
 .cursor
 app/node_modules/
 app/.next/
+app/tsconfig.tsbuildinfo
+weights/
 app/out/
+app/public/stills/
+app/public/models/
+app/public/ort/
 app/android/.gradle/
 app/android/app/build/
 app/android/build/

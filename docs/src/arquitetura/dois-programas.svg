@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 420" font-family="sans-serif">
   <rect width="920" height="420" fill="#f7f4ef"/>
-  <text x="460" y="36" text-anchor="middle" font-size="22" fill="#1c1917">Dois programas, ainda separados</text>
+  <text x="460" y="36" text-anchor="middle" font-size="22" fill="#1c1917">Dois programas, com a altura em comum</text>
   <rect x="36" y="64" width="380" height="250" rx="12" fill="#fff" stroke="#44403c" stroke-width="2"/>
   <text x="226" y="98" text-anchor="middle" font-size="18" fill="#1c1917">Aplicativo, pasta app/</text>
   <text x="56" y="132" font-size="15" fill="#44403c">Telas: Conferir, Medidas, Conta, Coleta</text>
-  <text x="56" y="160" font-size="15" fill="#44403c">Conta de camadas em lib/packing.ts</text>
-  <text x="56" y="188" font-size="15" fill="#44403c">Marca da fruta pela cor da casca</text>
+  <text x="56" y="160" font-size="15" fill="#44403c">Altura do arco em lib/arc-height.ts</text>
+  <text x="56" y="188" font-size="15" fill="#44403c">Caixas do YOLO na camada de cima</text>
   <text x="56" y="216" font-size="15" fill="#44403c">Você abre em localhost:3001</text>
-  <text x="56" y="258" font-size="15" fill="#9a3412">A leitura nova não está aqui.</text>
+  <text x="56" y="258" font-size="15" fill="#166534">A Conferir lê os quadros do protocolo.</text>
   <rect x="504" y="64" width="380" height="250" rx="12" fill="#fff" stroke="#44403c" stroke-width="2"/>
   <text x="694" y="98" text-anchor="middle" font-size="18" fill="#1c1917">Simulador, pasta sim/</text>
   <text x="524" y="132" font-size="15" fill="#44403c">Blender assenta a caixa e fotografa</text>
@@ -15,8 +15,8 @@
   <text x="524" y="188" font-size="15" fill="#44403c">Altura pelos centros das frutas</text>
   <text x="524" y="216" font-size="15" fill="#44403c">Planilhas e testes em sim/detect/</text>
   <text x="524" y="258" font-size="15" fill="#166534">É aqui que o erro foi medido.</text>
-  <line x1="416" y1="180" x2="504" y2="180" stroke="#9a3412" stroke-width="3" stroke-dasharray="8 6"/>
-  <text x="460" y="168" text-anchor="middle" font-size="13" fill="#9a3412">não ligado</text>
-  <text x="460" y="360" text-anchor="middle" font-size="16" fill="#1c1917">Testar o aplicativo hoje confere a jornada e a conta antiga.</text>
-  <text x="460" y="386" text-anchor="middle" font-size="16" fill="#1c1917">Não confere o erro de 2,2% da tangerina nem o de 3,0% do tomate.</text>
+  <line x1="416" y1="180" x2="504" y2="180" stroke="#166534" stroke-width="3"/>
+  <text x="460" y="168" text-anchor="middle" font-size="13" fill="#166534">altura ligada</text>
+  <text x="460" y="360" text-anchor="middle" font-size="16" fill="#1c1917">As fotos do protocolo conferem a altura. O clipe de teste não.</text>
+  <text x="460" y="386" text-anchor="middle" font-size="16" fill="#1c1917">O mesmo YOLO desenha as caixas na tela.</text>
 </svg>

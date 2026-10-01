@@ -43,7 +43,7 @@ export default function SimulationPage() {
           Um primeiro conjunto já foi gerado com a renderização simplificada: 80 tangerinas e 40 tomates, só a foto de
           cima. A semente divisível por 5 não entra no treino. Nas 24 cenas restantes o YOLO nano, a 320 pixels, erra a
           contagem visível em 5% em média, e o pior caso fica em 14%. Isso é a camada de cima no simulador, não a caixa
-          inteira e não a cozinha. A conferência na tela continua pela cor da casca. A reta da caixa inteira, com a
+          inteira e não a cozinha. A Conferir desenha as caixas desse YOLO. A reta da caixa inteira, com a
           altura média verdadeira, fica em 0,7% nessas mesmas tangerinas. A foto colada na grade não mede essa altura.
           Uma vista por cima da borda, nas 16 tangerinas de prova, fica em 6,8% em média, e quatro delas passam de 10%.
           Dois quadros do arco, ficando com a leitura mais alta, vão a 7,9%, e seis ficam fora de 10%. Os centros das
@@ -52,7 +52,7 @@ export default function SimulationPage() {
           menor das duas leituras, e tirando 4,2 cm medidos no treino, as 16 ficam em 2,2%, e nenhuma passa de 10%. No
           tomate, a mediana dos dois quadros, sem somar raio, deixa as 8 de prova em 3,0% nos litros, e nenhuma passa de
           10%. Cinco passam de 3%. Duas das 32 de treino passam de 10%, uma com a tampa em 8,8 cm e outra em 10,0 cm.
-          Essa leitura ainda não está na tela Conferir. A tela continua com a conta de camadas e com a marca pela cor.
+          A tela Conferir usa essa leitura quando você abre os quadros do protocolo. A marca da camada de cima continua pela cor. A página Conta continua na conta de camadas. O clipe de teste não traz essas câmeras.
         </p>
       </section>
 

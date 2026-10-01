@@ -65,7 +65,7 @@ A escolha entre média crua, mediana e mediana aparada foi feita por leave-one-o
 
 ## O detector, em paralelo
 
-O YOLO nano não mede a altura. Ele marca a camada de cima, numa foto de 320 pixels. Nas 24 cenas que não entraram no treino, com confiança 0,55 e supressão de caixas sobrepostas em 0,45, a precisão e a revocação das caixas ficam em 94%. O erro absoluto médio da contagem visível é cerca de 5%, e o pior caso é 14%, no tomate da semente 1010 (42 frutas visíveis, 36 marcadas). O mAP50 é 0,97. Esse ponto de corte foi escolhido nessas mesmas 24 cenas, então ele não é uma prova cega. A tela Conferir ainda marca pela cor. O peso está em `sim/assets/detect/top-layer.pt`.
+O YOLO nano não mede a altura. Ele marca a camada de cima, numa foto de 320 pixels. Nas 24 cenas que não entraram no treino, com confiança 0,55 e supressão de caixas sobrepostas em 0,45, a precisão e a revocação das caixas ficam em 94%. O erro absoluto médio da contagem visível é cerca de 5%, e o pior caso é 14%, no tomate da semente 1010 (42 frutas visíveis, 36 marcadas). O mAP50 é 0,97. Esse ponto de corte foi escolhido nessas mesmas 24 cenas, então ele não é uma prova cega. A Conferir desenha essas caixas a partir da exportação ONNX do mesmo peso, `sim/assets/detect/top-layer.pt`.
 
 ## O que não entrou
 

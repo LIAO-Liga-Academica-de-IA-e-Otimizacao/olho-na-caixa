@@ -6,9 +6,11 @@ Hoje você usa o modo de desenvolvimento (`make dev`, porta 3001). O pacote Capa
 
 ## As telas
 
-O menu fica em `app/components/Shell.tsx`. São quatro entradas.
+O menu fica em `app/components/Shell.tsx`. São cinco entradas.
 
-**Conferir** (`app/app/page.tsx`) abre `Conference`. É a jornada: escolher tangerina ou tomate, confirmar o vão da caixa, gravar um arco curto, escolher o quadro de cima e o de lado, tocar os quatro cantos internos e ver o resultado. No clipe de teste não há fruta. Há uma caixa desenhada e círculos laranja, para a marca pela cor ter o que pegar.
+**Conferir** (`app/app/page.tsx`) abre `Conference`. É a jornada: escolher tangerina ou tomate, confirmar o vão da caixa, gravar um arco curto, escolher o quadro de cima e os quadros do arco, tocar os quatro cantos internos e ver o resultado. No clipe de teste não há fruta. Há uma caixa desenhada e círculos laranja. O YOLO não foi treinado nesse desenho.
+
+**Marcas** (`app/app/marcas/page.tsx`) abre sozinha as 120 fotos de cima do simulador e desenha as caixas do YOLO. A escolha de pasta fica para uma foto de fora desse conjunto.
 
 **Medidas** (`app/app/medidas/page.tsx`) guarda o vão interno que alguém mediu com trena. Comprimento, largura e altura. Esse vão é a régua. A foto não inventa o centímetro da caixa.
 
@@ -24,9 +26,9 @@ A pasta `app/lib/` é a conta e o estado, separados da tela. A tela chama essas 
 
 `packing.ts` é a conta que a tela usa hoje. `tangerineCount` multiplica as frutas visíveis pelo número de camadas. `massFromLiters` multiplica os litros pelo quilo por litro: o tomate chama essa função, e a cenoura vai chamar a mesma, com o quilo por litro do lote dela. `bananaFingers` multiplica pencas, dedos por penca e camadas de penca, e marca a estimativa como fora desta fase para a tela não publicar. `fitsTolerance` diz se o intervalo cabe em 10%. Nenhuma dessas funções lê pixel. O catálogo de qual item usa qual conta está em `produce.ts`. A tela Conferir continua oferecendo só tangerina e tomate.
 
-`top-layer.ts` marca a camada de cima pela cor. Laranja conta como tangerina. Vermelho conta como tomate. É um encaixe, para a jornada existir antes do modelo no aparelho. O clipe de teste foi desenhado para essa marca.
+`top-layer.ts` ainda tem a marca pela cor. A Conferir e a página Marcas não a usam. Ela ficou para o teste que compara a cor com o modelo.
 
-`detections.ts` é o encaixe do YOLO, para o dia em que o modelo rodar no aparelho. Ele recebe caixas no formato do YOLO (centro e tamanho, em fração da imagem), fica com as que passam de 0,55 de confiança, e suprime caixas sobrepostas com IoU 0,45. Esse ponto de corte foi escolhido nas fotos de prova do simulador. A função devolve o mesmo tipo de registro que a marca pela cor, para a tela não precisar de dois caminhos.
+`yolo-detect.ts` carrega `app/public/models/top-layer.onnx`, o mesmo peso de `sim/assets/detect/top-layer.pt`. A foto vai para um quadrado de 320 pixels, com margem 114, e as caixas voltam para a foto original. `detections.ts` fica com as que passam de 0,55 de confiança e suprime caixas sobrepostas com IoU 0,45. Esse ponto de corte foi escolhido nas fotos de prova do simulador. O notebook `sim/ver-yolo.ipynb` continua sendo o caminho no Python.
 
 `homography.ts` endereça a boca da caixa. Quatro cantos na imagem, mais o comprimento e a largura em centímetros, viram uma função que leva um pixel ao plano da boca. É a régua do diâmetro.
 
@@ -38,6 +40,6 @@ A pasta `app/lib/` é a conta e o estado, separados da tela. A tela chama essas 
 
 ## O que a tela não faz
 
-A tela não assenta frutas, não treina modelo e não lê a altura pelos centros. Quando a Conferir mostra um número, esse número saiu de `packing.ts` com a altura e o diâmetro que a jornada tinha naquele momento. No clipe de teste, a altura não é a altura de um monte de verdade.
+A tela não assenta frutas e não treina modelo. A Conferir lê a altura em `arc-height.ts` quando você abre os quadros do protocolo. A página Conta continua na conta de camadas de `packing.ts`. No clipe de teste, sem esses quadros, a altura não aparece: o clipe não tem as três câmeras.
 
-O modelo treinado no simulador está em `sim/assets/detect/top-layer.pt`. O aplicativo não carrega esse arquivo. Ligar os dois é um passo futuro: exportar o YOLO para o formato do celular e chamar `layerFromDetections` no lugar da cor. A leitura de altura do arco é outro passo, separado, e também ainda não está em TypeScript.
+O modelo treinado no simulador está em `sim/assets/detect/top-layer.pt`. A Conferir e a página Marcas carregam a exportação ONNX desse arquivo, em `app/public/models/top-layer.onnx`. O formato do celular (LiteRT) ainda não é este.

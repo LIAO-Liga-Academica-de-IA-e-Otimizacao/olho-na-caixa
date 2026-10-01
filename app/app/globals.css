@@ -59,6 +59,8 @@ input {
 
 .nav {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 14px;
   font-size: 0.92rem;
 }
@@ -227,13 +229,24 @@ button.choice {
   background: #1b2822;
 }
 
-.shot-pick {
+.shot-pick,
+.still-pick {
   margin-top: 12px;
 }
 
-.shot-pick > button {
+.shot-pick > button,
+.still-pick > button {
   display: block;
   width: 100%;
+}
+
+.still-pick img,
+.shot-pick img {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  border-radius: 14px;
+  border: 3px solid var(--ok);
 }
 
 .shot-moment {
@@ -264,6 +277,25 @@ button.choice {
   display: grid;
   place-items: center;
   font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.mark-jump {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+
+.fruit-box {
+  position: absolute;
+  border: 2px solid #fff8f3;
+  box-shadow: 0 0 0 2px var(--accent);
+  transform: translate(-50%, -50%);
   pointer-events: none;
 }
 

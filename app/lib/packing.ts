@@ -3,8 +3,8 @@
  *
  * Tangerines are a top-layer count times a number of layers. Tomatoes and
  * carrots are liters times a kilograms-per-liter typed from the lot. Bananas
- * are hands times fingers times hand layers. The photo height readers live in
- * `sim/detect/` and are not called from here.
+ * are hands times fingers times hand layers. Conferir reads the arc stills in
+ * `arc-height.ts`. This file keeps the layer account and does not call that reader.
  */
 
 /** Vertical step of hexagonal sphere packing, in diameters. About 0.816, written 0.82 in the book. */

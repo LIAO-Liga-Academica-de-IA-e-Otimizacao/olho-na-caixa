@@ -2,7 +2,9 @@
   "name": "olho-na-caixa",
   "private": true,
   "scripts": {
+    "predev": "node scripts/link-public.mjs",
     "dev": "next dev -p 3001",
+    "prebuild": "node scripts/link-public.mjs",
     "build": "next build",
     "test": "vitest run",
     "cap:sync": "npm run build && npx cap sync"
@@ -11,6 +13,7 @@
     "@capacitor/android": "^7.4.3",
     "@capacitor/core": "^7.4.3",
     "next": "^15.5.3",
+    "onnxruntime-web": "^1.30.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
