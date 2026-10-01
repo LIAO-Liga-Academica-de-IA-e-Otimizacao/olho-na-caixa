@@ -44,8 +44,8 @@ export default function SimulationPage() {
           cima. A semente divisível por 5 não entra no treino. Nas 24 cenas restantes o YOLO nano, a 320 pixels, erra a
           contagem visível em 5% em média, e o pior caso fica em 14%. Isso é a camada de cima no simulador, não a caixa
           inteira e não a cozinha. A conferência na tela continua pela cor da casca. A reta da caixa inteira, com a
-          altura média verdadeira, fica em 0,7% nessas mesmas tangerinas. A foto de lado através do plástico não mede
-          essa altura.
+          altura média verdadeira, fica em 0,7% nessas mesmas tangerinas. A foto colada na grade não mede essa altura.
+          Uma vista por cima da borda, nas 16 tangerinas de prova, fica em 6,8% em média, e quatro delas passam de 10%.
         </p>
       </section>
 

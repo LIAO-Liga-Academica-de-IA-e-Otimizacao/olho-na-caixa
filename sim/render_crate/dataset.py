@@ -220,46 +220,29 @@ class DatasetWriter:
 
 
 def _side_shot(cfg: Config, bounds: dict, image: Path):
+    """Above the near rim, looking down into the opening.
+
+    A camera level with the wall looks through the lattice. This one sees the
+    fruit surface over the near lip. The lip is the ruler.
+    """
     center = bounds["center"]
-    beside = cfg.VIEWS.SIDE
     location = (
-        bounds["min_x"] - beside.PAST_MIN_X_M,
-        center.y + beside.OFFSET_Y_M,
-        center.z + beside.OFFSET_Z_M,
+        bounds["min_x"] - 0.22,
+        center.y,
+        bounds["rim_z"] + 0.32,
     )
-    aim = (center.x, center.y, center.z + beside.AIM_Z_M)
+    aim = (center.x, center.y, bounds["rim_z"] - 0.05)
     return image, location, aim
 
 
-def _opening_pixels(scene, camera, bounds, width, height):
-    """Inner opening on the near wall, inset so the rim itself is not peel."""
-    from bpy_extras.object_utils import world_to_camera_view
-
-    samples = []
-    for y in (bounds["min_y"], bounds["max_y"]):
-        for z in (bounds["floor_z"], bounds["rim_z"]):
-            ndc = world_to_camera_view(scene, camera, Vector((bounds["min_x"], y, z)))
-            samples.append((ndc.x * width, (1.0 - ndc.y) * height))
-    points = np.array(samples, dtype=np.float64)
-    center = points.mean(axis=0)
-    order = np.argsort(np.arctan2(points[:, 1] - center[1], points[:, 0] - center[0]))
-    points = points[order]
-    return center + (points - center) * 0.94
-
-
-def _inside(xs, ys, polygon):
-    """Pixels inside the opening. Either winding is accepted."""
-    crosses = []
-    for index in range(len(polygon)):
-        ax, ay = polygon[index]
-        bx, by = polygon[(index + 1) % len(polygon)]
-        crosses.append((bx - ax) * (ys - ay) - (by - ay) * (xs - ax))
-    stack = np.stack(crosses)
-    return np.all(stack >= 0, axis=0) | np.all(stack <= 0, axis=0)
-
-
 def _photo_profile(image, camera, scene, bounds, is_fruit, profile_mean) -> float:
-    """Mean silhouette height, in meters, from peel pixels and the side camera."""
+    """Mean height of the fruit against the far wall, in meters.
+
+    The camera looks over the near rim, so the far wall is the backdrop. Along
+    the length, the first peel pixel inside that lip is the back row. Its ray
+    meets the plane one radius inside the far wall. Stations with no peel
+    count as the bare floor.
+    """
     loaded = bpy.data.images.load(str(image))
     width, height = loaded.size
     pixels = np.empty(width * height * 4, dtype=np.float32)
@@ -271,29 +254,111 @@ def _photo_profile(image, camera, scene, bounds, is_fruit, profile_mean) -> floa
     mask = (peak >= 0.25) & ~((green < 0.18) & (blue < 0.15)) & (
         (np.abs(red - green) >= 0.05) | (np.abs(green - blue) >= 0.05)
     ) & (red + green > blue + 0.15)
-    opening = _opening_pixels(scene, camera, bounds, width, height)
-    rows, cols = np.indices((height, width))
-    mask &= _inside(cols, rows, opening)
-    ys, xs = np.nonzero(mask)
-    if len(xs) == 0:
-        return 0.0
+    mask &= ~_far_lip_band(scene, camera, bounds, width, height)
+    y0, y1 = bounds["min_y"], bounds["max_y"]
+    floor = bounds["floor_z"]
+    plane_x = bounds["max_x"] - 0.026
+    stations = 80
+    hits = []
+    for index in range(stations):
+        y = y0 + (y1 - y0) * (index + 0.5) / stations
+        pixel = _first_peel_inside_far_rim(mask, scene, camera, bounds, y, width, height)
+        if pixel is None:
+            continue
+        point = _ray_on_plane(camera, pixel[0], pixel[1], width, height, plane_x)
+        if point is None or not (floor < point[2] < bounds["rim_z"] + 0.08):
+            continue
+        hits.append((y, point[2]))
+    return profile_mean(hits, y0, y1, floor, bins=stations)
+
+
+def _far_lip_band(scene, camera, bounds, width: int, height: int, radius: int = 16):
+    """Pixels on the far lip. Specular plastic there is not the fruit surface."""
+    band = np.zeros((height, width), dtype=bool)
+    for y in np.linspace(bounds["min_y"], bounds["max_y"], 48):
+        for point in (
+            (bounds["max_x"], y, bounds["rim_z"]),
+            (bounds["max_x"] + 0.012, y, bounds["rim_z"] + 0.006),
+            (bounds["max_x"] - 0.008, y, bounds["rim_z"] - 0.004),
+        ):
+            pixel = _pixel(scene, camera, point, width, height)
+            if pixel is None:
+                continue
+            column, row = int(round(pixel[0])), int(round(pixel[1]))
+            row0, row1 = max(0, row - radius), min(height, row + radius + 1)
+            col0, col1 = max(0, column - radius), min(width, column + radius + 1)
+            band[row0:row1, col0:col1] = True
+    return band
+
+
+def _first_peel_inside_far_rim(mask, scene, camera, bounds, y: float, width: int, height: int):
+    """First peel pixel walking from outside the far lip into the crate."""
+    rim = _pixel(scene, camera, (bounds["max_x"], y, bounds["rim_z"]), width, height)
+    inward = _pixel(scene, camera, (bounds["max_x"] - 0.10, y, bounds["rim_z"] - 0.04), width, height)
+    if rim is None or inward is None:
+        return None
+    direction = np.array(inward) - np.array(rim)
+    length = float(np.hypot(direction[0], direction[1]))
+    if length < 1.0:
+        return None
+    step = direction / length
+    start = np.array(rim) - step * 40.0
+    samples = []
+    for index in range(280):
+        point = start + step * index
+        column = int(round(point[0]))
+        row = int(round(point[1]))
+        if column < 0 or row < 0 or column >= width or row >= height:
+            continue
+        samples.append((column, row, bool(mask[row, column])))
+    # The pile is a solid mass of peel. A fruit in one lattice hole is a short run
+    # separated from that mass by the bar. Crevices between fruits are shorter.
+    window = 24
+    solid = None
+    for index in range(len(samples) - window):
+        block = samples[index : index + window]
+        if sum(1 for sample in block if sample[2]) >= 0.7 * window:
+            solid = index
+            break
+    if solid is None:
+        return None
+    top = solid
+    gap = 0
+    cursor = solid
+    while cursor > 0:
+        cursor -= 1
+        if samples[cursor][2]:
+            gap = 0
+            top = cursor
+        else:
+            gap += 1
+            if gap > 8:
+                break
+    return samples[top][0], samples[top][1]
+
+
+def _pixel(scene, camera, point, width: int, height: int):
+    ndc = world_to_camera_view(scene, camera, Vector(point))
+    if ndc.z <= 0.0:
+        return None
+    return (ndc.x * width, (1.0 - ndc.y) * height)
+
+
+def _ray_on_plane(camera, column: int, row: int, width: int, height: int, plane_x: float):
     sensor_width = camera.data.sensor_width
     sensor_height = sensor_width * height / width
     lens = camera.data.lens
-    cam_x = ((xs + 0.5) / width - 0.5) * sensor_width / lens
-    cam_y = (0.5 - (ys + 0.5) / height) * sensor_height / lens
-    dirs_cam = np.stack((cam_x, cam_y, -np.ones_like(cam_x)), axis=1)
+    cam_x = ((column + 0.5) / width - 0.5) * sensor_width / lens
+    cam_y = (0.5 - (row + 0.5) / height) * sensor_height / lens
     rotation = np.array(camera.matrix_world.to_3x3())
-    dirs = dirs_cam @ rotation.T
+    direction = np.array((cam_x, cam_y, -1.0)) @ rotation.T
+    if abs(direction[0]) < 1e-8:
+        return None
     origin = np.array(camera.matrix_world.translation)
-    # The near wall is the ruler. A ray continued to the middle of the crate climbs past the fruit.
-    scale = (bounds["min_x"] - origin[0]) / dirs[:, 0]
-    points = origin + scale[:, None] * dirs
-    y0, y1 = bounds["min_y"], bounds["max_y"]
-    floor = bounds["floor_z"]
-    keep = (scale > 0.0) & (points[:, 1] >= y0) & (points[:, 1] < y1) & (points[:, 2] > floor)
-    hits = list(zip(points[keep, 1].tolist(), points[keep, 2].tolist()))
-    return profile_mean(hits, y0, y1, floor)
+    scale = (plane_x - origin[0]) / direction[0]
+    if scale <= 0.0:
+        return None
+    return origin + scale * direction
 
 
 def _top_shot(cfg: Config, bounds: dict, image: Path, light: dict):
