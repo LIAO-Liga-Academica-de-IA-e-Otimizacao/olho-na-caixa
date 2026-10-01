@@ -38,12 +38,14 @@ Daqui para a frente cada cena de prova sorteia a quantidade e assenta esferas. C
 
 O atalho é `make render-crate FRUIT=tomato SEED=5`. Sem `SEED`, a semente é 1. `COUNT=127` fixa a quantidade e pula o sorteio. `BLENDER=/caminho/do/blender` aponta o binário. `make help` lista os comandos. O Blender entra por `sim/render-crate.py`. As quatro caixas de prova juntas saem de um processo só, com `--batch`. A classe `Renderer` e os módulos ficam em `sim/render_crate/`, e os números da cena em `crate.toml`. O nome do arquivo é `crate-01-<fruta>-s<semente>-n<quantidade>.txt`. Quatro sorteios já medidos com esse assentamento, com a parede em 25,7 cm:
 
-| Fruta | Semente | Sorteada | Dentro | Média | Topo |
-| :--- | ---: | ---: | ---: | ---: | ---: |
-| Tomate | 5 | 69 | 69 | 12,3 cm | 13,9 cm |
-| Tangerina | 5 | 86 | 86 | 12,1 cm | 13,0 cm |
-| Tomate | 1 | 127 | 127 | 20,5 cm | 21,7 cm |
-| Tangerina | 1 | 159 | 159 | 20,1 cm | 21,3 cm |
+
+| Fruta     | Semente | Sorteada | Dentro | Média   | Topo    |
+| --------- | ------- | -------- | ------ | ------- | ------- |
+| Tomate    | 5       | 69       | 69     | 12,3 cm | 13,9 cm |
+| Tangerina | 5       | 86       | 86     | 12,1 cm | 13,0 cm |
+| Tomate    | 1       | 127      | 127    | 20,5 cm | 21,7 cm |
+| Tangerina | 1       | 159      | 159    | 20,1 cm | 21,3 cm |
+
 
 As quatro ficam abaixo da boca. As caixas de 240 tangerinas e de 192 tomates, no arquivo de corpo rígido, continuam sendo o extremo alto. As oito fotos saíram em 12 s dentro de um processo só do Blender. O relógio de parede marcou 13 s. Essas fotos usam 4 amostras, o subsurf desligado e o denoise na placa. A caixa não aplica o deslocamento de vértice da grade de variação: cada fruta só muda de escala e de cor. O relevo de bump da casca continua no material compartilhado.
 
@@ -61,7 +63,13 @@ Um terceiro quadro, do outro lado do arco e um pouco mais alto, exige que a mesm
 
 A leitura que fica é a menor das duas: a dos dois quadros e a dos três. Quando a dos três está mais alta, a terceira câmera só viu a coroa. O deslocamento de 4,22 cm, medido nas 64 de treino, é o mesmo em toda caixa. Nas 16 de prova o erro absoluto médio é 2,2%, entre −6,0% e +4,5%. Nenhuma passa de 10%. Nas 64, a pior fica em 8,4%. Uma caixa, no computador, leva uma fração de segundo.
 
-Um colega contou 42 tangerinas na caixa da semente 5 e 45 na da semente 1, em fotos de cima anteriores. Esses pixels foram substituídos. As contagens 42 e 45 não são uma leitura dos arquivos atuais. Com diâmetro 5,3 cm e passo 0,82, as médias de 12,1 cm e 20,1 cm não publicam as verdades 86 e 159. Nas duas a conta pede outro arco.
+O tomate não usa essa reta nem esse raio. Os litros são a base vezes a altura média da tampa. O quilo é esse volume vezes o quilo por litro do lote. O simulador não pesa, então o erro do quilo, aqui, é o erro do litro, com o quilo por litro já conhecido.
+
+São os mesmos dois quadros do arco, nas 40 cenas de tomate. A máscara aceita o vermelho claro da fruta e rejeita o vermelho escuro da caixa. O cruzamento das retas já cai perto da casca. Somar o raio da tangerina levanta o monte, então a leitura não soma raio: é a mediana dos cruzamentos, em centímetros acima do fundo. Os 3 cm junto à parede próxima são a borda. Um ponto mais de 6 cm acima da mediana é um cruzamento falso. Nas 32 de treino a reta ficou altura = −1,09 + 0,998 × leitura.
+
+Nas 8 de prova o erro absoluto médio dos litros é 3,0%, entre −4,5% e +5,9%. Nenhuma passa de 10%. Cinco passam de 3%. Nas 32 de treino, duas passam de 10%: a semente 1011 em +11,5%, com a tampa em 8,8 cm, e a 1014 em +10,7%, com a tampa em 10,0 cm. Um centímetro nessa altura já é cerca de 10% do volume, e a mediana das frutas vistas fica cerca de 2 cm acima da média do fundo. O método não segura 3% em toda caixa.
+
+Rafael contou 42 tangerinas na caixa da semente 5 e 45 na da semente 1, em fotos de cima anteriores. Esses pixels foram substituídos. As contagens 42 e 45 não são uma leitura dos arquivos atuais. Com diâmetro 5,3 cm e passo 0,82, as médias de 12,1 cm e 20,1 cm não publicam as verdades 86 e 159. Nas duas a conta pede outro arco.
 
 ## Onde a renderização roda
 

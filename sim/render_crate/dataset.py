@@ -45,6 +45,9 @@ class DatasetWriter:
         if "--pairs" in self.argv:
             self.score_pairs()
             return
+        if "--tomato" in self.argv:
+            self.run_tomatoes()
+            return
         if "--third" in self.argv:
             self.run_third()
             return
@@ -143,6 +146,39 @@ class DatasetWriter:
             self._third_scene(scene, variants, source, bounds, job)
             written += 1
         print(f"THIRD scenes={written} wall_s={time.perf_counter() - started:.1f}", flush=True)
+
+    def run_tomatoes(self) -> None:
+        """Three arc frames of each tomato scene, plus the true mean lid height."""
+        import csv
+
+        from cycles_gpu import use_gpu
+
+        started = time.perf_counter()
+        variants = load_variants(self.cfg.path(self.cfg.VARIANTS_SCRIPT))
+        bpy.ops.wm.open_mainfile(filepath=str(self.cfg.path(self.cfg.CRATE_BLEND)))
+        scene = bpy.context.scene
+        bounds = self.probe.measure(bpy.data.objects[self.cfg.CRATE_OBJECT])
+        fruit = self.cfg.FRUITS.get("tomato")
+        source = variants.load_source(self.cfg.path(fruit.BLEND), fruit.SOURCE)
+        source.location = (0.0, 0.0, self.cfg.MESH.PARK_Z_M)
+        use_gpu(scene)
+        self.studio.apply_cycles(scene)
+        scene.render.resolution_x = WIDTH
+        scene.render.resolution_y = HEIGHT
+        scene.render.image_settings.file_format = "PNG"
+        rows = []
+        for job in jobs():
+            if job["label"] != "tomato":
+                continue
+            if self.limit is not None and len(rows) >= self.limit:
+                break
+            rows.append(self._tomato_scene(scene, variants, source, bounds, job))
+        sheet = self.root / "tomato-height-sheet.csv"
+        with sheet.open("w", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+            writer.writeheader()
+            writer.writerows(rows)
+        print(f"TOMATO scenes={len(rows)} wall_s={time.perf_counter() - started:.1f} sheet={sheet}", flush=True)
 
     def score_pairs(self) -> None:
         """Height from the shift between the two arc frames. The stills are already on disk."""
@@ -254,6 +290,47 @@ class DatasetWriter:
         for obj in fruits:
             bpy.data.objects.remove(obj, do_unlink=True)
         print(f"THIRD tangerine-s{seed} split={job['split']} inside={len(kept)}", flush=True)
+
+    def _tomato_scene(self, scene, variants, source, bounds, job) -> dict:
+        seed = job["seed"]
+        fruit = self.cfg.FRUITS.get("tomato")
+        fraction = random.Random(seed + self.cfg.FILL.FRACTION_SALT).uniform(
+            self.cfg.FILL.MIN_FRACTION, self.cfg.FILL.MAX_FRACTION
+        )
+        count = max(1, round(fraction * fruit.CROWNED))
+        builder = FruitBuilder(self.cfg, variants, source, "tomato")
+        fruits = builder.build(count)
+        random.Random(seed + POUR_SALT).shuffle(fruits)
+        bodies = [[0.0, 0.0, 0.0, *sphere_record(obj, builder.axes)] for obj in fruits]
+        self.settler.settle(bodies, bounds, seed)
+        for obj, body in zip(fruits, bodies):
+            apply_visual_profile(obj, body, builder.axes)
+            obj.location = (body[0] - body[6], body[1] - body[7], body[2] - body[8])
+        bpy.context.view_layer.update()
+        kept = self.settler.keep_inside(fruits, bounds)
+        kept_ids = {obj.as_pointer() for obj in kept}
+        kept_bodies = [body for obj, body in zip(fruits, bodies) if obj.as_pointer() in kept_ids]
+        for body in kept_bodies:
+            body[4] = body[3]
+            body[5] = body[3]
+        image = self.root / "sides" / "tomato" / job["split"] / f"tomato-s{seed}.png"
+        light = _light(seed)
+        for shot in (*_rim_shots(bounds, image), _third_shot(bounds, image)):
+            self.studio.render_views(scene, bounds, (shot,), len(kept), light)
+        row = {
+            "seed": seed,
+            "split": job["split"],
+            "inside": len(kept),
+            "d_cm": round(median_diameter(kept_bodies, visible_indices(kept_bodies, bounds)) * 100, 2),
+            "h_area_cm": round(area_mean(kept_bodies, bounds) * 100, 2),
+        }
+        for obj in fruits:
+            bpy.data.objects.remove(obj, do_unlink=True)
+        print(
+            f"TOMATO tomato-s{seed} split={job['split']} inside={row['inside']} area={row['h_area_cm']}",
+            flush=True,
+        )
+        return row
 
     def _scene(self, scene, variants, sources, bounds, job) -> None:
         label = job["label"]

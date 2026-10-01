@@ -93,14 +93,19 @@ def _inside_opening(column: float, row: float, camera: dict) -> bool:
     return all(value >= 0 for value in crosses) or all(value <= 0 for value in crosses)
 
 
-def fruit_centers(image: Path, camera: dict) -> list[dict]:
+def fruit_centers(image: Path, camera: dict, kind: str = "tangerine") -> list[dict]:
     """One center per visible fruit: a peak of the peel's distance transform."""
     bgr = cv2.imread(str(image))
     rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
     red, green, blue = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
     peak = np.maximum(np.maximum(red, green), blue)
-    mask = (peak >= 0.28) & ~((green < 0.18) & (blue < 0.15))
-    mask &= ((np.abs(red - green) >= 0.05) | (np.abs(green - blue) >= 0.05)) & (red + green > blue + 0.15)
+    grey = (np.abs(red - green) < 0.05) & (np.abs(green - blue) < 0.05)
+    if kind == "tomato":
+        # Ripe tomato is red with little green, like the crate, but brighter.
+        mask = (peak >= 0.22) & ~grey & (red + green > blue + 0.10)
+    else:
+        mask = (peak >= 0.28) & ~((green < 0.18) & (blue < 0.15))
+        mask &= ((np.abs(red - green) >= 0.05) | (np.abs(green - blue) >= 0.05)) & (red + green > blue + 0.15)
     binary = mask.astype(np.uint8) * 255
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
     binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
@@ -127,11 +132,11 @@ def _in_crate(point: np.ndarray) -> bool:
     )
 
 
-def matched_tops(image_a: Path, image_b: Path) -> list[float]:
-    """Lid height of each fruit found in both frames, in meters above the floor."""
+def matched_points(image_a: Path, image_b: Path, kind: str = "tangerine") -> list[np.ndarray]:
+    """Where the same fruit is seen in both frames, in meters."""
     cameras = CAMERAS["cameras"]
-    fruits_a = fruit_centers(image_a, cameras[0])
-    fruits_b = fruit_centers(image_b, cameras[1])
+    fruits_a = fruit_centers(image_a, cameras[0], kind)
+    fruits_b = fruit_centers(image_b, cameras[1], kind)
     pairs = []
     for index_a, fruit_a in enumerate(fruits_a):
         origin_a, direction_a = pixel_ray(cameras[0], fruit_a["column"], fruit_a["row"])
@@ -147,14 +152,19 @@ def matched_tops(image_a: Path, image_b: Path) -> list[float]:
     pairs.sort(key=lambda item: item[0])
     used_a: set[int] = set()
     used_b: set[int] = set()
-    tops = []
+    points = []
     for _score, index_a, index_b, mid in pairs:
         if index_a in used_a or index_b in used_b:
             continue
         used_a.add(index_a)
         used_b.add(index_b)
-        tops.append(float(mid[2] + RADIUS_M - CAMERAS["floor_z"]))
-    return tops
+        points.append(mid)
+    return points
+
+
+def matched_tops(image_a: Path, image_b: Path, kind: str = "tangerine") -> list[float]:
+    """Lid height of each fruit found in both frames, in meters above the floor."""
+    return [float(point[2] + RADIUS_M - CAMERAS["floor_z"]) for point in matched_points(image_a, image_b, kind)]
 
 
 def lid_height_m(image_a: Path, image_b: Path) -> float:
@@ -165,13 +175,13 @@ def lid_height_m(image_a: Path, image_b: Path) -> float:
     return sum(tops) / len(tops)
 
 
-def matched_tops_three(image_a: Path, image_b: Path, image_c: Path) -> list[float]:
+def matched_tops_three(image_a: Path, image_b: Path, image_c: Path, kind: str = "tangerine") -> list[float]:
     """Lid height of each fruit seen in all three frames, in meters above the floor."""
     cameras = CAMERAS["cameras"]
     groups = [
-        fruit_centers(image_a, cameras[0]),
-        fruit_centers(image_b, cameras[1]),
-        fruit_centers(image_c, cameras[2]),
+        fruit_centers(image_a, cameras[0], kind),
+        fruit_centers(image_b, cameras[1], kind),
+        fruit_centers(image_c, cameras[2], kind),
     ]
     rays = [
         [pixel_ray(camera, fruit["column"], fruit["row"]) for fruit in fruits]
