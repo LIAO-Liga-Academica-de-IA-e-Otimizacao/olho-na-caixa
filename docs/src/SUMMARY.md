@@ -11,3 +11,4 @@
   - [O simulador](arquitetura/simulador.md)
   - [A leitura que a simulação mediu](arquitetura/leitura.md)
 - [Simulação no computador](simulacao.md)
+  - [Histórico dos experimentos](simulacao/historico.md)

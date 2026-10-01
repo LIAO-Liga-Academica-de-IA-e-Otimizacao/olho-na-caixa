@@ -14,7 +14,7 @@ A ordem abaixo segue o raciocínio do método: primeiro o que o time já decidiu
 | [Validação](validacao.md) | Qual número entra no relatório, e como esse número é medido |
 | [Etapas de construção](etapas.md) | A stack proposta e as paradas em que o time valida o aplicativo |
 | [Arquitetura do repositório](arquitetura/visao-geral.md) | Onde o código mora, o que a tela executa hoje, e o que só o simulador mediu |
-| [Simulação no computador](simulacao.md) | Como a placa de vídeo testa a conta por último, fora da cozinha |
+| [Simulação no computador](simulacao.md) | Como a placa de vídeo testa a conta por último, fora da cozinha. O caderno de cada tentativa está em [Histórico dos experimentos](simulacao/historico.md) |
 
 Para ver este livro no navegador, na raiz do repositório:
 

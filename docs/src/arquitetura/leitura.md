@@ -63,3 +63,5 @@ Um quadro só, por cima da borda, acompanha a altura, mas quatro das 16 tangerin
 Ficar com o pixel mais alto entre dois quadros piora, porque o furo da grade mostra uma fruta acima do monte. O cruzamento das silhuetas encontra o ponto no ar.
 
 Para o tomate, a mesma média da tangerina, com o raio somado, deixou uma caixa de prova 18% acima. A mediana sem o raio foi o que coube em 10% na prova. Ela não coube nas duas caixas baixas do treino.
+
+A ordem dessas tentativas, com o número de cada uma, está em [Histórico dos experimentos](../simulacao/historico.md).
