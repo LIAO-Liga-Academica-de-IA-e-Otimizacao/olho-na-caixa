@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import json
 import math
 import random
@@ -38,18 +39,23 @@ class DatasetWriter:
     and the YOLO boxes. ``--sides`` and ``--third`` are the tangerine arc.
     ``--arc tomato`` (or ``--tomato``) writes that item's three frames and the
     true lid height. A later item uses the same flag once it has a mesh and a
-    seed range. ``--pairs`` rescores the silhouette shift. ``--sides`` rewrites
-    ``height-sheet.csv`` from scratch, so it drops columns that a later scorer added.
+    seed range. ``--pairs`` rescores the silhouette shift. ``--seeds 85,90``
+    renders only those jobs (new rows merge into the sheets, old rows stay).
     """
 
     def __init__(self, cfg: Config | None = None, argv: list[str] | None = None):
         self.cfg = cfg or Config()
         self.argv = list(sys.argv if argv is None else argv)
         self.limit = _limit(self.argv)
+        self.seeds = _seeds(self.argv)
         self.root = self.cfg.path(DETECT_DIR)
         self.probe = OpeningProbe(self.cfg)
         self.settler = SphereSettler(self.cfg)
         self.studio = StillStudio(self.cfg)
+
+    def _wanted(self, seed: int) -> bool:
+        """True when *seed* passes the ``--seeds`` allow-list (or no list was given)."""
+        return self.seeds is None or seed in self.seeds
 
     def run(self) -> None:
         """Dispatch to the top-stills job or to one of the arc jobs."""
@@ -91,6 +97,8 @@ class DatasetWriter:
         for job in jobs():
             if self.limit is not None and written >= self.limit:
                 break
+            if not self._wanted(job["seed"]):
+                continue
             self._scene(scene, variants, sources, bounds, job)
             written += 1
         _write_yaml(self.root)
@@ -125,12 +133,11 @@ class DatasetWriter:
                 continue
             if self.limit is not None and len(rows) >= self.limit:
                 break
+            if not self._wanted(job["seed"]):
+                continue
             rows.append(self._side_scene(scene, variants, source, bounds, job, is_fruit, profile_mean, profile_meters))
         sheet = self.root / "height-sheet.csv"
-        with sheet.open("w", newline="") as handle:
-            writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
-            writer.writeheader()
-            writer.writerows(rows)
+        _merge_sheet(sheet, rows)
         print(f"SIDES scenes={len(rows)} wall_s={time.perf_counter() - started:.1f} sheet={sheet}", flush=True)
 
     def run_third(self) -> None:
@@ -157,6 +164,8 @@ class DatasetWriter:
                 continue
             if self.limit is not None and written >= self.limit:
                 break
+            if not self._wanted(job["seed"]):
+                continue
             self._third_scene(scene, variants, source, bounds, job)
             written += 1
         print(f"THIRD scenes={written} wall_s={time.perf_counter() - started:.1f}", flush=True)
@@ -198,12 +207,11 @@ class DatasetWriter:
                 continue
             if self.limit is not None and len(rows) >= self.limit:
                 break
+            if not self._wanted(job["seed"]):
+                continue
             rows.append(self._arc_scene(scene, variants, source, bounds, job, label))
         sheet = self.root / f"{label}-height-sheet.csv"
-        with sheet.open("w", newline="") as handle:
-            writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
-            writer.writeheader()
-            writer.writerows(rows)
+        _merge_sheet(sheet, rows)
         print(f"ARC {label} scenes={len(rows)} wall_s={time.perf_counter() - started:.1f} sheet={sheet}", flush=True)
 
     def score_pairs(self) -> None:
@@ -772,3 +780,40 @@ def _limit(argv: list[str]) -> int | None:
     if "--limit" not in argv:
         return None
     return int(argv[argv.index("--limit") + 1])
+
+
+def _seeds(argv: list[str]) -> set[int] | None:
+    """Seed allow-list from ``--seeds 85,90`` (render only these jobs)."""
+    if "--seeds" not in argv:
+        return None
+    return {int(part) for part in _option(argv, "--seeds").split(",") if part.strip()}
+
+
+def _merge_sheet(path: Path, rows: list[dict], key: str = "seed") -> None:
+    """Upsert *rows* into an existing count sheet, keeping scorer-added columns.
+
+    A blind rewrite would drop columns the scorer adds later (``h_read_cm``),
+    so read the sheet first, replace rows whose key matches, append new ones,
+    and write back the union of the field names.
+    """
+    old_rows: list[dict] = []
+    if path.exists():
+        with path.open(newline="", encoding="utf-8") as handle:
+            old_rows = list(csv.DictReader(handle))
+    index = {row[key]: position for position, row in enumerate(old_rows)}
+    for row in rows:
+        string_row = {field: str(value) for field, value in row.items()}
+        if string_row[key] in index:
+            old_rows[index[string_row[key]]].update(string_row)
+        else:
+            index[string_row[key]] = len(old_rows)
+            old_rows.append(string_row)
+    fields: list[str] = []
+    for row in old_rows:
+        for field in row:
+            if field not in fields:
+                fields.append(field)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(old_rows)

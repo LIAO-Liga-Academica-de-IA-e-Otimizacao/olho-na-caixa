@@ -30,7 +30,7 @@ class TomatoVolumeTest(unittest.TestCase):
         with SHEET.open() as handle:
             rows = list(csv.DictReader(handle))
         val = [row for row in rows if row["split"] == "val"]
-        self.assertEqual(len(val), 8)
+        self.assertEqual(len(val), 16)
         worst = 0.0
         for row in val:
             truth = float(row["h_area_cm"])

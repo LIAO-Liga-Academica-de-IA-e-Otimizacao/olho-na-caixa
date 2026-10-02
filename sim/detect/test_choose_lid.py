@@ -20,6 +20,8 @@ class ChooseLidTests(unittest.TestCase):
         with SHEET.open() as handle:
             rows = list(csv.DictReader(handle))
         for row in rows:
+            if not row["h_fruit_cm"] or not row["h_tri_cm"]:
+                continue  # The frame scorers have not recorded this crate yet.
             estimate = count_from_frames(float(row["h_fruit_cm"]), float(row["h_tri_cm"]), float(row["d_cm"]))
             truth = float(row["inside"])
             self.assertLessEqual(abs(estimate - truth) / truth, 0.10, row["seed"])

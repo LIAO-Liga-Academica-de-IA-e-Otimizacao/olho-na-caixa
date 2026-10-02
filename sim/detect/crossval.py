@@ -5,7 +5,10 @@ val split). Per fold the rig poses and the reading line are redone on the
 other four folds only; the held-out scenes are scored frozen. The lip
 bias in pixels stays the published constant: it was measured once on the
 full train medians, so a fold reuses it. That leak is sub-pixel against a
-2-3% error and is stated, not hidden.
+2-3% error and is stated, not hidden. Only the original 80 tangerine and 40
+tomato scenes take part: the later proof scenes (seeds past 80 / 1040) stay
+out, since they are all fold 0 and would leak into the other folds' fits.
+They get their own frozen-line scoring in ``score_new``.
 
 Usage, from the repo root::
 
@@ -131,10 +134,12 @@ def crossval_tomato(rows: list[dict]) -> list[tuple[int, float]]:
 def main() -> None:
     print("tangerine", flush=True)
     rows = list(csv.DictReader((ROOT / "height-sheet.csv").open()))
+    rows = [row for row in rows if int(float(row["seed"])) <= 80]
     pooled = crossval_tangerine(rows)
     _summarize("tangerine pooled held out", pooled)
     print("tomato", flush=True)
     rows = list(csv.DictReader((ROOT / "tomato-height-sheet.csv").open()))
+    rows = [row for row in rows if int(float(row["seed"])) <= 1040]
     pooled = crossval_tomato(rows)
     _summarize("tomato pooled held out", pooled)
 

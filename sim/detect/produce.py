@@ -21,7 +21,7 @@ class Item:
     account: str
     class_id: int | None
     peel: str | None
-    seeds: range | None
+    seeds: tuple[int, ...] | None
     note: str
 
 
@@ -31,7 +31,7 @@ ITEMS: dict[str, Item] = {
         "layers",
         0,
         "tangerine",
-        range(1, 81),
+        tuple(range(1, 81)) + tuple(range(85, 121, 5)),
         "Units from the lid height and the count line.",
     ),
     "tomato": Item(
@@ -39,7 +39,7 @@ ITEMS: dict[str, Item] = {
         "liters",
         1,
         "tomato",
-        range(1001, 1041),
+        tuple(range(1001, 1041)) + tuple(range(1045, 1081, 5)),
         "Liters from the lid height. Kilograms per liter come from the lot, not the photo.",
     ),
     "carrot": Item(

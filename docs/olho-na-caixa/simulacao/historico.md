@@ -83,6 +83,12 @@ Sem Blender novo, a prova cresceu por revezamento: 5 dobras por semente com rest
 
 A dobra 0 reproduz a reta publicada nas duas frutas, o que confere o roteiro. As retas das dobras da tangerina ficam entre −2,00 + 0,932 × leitura e −2,18 + 0,940 × leitura, com erro médio por dobra entre 1,7% e 2,3%. Juntando as 80 cenas, cada uma presa uma vez: erro médio 2,1%, uma fora (a semente 2 em −10,1%, a mesma que o treino já apontava). No tomate as retas variam mais, de 0,78 + 0,931 × leitura a 1,41 + 0,899 × leitura, com erro médio por dobra entre 2,8% e 3,9%. Juntas as 40 cenas: erro médio 3,2% nos litros, uma fora (a semente 1011 em +11,3%, a mesma do treino).
 
+## Cenas novas de prova
+
+A prova cresceu com Blender de verdade, na placa NVIDIA: 8 tangerinas (sementes 85 a 120, passo 5) e 8 tomates (sementes 1045 a 1080, passo 5), todas com resto 0, portanto prova. O gerador aceita a lista de sementes (`--seeds 85,90,...` em `sim/render-dataset.py`), e as planilhas passam por fusão por semente em vez de reescrita, para não perder as colunas do pontuador. O roteiro está em `sim/detect/score_new.py`: o arco e a reta são refeitos só com o treino original, e as 16 cenas novas entram congeladas. A reta refeita reproduz a publicada nas duas frutas (−2,00 + 0,932 × leitura; 0,79 + 0,931 × leitura), o que confere o roteiro.
+
+Nas 8 tangerinas novas, erro médio 2,5%, nenhuma fora de 10% (pior: semente 105 em +7,4%). Junto com as 16 antigas, a prova combinada de 24 fica em 2,4%, ninguém fora (pior: semente 15 em +8,7%, cena antiga). Nos 8 tomates novos, erro médio 3,9% nos litros, nenhum fora (pior: semente 1070 em −7,0%). Junto com os 8 antigos, a prova combinada de 16 fica em 3,3%, ninguém fora.
+
 ## O detector, em paralelo
 
 O YOLO nano não mede a altura. Ele marca a camada de cima, numa foto de 320 pixels. Nas 24 cenas que não entraram no treino, com confiança 0,55 e supressão de caixas sobrepostas em 0,45, a precisão e a revocação das caixas ficam em 94%. O erro absoluto médio da contagem visível é cerca de 5%, e o pior caso é 14%, no tomate da semente 1010 (42 frutas visíveis, 36 marcadas). O mAP50 é 0,97. Esse ponto de corte foi escolhido nessas mesmas 24 cenas, então ele não é uma prova cega. A Conferir desenha essas caixas a partir da exportação ONNX do mesmo peso, `sim/assets/detect/top-layer.pt`.
@@ -93,6 +99,6 @@ Uma contagem direta, da foto para o número de frutas, foi deixada de lado: a ca
 
 Baixar a fração φ para a conta fechar não foi feito. A fração é a da geometria, não um ajuste.
 
-A noite de 300 cenas e a leva das esferas iguais, descritas em [Simulação no computador](../simulacao.md), não foram executadas. Os números deste capítulo são das 80 tangerinas e dos 40 tomates do conjunto do detector.
+A noite de 300 cenas e a leva das esferas iguais, descritas em [Simulação no computador](../simulacao.md), não foram executadas. Os números deste capítulo são das 88 tangerinas e dos 48 tomates do conjunto do detector, com prova combinada de 24 e 16 cenas.
 
 Rafael contou 42 tangerinas na caixa da semente 5 e 45 na da semente 1, em fotos de cima anteriores. Esses pixels foram substituídos. Com diâmetro 5,3 cm e passo 0,82, as alturas médias de 12,1 cm e 20,1 cm não publicam as verdades 86 e 159. Foi essa conta de camadas, nas fotos antigas, que motivou medir a altura de outro jeito.
