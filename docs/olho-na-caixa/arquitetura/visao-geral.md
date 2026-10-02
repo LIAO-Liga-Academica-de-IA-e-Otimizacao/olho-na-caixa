@@ -2,7 +2,7 @@
 
 Este capítulo é o mapa para quem chega no código. Ele diz onde cada coisa mora, o que já roda no celular (ou no navegador que imita o celular), e o que só existe no computador da simulação.
 
-A tela Conferir lê a altura quando você abre as fotos do protocolo (os quadros A, B e, na tangerina, C). O erro de 2,2% e o de 3,0% foram medidos nessas fotos do simulador. Um vídeo qualquer não traz as três câmeras calibradas e não reproduz esse erro.
+A tela Conferir lê a altura quando você abre as fotos do protocolo (os quadros A, B e, na tangerina, C). O erro de 2,3% e o de 2,8% foram medidos nessas fotos do simulador. Um vídeo qualquer não traz as três câmeras calibradas e não reproduz esse erro.
 
 ![A altura do arco está nos dois programas. O YOLO da camada de cima também.](dois-programas.svg)
 
@@ -12,7 +12,7 @@ O repositório tem três lugares grandes, e cada um tem um trabalho só.
 
 **`app/`** é o aplicativo. É o que o operador vai usar. As telas estão em `app/app/`. A conta que a tela executa hoje está em `app/lib/packing.ts`. As caixas da camada de cima saem do YOLO, em `app/lib/yolo-detect.ts`. Você sobe isso com `make dev` e abre `http://localhost:3001`.
 
-**`sim/`** é o simulador. O Blender assenta frutas numa caixa de plástico, tira fotos e grava a verdade (quantas frutas ficaram dentro, qual a altura média da tampa). O Python em `sim/detect/` lê essas fotos e compara com a verdade. É aqui que estão os 2,2% da tangerina e os 3,0% dos litros do tomate. A mesma leitura, em TypeScript, está em `app/lib/arc-height.ts` e é o que a Conferir chama quando recebe esses quadros.
+**`sim/`** é o simulador. O Blender assenta frutas numa caixa de plástico, tira fotos e grava a verdade (quantas frutas ficaram dentro, qual a altura média da tampa). O Python em `sim/detect/` lê essas fotos e compara com a verdade. É aqui que estão os 2,3% da tangerina e os 2,8% dos litros do tomate, com o arco calibrado. A mesma leitura, em TypeScript, está em `app/lib/arc-height.ts` e é o que a Conferir chama quando recebe esses quadros.
 
 **`docs/`** é este livro. Ele descreve o método. Quando o livro e o código discordam sobre o desafio, vale o enunciado de fora do repositório. Quando discordam sobre o método que o time escolheu, vale este livro.
 
@@ -30,7 +30,7 @@ Para medir a altura, abra as fotos do protocolo na etapa Quadros. O roteiro exat
 
 ## O que a simulação já mediu
 
-A tangerina, no simulador, com o protocolo dos três quadros, ficou com erro absoluto médio de 2,2% nas 16 caixas de prova, e nenhuma passou de 10%. O tomate, nos litros, ficou com erro absoluto médio de 3,0% nas 8 caixas de prova, e nenhuma passou de 10%. Cinco dessas oito passaram de 3%. Duas caixas de treino, com a tampa perto de 9 cm e de 10 cm, passaram de 10%. O detalhe de cada número está em [A leitura que a simulação mediu](leitura.md) e em [Simulação no computador](../simulacao.md).
+A tangerina, no simulador, com o protocolo dos três quadros e o arco calibrado, ficou com erro absoluto médio de 2,3% nas 16 caixas de prova, e nenhuma passou de 10%. No treino, o erro médio é 2,0%, com uma fora: a semente 2 em −12%. O tomate, nos litros, ficou com erro absoluto médio de 2,8% nas 8 caixas de prova, e nenhuma passou de 10%. No treino, o erro médio é 3,5%, com uma fora: a semente 1011 em +10%. O detalhe de cada número está em [A leitura que a simulação mediu](leitura.md) e em [Simulação no computador](../simulacao.md).
 
 Esses números são erro de simulação. Não são a margem da cozinha. A tela mostra o intervalo orçado no livro, e ao lado lembra estes dois erros.
 

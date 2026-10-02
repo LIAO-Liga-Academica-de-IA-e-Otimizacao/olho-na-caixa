@@ -32,13 +32,13 @@ A silhueta das esferas, calculada da lista interna e não de um pixel, acompanha
 | Centro da fruta, dois quadros | As retas do centro do disco se encontram na fruta | 4,1% | 2 de 16: +10,1% e +14,8% | Quase. Cerca de 22 frutas casavam. A leitura ficava uns 5 cm acima, de um jeito parecido em toda caixa. A correlação era 0,990. |
 | Centro da fruta, três quadros | A fruta tem de aparecer nos três | 3,8% | 2 de 16: +11,5% e +14,3% | Sozinho, não. As duas que falhavam com dois quadros entraram (cerca de +2%). As novas falhas tinham poucas frutas, e elas eram as mais altas. A correlação era 0,995. |
 | Mediana dos dois quadros, cortando o que passa da mediana dos três mais 3 cm | A coroa sairia, e o miolo ficaria | no treino o pior caso era 6,1% | a semente 5 de prova ficou em −16,8% | Abandonada depois de olhar a prova. Os pontos baixos e falsos puxavam a mediana. As duas médias, sozinhas, cabiam em 10% nessa caixa. |
-| A menor das duas médias, menos 4,22 cm | Se a dos três está mais alta, a terceira câmera só viu a coroa | 2,2% | nenhuma. De −6,0% a +4,5% | Ficou. É a leitura publicada da tangerina. |
+| A menor das duas médias, menos 4,22 cm | Se a dos três está mais alta, a terceira câmera só viu a coroa | 2,2% | nenhuma. De −6,0% a +4,5% | Ficou na época. A calibração do arco, na seção abaixo, trocou a pose por cena pela pose congelada, e a leitura publicada hoje é altura = −2,00 + 0,932 × leitura. |
 
-A reta que ficou, ajustada nas 64 de treino e só então aplicada às 16, é:
+A reta que ficou na época, ajustada nas 64 de treino e só então aplicada às 16, é:
 
 > **altura da tampa, em cm = −4,22 + 0,9996 × leitura**
 
-No treino, com essa reta, o erro absoluto médio é 1,6%, o pior caso é 8,4%, e ninguém passa de 10%. Uma caixa, no computador, leva uma fração de segundo. O teste `test_choose_lid.py` exige que toda linha da planilha, treino e prova, fique dentro de 10%.
+No treino, com essa reta, o erro absoluto médio é 1,6%, o pior caso é 8,4%, e ninguém passa de 10%. Uma caixa, no computador, leva uma fração de segundo. O teste `test_choose_lid.py` exige que toda linha da planilha, treino e prova, fique dentro de 10%. A reta do arco calibrado substituiu esta na Conferir; o teste continua guardando a antiga com a pose gravada.
 
 A margem zero, “fica a menor, sem uma folga”, foi escolhida por leave-one-out no treino. A prova da regra da mediana truncada já tinha sido vista, e essa regra foi trocada. A margem da regra que ficou não foi escolhida olhando a prova.
 
@@ -53,9 +53,9 @@ A máscara da tangerina rejeita vermelho com pouco verde, e isso apaga parte do 
 | A mesma regra da tangerina | A menor das duas médias, somando o raio, com uma reta nova no treino do tomate | 4,8% | 1 de 8, a semente 1025 em +18,3%. No leave-one-out do treino o pior caso passava de 30% | Abandonada. A média sobe com a coroa e com um cruzamento falso. Numa tampa de 8 cm, um centímetro já é mais de 10% do volume. |
 | Silhueta na parede do fundo | O mesmo passeio da tangerina, agora com a máscara do tomate | 12,2% | 2 de 8. A semente 1025 ficou em −48% | Abandonada. A correlação no treino era 0,989, mas a reta, feita para montes baixos que liam alto, derrubava o monte cuja foto já estava perto. |
 | Grade no fundo com as frutas casadas | Cada centro vira uma esfera, e o vazio vale zero | 12,6% | 5 de 8 | Abandonada. O arco vê cerca de 15 a 20 frutas, não o monte inteiro. O vazio das que faltam come o volume. |
-| Mediana, sem somar raio | Tira os 3 cm da parede próxima e o ponto que passa de 6 cm acima da mediana | 3,0% | nenhuma. De −4,5% a +5,9%. Cinco das oito passam de 3% | Ficou, com o limite escrito. Não segura 3% em toda caixa, nem 10% em duas do treino. |
+| Mediana, sem somar raio | Tira os 3 cm da parede próxima e o ponto que passa de 6 cm acima da mediana | 3,0% | nenhuma. De −4,5% a +5,9%. Cinco das oito passam de 3% | Ficou na época, com o limite escrito: não segurava 3% em toda caixa, nem 10% em duas do treino. A calibração do arco a substituiu pela reta altura = 0,79 + 0,931 × leitura. |
 
-A reta que ficou, nas 32 de treino, é:
+A reta que ficou na época, nas 32 de treino, é:
 
 > **altura da tampa, em cm = −1,09 + 0,998 × leitura**
 
