@@ -158,6 +158,9 @@ export function Conference() {
     b: null,
     c: null,
   });
+  const [testMode] = useState(
+    () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("test") === "1",
+  );
   const [lidCm, setLidCm] = useState<number | null>(null);
   const [arcNote, setArcNote] = useState<string | null>(null);
   const [scaleKg, setScaleKg] = useState("");
@@ -627,7 +630,7 @@ export function Conference() {
                 writeBook(updated);
                 setBook(updated);
                 writePhone({ name: phoneName, focal35Mm: focal });
-                if (autoStills || (!topShot && !arcA && !arcB && !arcC)) loadTestStills();
+                if (testMode && (autoStills || (!topShot && !arcA && !arcB && !arcC))) loadTestStills();
                 setStep("frames");
               }}
             >
@@ -711,6 +714,7 @@ export function Conference() {
             }}
           />
           {error ? <p className="flag">{error}</p> : null}
+          {testMode ? (
           <div className="actions">
             <span className="note">Provas da trava (teste):</span>
             <button type="button" className="secondary" onClick={() => void loadProbe("dark")}>
@@ -723,6 +727,7 @@ export function Conference() {
               Prova ok
             </button>
           </div>
+          ) : null}
           {blocked.map((shot) => (
             <p key={shot.slot} className="flag">
               {shot.label}: {shot.quality?.warnings.join(" ")} Fotografe de novo esse quadro.

@@ -30,3 +30,5 @@ sim/assets/detect/meta/
 sim/assets/detect/runs/
 sim/assets/detect/*.pt
 !sim/assets/detect/top-layer.pt
+:memory:.ses
+render-tops.log
