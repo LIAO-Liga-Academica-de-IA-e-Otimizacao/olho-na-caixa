@@ -1,11 +1,14 @@
 /**
  * Lid height from the protocol arc, in the browser.
  *
- * The cameras are the three Blender poses in `arc-cameras.json`. A still has
- * to be 640×480, the size those poses were rendered at. Tangerine units use
- * the held-out line. Tomato kilograms use the plastic-crate mouth, 28.2 cm by
- * 39.2 cm, times the typed kilograms per liter. The layer formula in
- * `packing.ts` is a different account and is not called from here.
+ * The cameras in `arc-cameras.json` are the calibrated arc rig, not the
+ * Blender poses that rendered the stills. Each rig pose is the median over
+ * the train stills of that arc position, after removing the lip-detector
+ * bias measured on the train medians. A still has to be 640×480, the size
+ * the rig was calibrated at. Tangerine units use the held-out line.
+ * Tomato kilograms use the plastic-crate mouth, 28.2 cm by 39.2 cm, times
+ * the typed kilograms per liter. The layer formula in `packing.ts` is a
+ * different account and is not called from here.
  */
 
 import camerasJson from "./arc-cameras.json";
@@ -14,10 +17,10 @@ import type { Estimate } from "./packing";
 const PROTOCOL_WIDTH = 640;
 const PROTOCOL_HEIGHT = 480;
 const RADIUS_M = 0.0255;
-const TANGERINE_OFFSET_CM = -4.221914;
-const TANGERINE_SLOPE = 0.999599;
-const TOMATO_OFFSET_CM = -1.0879;
-const TOMATO_SLOPE = 0.998045;
+const TANGERINE_OFFSET_CM = -2.002;
+const TANGERINE_SLOPE = 0.932;
+const TOMATO_OFFSET_CM = 0.793;
+const TOMATO_SLOPE = 0.9307;
 const NEAR_M = 0.03;
 const SPIKE_CM = 6;
 const COUNT_SLOPE = 8.859;
@@ -42,6 +45,7 @@ type Bounds = {
   min_y: number;
   max_y: number;
   cameras: Camera[];
+  tomatoCameras: Camera[];
 };
 
 type Fruit = { column: number; row: number; color: Vec3 };
@@ -98,7 +102,7 @@ export function readArcLid(item: "tangerine" | "tomato", frames: RgbImage[]): Ar
     }
   }
   if (item === "tomato") {
-    const points = matchedPoints(frames[0], frames[1], "tomato");
+    const points = matchedPoints(frames[0], frames[1], "tomato", BOUNDS.tomatoCameras);
     const heightCm = tomatoLidCm(points);
     if (heightCm <= 0) throw new Error("Nenhuma fruta cruzou nos quadros A e B.");
     return { heightCm, matched: points.length };
@@ -159,14 +163,21 @@ function tomatoLidCm(points: Vec3[]): number {
 }
 
 function matchedTops(imageA: RgbImage, imageB: RgbImage, kind: "tangerine" | "tomato"): number[] {
-  return matchedPoints(imageA, imageB, kind).map((point) => point[2] + RADIUS_M - BOUNDS.floor_z);
+  return matchedPoints(imageA, imageB, kind, BOUNDS.cameras).map(
+    (point) => point[2] + RADIUS_M - BOUNDS.floor_z,
+  );
 }
 
-function matchedPoints(imageA: RgbImage, imageB: RgbImage, kind: "tangerine" | "tomato"): Vec3[] {
-  const fruitsA = fruitCenters(imageA, BOUNDS.cameras[0], kind);
-  const fruitsB = fruitCenters(imageB, BOUNDS.cameras[1], kind);
-  const raysA = fruitsA.map((fruit) => pixelRay(BOUNDS.cameras[0], fruit.column, fruit.row));
-  const raysB = fruitsB.map((fruit) => pixelRay(BOUNDS.cameras[1], fruit.column, fruit.row));
+function matchedPoints(
+  imageA: RgbImage,
+  imageB: RgbImage,
+  kind: "tangerine" | "tomato",
+  cameras: Camera[],
+): Vec3[] {
+  const fruitsA = fruitCenters(imageA, cameras[0], kind);
+  const fruitsB = fruitCenters(imageB, cameras[1], kind);
+  const raysA = fruitsA.map((fruit) => pixelRay(cameras[0], fruit.column, fruit.row));
+  const raysB = fruitsB.map((fruit) => pixelRay(cameras[1], fruit.column, fruit.row));
   const pairs: { color: number; indexA: number; indexB: number; mid: Vec3 }[] = [];
   for (let indexA = 0; indexA < fruitsA.length; indexA += 1) {
     for (let indexB = 0; indexB < fruitsB.length; indexB += 1) {

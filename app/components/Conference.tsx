@@ -715,7 +715,7 @@ export function Conference() {
                 <strong>{formatEstimate(estimate)}</strong>
               </div>
               <p className="note">
-                Este intervalo é o orçado no livro. Nas fotos do simulador, o erro medido foi 2,2% na tangerina e 3,0%
+                Este intervalo é o orçado no livro. Nas fotos do simulador, o erro medido foi 2,3% na tangerina e 2,8%
                 nos litros do tomate. Uma foto da cozinha não herda esse número.
               </p>
               {estimate.flags.length > 0 ? (

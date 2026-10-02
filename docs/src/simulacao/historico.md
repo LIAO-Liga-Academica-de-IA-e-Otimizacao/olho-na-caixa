@@ -75,7 +75,7 @@ O que fechou foi calibrar o arco, não a foto. As três posições de câmera s�
 
 Com o arco calibrado só pelo treino, a tangerina ficou altura = −2,00 + 0,932 × leitura: treino com erro médio 2,0% (1 fora, a semente 2 em −12%) e prova com erro médio 2,3%, ninguém fora. O tomate ficou altura = 0,79 + 0,931 × leitura: treino com erro médio 3,5% nos litros (1 fora, a semente 1011 em +10%) e prova com erro médio 2,8%, ninguém fora. O cruzamento dos centros da fruta é o mesmo de antes. O teste `test_rim_pose.py` exige os cantos de três fotos de treino a menos de 25 pixels da boca projetada.
 
-Na cozinha isso vira protocolo: três posições marcadas no chão ou no balcão, uma marcação da borda por posição feita uma vez, e a mesma reta do treino. A Conferir ainda usa a pose gravada em `app/lib/arc-height.ts`. Ligar o arco calibrado no aplicativo é a próxima etapa, com o rig exportado como as posições do arco em vez do arquivo do Blender.
+Na cozinha isso vira protocolo: três posições marcadas no chão ou no balcão, uma marcação da borda por posição feita uma vez, e a mesma reta do treino. A Conferir usa esse arco desde a exportação do rig para `app/lib/arc-cameras.json`, com um conjunto de poses por fruta e as retas novas em `app/lib/arc-height.ts`. A pose gravada continua em `sim/detect/pair_cameras.json`, como referência do gerador.
 
 ## O detector, em paralelo
 

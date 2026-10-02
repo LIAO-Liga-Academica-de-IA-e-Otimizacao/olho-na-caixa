@@ -52,7 +52,8 @@ export default function SimulationPage() {
           menor das duas leituras, e tirando 4,2 cm medidos no treino, as 16 ficam em 2,2%, e nenhuma passa de 10%. No
           tomate, a mediana dos dois quadros, sem somar raio, deixa as 8 de prova em 3,0% nos litros, e nenhuma passa de
           10%. Cinco passam de 3%. Duas das 32 de treino passam de 10%, uma com a tampa em 8,8 cm e outra em 10,0 cm.
-          A tela Conferir usa essa leitura quando você abre os quadros do protocolo. A marca da camada de cima continua pela cor. A página Conta continua na conta de camadas. O clipe de teste não traz essas câmeras.
+          A tela Conferir usa o arco calibrado: as mesmas 16 ficam em 2,3%, e as 8 do tomate em 2,8%, sem a pose
+          gravada. A marca da camada de cima continua pela cor. A página Conta continua na conta de camadas. O clipe de teste não traz essas câmeras.
         </p>
       </section>
 
