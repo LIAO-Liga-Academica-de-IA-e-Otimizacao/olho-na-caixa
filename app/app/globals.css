@@ -319,26 +319,6 @@ a:focus-visible {
   margin-left: 6px;
 }
 
-.preview {
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  background: var(--green-deep);
-  border-radius: 16px;
-  object-fit: cover;
-}
-
-.preview-wide {
-  aspect-ratio: 4 / 3;
-  object-fit: contain;
-}
-
-.capture-canvas {
-  position: fixed;
-  left: -2000px;
-  top: 0;
-  pointer-events: none;
-}
-
 .result {
   display: flex;
   justify-content: space-between;
@@ -372,19 +352,11 @@ a:focus-visible {
   font-size: 0.92rem;
 }
 
-.shot-pick,
 .still-pick {
   margin-top: 14px;
 }
 
-.shot-pick > button,
-.still-pick > button {
-  display: block;
-  width: 100%;
-}
-
-.still-pick img,
-.shot-pick img {
+.still-pick img {
   display: block;
   width: 100%;
   border-radius: 16px;

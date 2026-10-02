@@ -76,13 +76,12 @@ As fotos abaixo foram geradas neste computador e não entram no Git. Se a pasta 
 2. Abra `http://localhost:3001`. O livro, se estiver aberto, usa a porta 3000.
 3. Em Conferir, escolha **Tomate**.
 4. Na caixa, escolha o modelo com 39,2 por 28,2 por 25,7 cm. Se o cadastro estiver vazio, guarde esse modelo em Medidas primeiro. A conta dos litros usa esses números. No celular, deixe **Simulador, 35 mm**, que é a lente dessas fotos. No tomate, o quilo por litro começa no exemplo, 0,55: troque quando o lote for pesado. Continuar.
-5. Em Filme, continue sem gravar.
-6. Em Quadros, abra estes arquivos, nesta ordem. Cada quadro mostra o molde tracejado da boca: na foto real, a boca entra nesse molde. Cada quadro também tem **Fotografar**: a câmera abre com o molde sobre a imagem, e o que couber no molde é o que a leitura recebe.
+5. Em Quadros, os arquivos de teste entram sozinhos. Cada quadro mostra o molde tracejado da boca: na foto real, fotografe com a boca no molde, ou abra o arquivo.
    - Vista de cima: `sim/assets/detect/images/val/tomato-s1005.png`
    - Quadro A: `sim/assets/detect/sides/tomato/val/tomato-s1005.png`
    - Quadro B: `sim/assets/detect/sides/tomato/val/tomato-s1005-b.png`
-7. Continuar. Nos quadros de teste a borda já vem nos cantos da boca; na foto com molde, ela vem no quadro cheio. Confira, ou ajuste os quatro cantos internos na ordem que a tela pede.
-8. O resultado mostra a altura lida e os quilos. Nesta caixa a tela lê cerca de 13,1 cm, o que dá cerca de 8,0 kg. A leitura em Python, na mesma foto, é 12,6 cm. A diferença é a transformada de distância do navegador, que não é a do OpenCV. As duas ficam dentro de 10% da altura verdadeira, 12,7 cm.
+6. Continuar. Nos quadros de teste a borda já vem nos cantos da boca; na foto com molde, ela vem no quadro cheio. Confira, ou ajuste os quatro cantos internos na ordem que a tela pede.
+7. O resultado mostra a altura lida e os quilos. Nesta caixa a tela lê cerca de 13,1 cm, o que dá cerca de 8,0 kg. A leitura em Python, na mesma foto, é 12,6 cm. A diferença é a transformada de distância do navegador, que não é a do OpenCV. As duas ficam dentro de 10% da altura verdadeira, 12,7 cm.
 
 Para a tangerina, o item é **Tangerina** e os quatro arquivos são:
 

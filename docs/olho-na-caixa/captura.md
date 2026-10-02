@@ -2,6 +2,8 @@
 
 O operador não precisa acertar uma foto isolada. Ele filma um arco curto ao redor da caixa aberta. O próprio celular olha o vídeo e escolhe os quadros que servem para a conta.
 
+Na tela atual, em vez da varredura em vídeo, o operador fotografa uma posição de cada vez, com o molde da boca sobre a imagem. As posições continuam as do arco: a vista de cima e os quadros do protocolo.
+
 ## O que o arco resolve
 
 A conta precisa de duas vistas:

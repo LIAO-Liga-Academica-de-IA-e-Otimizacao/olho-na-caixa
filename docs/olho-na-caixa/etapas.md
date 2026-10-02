@@ -31,34 +31,32 @@ Dá para construir a jornada, a escolha de quadros, as fórmulas e o encaixe do 
 
 O cartão de tamanho conhecido continua fora, salvo se sobrar tempo.
 
-## Etapa 1. O celular filma
+## Etapa 1. O celular fotografa
 
-O aplicativo abre no navegador, pede a câmera e grava um arco curto. O vídeo fica na sessão e pode ser revisto na tela. Ainda não há detector. A conta desta fase usa números digitados, na tela Conta.
+O aplicativo abre no navegador e pede cada posição do protocolo com um molde na tela. Sem foto, os quadros de teste entram sozinhos. Ainda não há detector. A conta desta fase usa números digitados, na tela Conta.
 
 O que você faz, no computador, sem fruta e sem webcam:
 
 1. Na raiz do repositório, rode `make dev`.
 2. Abra `http://localhost:3001` no Chrome normal.
-3. Clique em **Gravar da câmera**. A prévia mostra o que a câmera vê.
-4. Espere cerca de dois segundos e clique em **Parar**.
-5. Dê play no replay. A cena tem de aparecer de novo.
-6. Abra Medidas, guarde um modelo de caixa, e abra Conta. Os números de exemplo devem mostrar 112 unidades de tangerina. O tomate usa 0,55 kg por litro só como ilustração.
+3. Em Conferir, escolha tangerina e o modelo da caixa, e continue até os quadros entrarem sozinhos.
+4. Confira a borda e continue até o resultado.
+5. Abra Medidas, guarde um modelo de caixa, e abra Conta. Os números de exemplo devem mostrar 112 unidades de tangerina. O tomate usa 0,55 kg por litro só como ilustração.
 
-O que você me diz: se o replay mostrou a caixa, e se a conta mostrou 112 unidades.
+O que você me diz: se os quadros entraram sozinhos, e se a conta mostrou 112 unidades.
 
 ## Etapa 2. A conferência sem detector
 
-Entra a jornada combinada: item, modelo de caixa, arco, notas de nitidez e de luz, quadro de cima e quadro de lado, quatro toques na borda quando o retângulo não fechar, resultado com intervalo, e o pedido de peso digitado quando o intervalo não cabe em 10%. A caixa e os coeficientes são os de exemplo. O diâmetro, nesta etapa, pode ser informado ou lido de um valor fixo de exemplo, porque o detector ainda não existe.
+Entra a jornada combinada: item, modelo de caixa, quadros do protocolo com molde, borda com confirmação, resultado com intervalo, e o pedido de peso digitado quando o intervalo não cabe em 10%. A caixa e os coeficientes são os de exemplo. O diâmetro, nesta etapa, pode ser informado ou lido de um valor fixo de exemplo, porque o detector ainda não existe.
 
 A etapa 2 está na tela Conferir. O que você faz, ainda sem fruta e sem webcam:
 
 1. Com `make dev` no ar, abra `http://localhost:3001`.
 2. Escolha tangerina ou tomate e continue.
 3. Escolha o modelo da caixa e continue.
-4. Grave um arco curto com a câmera (ou abra um vídeo), espere uns dois segundos, pare, e continue.
-5. No vídeo, escolha um instante como vista de cima e outro como vista de lado. Cada botão mostra o instante, e **Pular para este quadro** volta o vídeo até ele.
-6. Confira a borda assumida ou ajuste os quatro cantos internos na ordem pedida.
-7. Na última tela, confira se tangerina aparece em unidades e tomate em quilos, com um intervalo. A incerteza orçada ainda pede o peso da balança.
+4. Fotografe cada posição com a boca no molde, ou abra o arquivo. Sem foto, os quadros de teste entram sozinhos. Continue.
+5. Confira a borda assumida ou ajuste os quatro cantos internos na ordem pedida.
+6. Na última tela, confira se tangerina aparece em unidades e tomate em quilos, com um intervalo. A incerteza orçada ainda pede o peso da balança.
 
 O que você me diz: se uma pessoa da cozinha entenderia esses passos, e se a unidade de cada item ficou clara.
 

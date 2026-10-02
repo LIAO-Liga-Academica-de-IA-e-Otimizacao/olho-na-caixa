@@ -17,12 +17,12 @@ export type TestStillSet = {
 };
 
 /**
- * Canonical simulator stills for the temporary no-video shortcut.
+ * Canonical simulator stills for the temporary no-photo shortcut.
  *
- * Skipping the film step is a development habit, not the kitchen flow, so
- * the frames step fills itself with these scenes instead of asking for
- * four files every time. Served from `public/test-stills/` by
- * `scripts/link-public.mjs`. Both files and this map go away with the
+ * Opening the frames with empty slots is a development habit, not the
+ * kitchen flow, so the frames step fills itself with these scenes instead
+ * of asking for four files every time. Served from `public/test-stills/`
+ * by `scripts/link-public.mjs`. Both files and this map go away with the
  * shortcut. Tangerine is seed 5, tomato is seed 1005, the scenes the book
  * walks through.
  */

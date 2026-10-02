@@ -8,7 +8,7 @@ Hoje você usa o modo de desenvolvimento (`make dev`, porta 3001). O pacote Capa
 
 O menu fica em `app/components/Shell.tsx`. São quatro entradas.
 
-**Conferir** (`app/app/page.tsx`) abre `Conference`. É a jornada: escolher tangerina ou tomate, escolher o modelo da caixa no cadastro, gravar um arco curto, escolher o quadro de cima e os quadros do arco, conferir a borda e ver o resultado.
+**Conferir** (`app/app/page.tsx`) abre `Conference`. É a jornada: escolher tangerina ou tomate, escolher o modelo da caixa no cadastro, fotografar a vista de cima e os quadros do arco com os moldes, conferir a borda e ver o resultado.
 
 **Medidas** (`app/app/medidas/page.tsx`) guarda o cadastro de caixas: cada modelo com o vão interno medido com trena, comprimento, largura e altura. A Conferir e a Conta usam a caixa marcada como em uso. Esse vão é a régua. A foto não inventa o centímetro da caixa.
 

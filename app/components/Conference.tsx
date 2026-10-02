@@ -37,15 +37,13 @@ function readDensity(): string {
 }
 
 type ItemKind = "tangerine" | "tomato";
-type Step = "item" | "crate" | "film" | "frames" | "corners" | "result";
-type CapturePhase = "idle" | "recording" | "review";
+type Step = "item" | "crate" | "frames" | "corners" | "result";
 
 type Shot = { url: string; quality: FrameQuality; time: number };
 
 const STEPS: { id: Step; label: string }[] = [
   { id: "item", label: "Item" },
   { id: "crate", label: "Caixa" },
-  { id: "film", label: "Filme" },
   { id: "frames", label: "Quadros" },
   { id: "corners", label: "Borda" },
   { id: "result", label: "Resultado" },
@@ -73,31 +71,6 @@ const FULL_QUAD: Quad = [
   [640, 480],
   [0, 480],
 ];
-
-function pickMimeType(): string | undefined {
-  const candidates = ["video/webm;codecs=vp8", "video/webm", "video/mp4"];
-  return candidates.find((type) => MediaRecorder.isTypeSupported(type));
-}
-
-function waitForDimensions(video: HTMLVideoElement): Promise<void> {
-  if (video.videoWidth > 0) return Promise.resolve();
-  return new Promise((resolve) => {
-    video.addEventListener("loadeddata", () => resolve(), { once: true });
-  });
-}
-
-function grabShot(video: HTMLVideoElement): Omit<Shot, "time"> {
-  const canvas = document.createElement("canvas");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const context = canvas.getContext("2d");
-  if (!context || canvas.width === 0) throw new Error("frame");
-  context.drawImage(video, 0, 0);
-  return {
-    url: canvas.toDataURL("image/jpeg", 0.85),
-    quality: analyzeFrame(context.getImageData(0, 0, canvas.width, canvas.height)),
-  };
-}
 
 function formatClock(seconds: number): string {
   const totalHundredths = Math.round(Math.max(0, seconds) * 100);
@@ -152,19 +125,11 @@ function formatEstimate(estimate: Estimate): string {
 }
 
 export function Conference() {
-  const liveRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const scrubRef = useRef<HTMLVideoElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const photoRef = useRef<HTMLVideoElement>(null);
   const photoStreamRef = useRef<MediaStream | null>(null);
   const imageSlotRef = useRef<"top" | "a" | "b" | "c">("top");
   const startedAtRef = useRef(Date.now());
-  const streamRef = useRef<MediaStream | null>(null);
-  const recorderRef = useRef<MediaRecorder | null>(null);
-  const drawRef = useRef<number | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
 
   const [step, setStep] = useState<Step>("item");
   const [item, setItem] = useState<ItemKind>("tangerine");
@@ -173,13 +138,9 @@ export function Conference() {
   const [phoneName, setPhoneName] = useState(SIMULATOR_PHONE.name);
   const [focalCm, setFocalCm] = useState(String(SIMULATOR_PHONE.focal35Mm));
   const [density, setDensity] = useState(String(EXAMPLE_DENSITY));
-  const [capturePhase, setCapturePhase] = useState<CapturePhase>("idle");
   const [photoSlot, setPhotoSlot] = useState<"top" | "a" | "b" | "c" | null>(null);
   const [autoStills, setAutoStills] = useState(false);
   const [cornerSource, setCornerSource] = useState<"full" | "true" | "manual">("full");
-  const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
-  const [filmLabel, setFilmLabel] = useState<string | null>(null);
-  const [seconds, setSeconds] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [topShot, setTopShot] = useState<Shot | null>(null);
   const [topFileName, setTopFileName] = useState<string | null>(null);
@@ -215,18 +176,7 @@ export function Conference() {
   }, []);
 
   useEffect(() => {
-    if (capturePhase !== "recording") return;
-    const started = Date.now();
-    const timer = window.setInterval(() => {
-      setSeconds(Math.floor((Date.now() - started) / 1000));
-    }, 250);
-    return () => window.clearInterval(timer);
-  }, [capturePhase]);
-
-  useEffect(() => {
     return () => {
-      if (drawRef.current !== null) cancelAnimationFrame(drawRef.current);
-      streamRef.current?.getTracks().forEach((track) => track.stop());
       photoStreamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, []);
@@ -321,111 +271,6 @@ export function Conference() {
     photoSlot === "top" ? "Encha o quadro com a boca." : "Encaixe a boca no molde.";
   const densityKgPerLiter = Number(density) > 0 ? Number(density) : EXAMPLE_DENSITY;
 
-  function stopTracks() {
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
-  }
-
-  async function recordFromVideo(video: HTMLVideoElement) {
-    const canvas = canvasRef.current;
-    if (!canvas) throw new Error("missing canvas");
-    await waitForDimensions(video);
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const context = canvas.getContext("2d");
-    if (!context) throw new Error("missing canvas");
-    const draw = () => {
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      drawRef.current = requestAnimationFrame(draw);
-    };
-    draw();
-    chunksRef.current = [];
-    const mimeType = pickMimeType();
-    const recorder = new MediaRecorder(canvas.captureStream(30), mimeType ? { mimeType } : undefined);
-    recorder.ondataavailable = (event) => {
-      if (event.data.size > 0) chunksRef.current.push(event.data);
-    };
-    recorder.onstop = () => {
-      if (drawRef.current !== null) cancelAnimationFrame(drawRef.current);
-      drawRef.current = null;
-      video.pause();
-      const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "video/webm" });
-      setRecordingUrl((current) => {
-        if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
-        return URL.createObjectURL(blob);
-      });
-      stopTracks();
-      setCapturePhase("review");
-    };
-    recorderRef.current = recorder;
-    recorder.start(200);
-    setSeconds(0);
-  }
-
-  async function startFromClip(src: string, label: string) {
-    setFilmLabel(label);
-    setError(null);
-    stopTracks();
-    setTopShot(null);
-    setTopFileName(null);
-    setCorners([]);
-    flushSync(() => setCapturePhase("recording"));
-    const video = liveRef.current;
-    if (!video) throw new Error("missing preview");
-    video.srcObject = null;
-    video.src = src;
-    video.loop = true;
-    video.muted = true;
-    await video.play();
-    await recordFromVideo(video);
-  }
-
-  async function startFromCamera() {
-    setFilmLabel("Câmera");
-    setError(null);
-    stopTracks();
-    flushSync(() => setCapturePhase("recording"));
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
-    });
-    streamRef.current = stream;
-    const video = liveRef.current;
-    if (!video) {
-      stream.getTracks().forEach((track) => track.stop());
-      throw new Error("missing preview");
-    }
-    video.src = "";
-    video.srcObject = stream;
-    await video.play();
-    await recordFromVideo(video);
-  }
-
-  function takeShot() {
-    const video = scrubRef.current;
-    if (!video) return;
-    try {
-      const shot = { ...grabShot(video), time: video.currentTime };
-      setTopShot(shot);
-      setTopFileName(null);
-      setAutoStills(false);
-      setError(null);
-    } catch {
-      setError("Espere a imagem aparecer e escolha de novo.");
-    }
-  }
-
-  function seekTo(time: number) {
-    const video = scrubRef.current;
-    if (!video) return;
-    const go = () => {
-      video.currentTime = time;
-    };
-    if (video.readyState >= 1) go();
-    else video.addEventListener("loadedmetadata", go, { once: true });
-    video.pause();
-  }
-
   function stopPhotoTracks() {
     photoStreamRef.current?.getTracks().forEach((track) => track.stop());
     photoStreamRef.current = null;
@@ -496,7 +341,7 @@ export function Conference() {
     closeCamera();
   }
 
-  /** Temporary shortcut: skipping the film step fills the frames with the book scenes. */
+  /** Temporary shortcut: opening the frames empty fills them with the book scenes. */
   function loadTestStills() {
     const stills = testStillSet(item);
     setTopShot({
@@ -694,86 +539,7 @@ export function Conference() {
                 writeBook(updated);
                 setBook(updated);
                 writePhone({ name: phoneName, focal35Mm: focal });
-                setStep("film");
-              }}
-            >
-              Continuar
-            </button>
-          </div>
-        </section>
-      ) : null}
-
-      {step === "film" ? (
-        <section className="card">
-          <h1>Filme o arco</h1>
-          <p className="lede">
-            O vídeo, se houver, serve para escolher a vista de cima. A altura não sai dele. Sem vídeo, continue e abra
-            as fotos do protocolo na próxima tela.
-          </p>
-          {capturePhase === "review" && recordingUrl ? (
-            <video className="preview" src={recordingUrl} controls playsInline />
-          ) : (
-            <video className="preview" ref={liveRef} muted playsInline />
-          )}
-          <canvas ref={canvasRef} className="capture-canvas" />
-          <div className="actions">
-            {capturePhase === "recording" ? (
-              <button type="button" onClick={() => recorderRef.current?.stop()}>
-                Parar · {seconds}s
-              </button>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  className={filmLabel === "Câmera" ? undefined : "secondary"}
-                  aria-pressed={filmLabel === "Câmera"}
-                  onClick={() => {
-                    startFromCamera().catch(() => {
-                      setFilmLabel(null);
-                      setCapturePhase("idle");
-                      setError("A câmera não abriu.");
-                    });
-                  }}
-                >
-                  Gravar da câmera
-                </button>
-                <button
-                  type="button"
-                  className={filmLabel !== null && filmLabel !== "Câmera" ? undefined : "secondary"}
-                  aria-pressed={filmLabel !== null && filmLabel !== "Câmera"}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  Abrir um vídeo
-                </button>
-              </>
-            )}
-          </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="video/*"
-            hidden
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              event.target.value = "";
-              if (!file) return;
-              startFromClip(URL.createObjectURL(file), file.name).catch(() => {
-                setFilmLabel(null);
-                setCapturePhase("idle");
-                setError("Esse vídeo não abriu.");
-              });
-            }}
-          />
-          {filmLabel && capturePhase === "review" ? <p className="ok">Vídeo escolhido: {filmLabel}.</p> : null}
-          {error ? <p className="flag">{error}</p> : null}
-          <div className="actions">
-            <button type="button" className="secondary" onClick={() => setStep("crate")}>
-              Voltar
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (!recordingUrl) loadTestStills();
+                if (autoStills || (!topShot && !arcA && !arcB && !arcC)) loadTestStills();
                 setStep("frames");
               }}
             >
@@ -785,7 +551,7 @@ export function Conference() {
 
       {step === "frames" ? (
         <section className="card">
-          <h1>Abra os quadros do arco</h1>
+          <h1>Fotografe os quadros</h1>
           <p className="lede">
             Fotografe cada posição com a boca dentro do molde tracejado. O aplicativo recorta o meio 4:3 da foto antes
             de ler, então encha o molde sem cortar a borda. O quadro A não tem sufixo, o B termina em -b e o C em -c.
@@ -809,17 +575,6 @@ export function Conference() {
                 </button>
               </div>
             </div>
-          ) : null}
-          {recordingUrl ? (
-            <>
-              <video className="preview preview-wide" ref={scrubRef} src={recordingUrl} controls playsInline />
-              <ShotPick
-                label="Vista de cima, deste vídeo"
-                shot={topShot}
-                onTake={() => takeShot()}
-                onSeek={() => topShot && seekTo(topShot.time)}
-              />
-            </>
           ) : null}
           <PickedStill
             label="Vista de cima"
@@ -869,7 +624,7 @@ export function Conference() {
           />
           {error ? <p className="flag">{error}</p> : null}
           <div className="actions">
-            <button type="button" className="secondary" onClick={() => setStep("film")}>
+            <button type="button" className="secondary" onClick={() => setStep("crate")}>
               Voltar
             </button>
             <button
@@ -1061,41 +816,6 @@ export function Conference() {
         </section>
       ) : null}
     </>
-  );
-}
-
-function ShotPick({
-  label,
-  shot,
-  onTake,
-  onSeek,
-}: {
-  label: string;
-  shot: Shot | null;
-  onTake: () => void;
-  onSeek: () => void;
-}) {
-  const quality =
-    shot && shot.quality.warnings.length > 0 ? shot.quality.warnings.join(" ") : "luz aceitável";
-  return (
-    <div className="shot-pick">
-      <button type="button" className={shot ? undefined : "secondary"} aria-pressed={shot !== null} onClick={onTake}>
-        {shot ? `${label} · escolhida` : label}
-      </button>
-      {shot ? (
-        <>
-          <img src={shot.url} alt="" />
-          <p className={shot.quality.warnings.length > 0 ? "flag shot-moment" : "ok shot-moment"}>
-            {formatClock(shot.time)} · {quality}
-          </p>
-          <button type="button" className="secondary" onClick={onSeek}>
-            Pular para este quadro
-          </button>
-        </>
-      ) : (
-        <p className="note shot-moment">Ainda não escolhida.</p>
-      )}
-    </div>
   );
 }
 
