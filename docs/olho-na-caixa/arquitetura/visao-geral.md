@@ -30,7 +30,7 @@ Para medir a altura, abra as fotos do protocolo na etapa Quadros. O roteiro exat
 
 ## O que a simulação já mediu
 
-A tangerina, no simulador, com o protocolo dos três quadros e o arco calibrado, ficou com erro absoluto médio de 2,3% nas 16 caixas de prova, e nenhuma passou de 10%. No treino, o erro médio é 2,0%, com uma fora: a semente 2 em −12%. O tomate, nos litros, ficou com erro absoluto médio de 2,8% nas 8 caixas de prova, e nenhuma passou de 10%. No treino, o erro médio é 3,5%, com uma fora: a semente 1011 em +10%. O detalhe de cada número está em [A leitura que a simulação mediu](leitura.md) e em [Simulação no computador](../simulacao.md).
+A tangerina, no simulador, com o protocolo dos três quadros e o arco calibrado, ficou com erro absoluto médio de 2,3% nas 16 caixas de prova, e nenhuma passou de 10%. No treino, o erro médio é 2,0%, com uma fora: a semente 2 em −12%. O tomate, nos litros, ficou com erro absoluto médio de 2,8% nas 8 caixas de prova, e nenhuma passou de 10%. No treino, o erro médio é 3,5%, com uma fora: a semente 1011 em +10%. Em validação cruzada de 5 dobras, cada cena presa uma vez, o erro médio é 2,1% nas 80 tangerinas e 3,2% nos 40 tomates, com uma fora em cada (as mesmas sementes do treino). O detalhe de cada número está em [A leitura que a simulação mediu](leitura.md) e em [Simulação no computador](../simulacao.md).
 
 Esses números são erro de simulação. Não são a margem da cozinha. A tela mostra o intervalo orçado no livro, e ao lado lembra estes dois erros.
 

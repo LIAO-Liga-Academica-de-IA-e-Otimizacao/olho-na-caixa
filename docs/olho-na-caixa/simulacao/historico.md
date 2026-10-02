@@ -77,6 +77,12 @@ Com o arco calibrado só pelo treino, a tangerina ficou altura = −2,00 + 0,932
 
 Na cozinha isso vira protocolo: três posições marcadas no chão ou no balcão, uma marcação da borda por posição feita uma vez, e a mesma reta do treino. A Conferir usa esse arco desde a exportação do rig para `app/lib/arc-cameras.json`, com um conjunto de poses por fruta e as retas novas em `app/lib/arc-height.ts`. A pose gravada continua em `sim/detect/pair_cameras.json`, como referência do gerador.
 
+## Validação cruzada do arco calibrado
+
+Sem Blender novo, a prova cresceu por revezamento: 5 dobras por semente com resto 0 a 4, a dobra 0 é a prova publicada. Em cada dobra a pose mediana e a reta são refeitas só com as outras quatro; as 16 tangerinas (8 tomates) presas são pontuadas congeladas. O viés do degrau em pixels continua a constante publicada, medida nas medianas do treino cheio. O roteiro está em `sim/detect/crossval.py`.
+
+A dobra 0 reproduz a reta publicada nas duas frutas, o que confere o roteiro. As retas das dobras da tangerina ficam entre −2,00 + 0,932 × leitura e −2,18 + 0,940 × leitura, com erro médio por dobra entre 1,7% e 2,3%. Juntando as 80 cenas, cada uma presa uma vez: erro médio 2,1%, uma fora (a semente 2 em −10,1%, a mesma que o treino já apontava). No tomate as retas variam mais, de 0,78 + 0,931 × leitura a 1,41 + 0,899 × leitura, com erro médio por dobra entre 2,8% e 3,9%. Juntas as 40 cenas: erro médio 3,2% nos litros, uma fora (a semente 1011 em +11,3%, a mesma do treino).
+
 ## O detector, em paralelo
 
 O YOLO nano não mede a altura. Ele marca a camada de cima, numa foto de 320 pixels. Nas 24 cenas que não entraram no treino, com confiança 0,55 e supressão de caixas sobrepostas em 0,45, a precisão e a revocação das caixas ficam em 94%. O erro absoluto médio da contagem visível é cerca de 5%, e o pior caso é 14%, no tomate da semente 1010 (42 frutas visíveis, 36 marcadas). O mAP50 é 0,97. Esse ponto de corte foi escolhido nessas mesmas 24 cenas, então ele não é uma prova cega. A Conferir desenha essas caixas a partir da exportação ONNX do mesmo peso, `sim/assets/detect/top-layer.pt`.
