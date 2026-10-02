@@ -63,6 +63,20 @@ Nas 32 de treino, duas passam de 10%: a semente 1011 em +11,5%, com a tampa em 8
 
 A escolha entre média crua, mediana e mediana aparada foi feita por leave-one-out no treino. A prova foi olhada depois disso.
 
+## Sem a posição gravada da câmera
+
+A leitura publicada usa a origem e a rotação com que o Blender tirou a foto. Um vídeo de celular não traz esses números. A tentativa seguinte lê a pose na própria foto: os quatro cantos da boca, o retângulo de catálogo 28,2 cm por 39,2 cm na altura da borda, e a lente fixa do estúdio, 35 mm num sensor de 36 mm. Essa lente é do gerador, igual em toda foto. Ela não é estimada do pixel. A origem e a rotação saem dos cantos, por IPPE, ficando a solução com a câmera fora da parede próxima. O cruzamento dos centros da fruta é o mesmo de antes. O código está em `sim/detect/rim_pose.py`.
+
+A primeira versão punha um canto por foto, por IPPE, e lia a altura com essa pose. Não segurou: na prova da tangerina, 15 cenas com leitura, erro médio da contagem 12,6%, quatro fora de 10% (sementes 10, 25, 30 e 45, esta última em +87%). A semente 20 não teve leitura. No treino o erro médio foi 6,0%, com 9 de 63 fora. No tomate a reta saiu com inclinação 0,78, o treino errou 20,5% e a prova 10,0%, com três de 7 fora. A mediana da câmera recuperada ficou a 3,5 cm da origem do Blender, e alguns quadros erraram a borda próxima por mais de 100 pixels.
+
+O teste de ruído explicou o motivo. Com a pose verdadeira deslocada de só 0,5 cm, e o deslocamento publicado, a contagem da prova já erra 8,4% em média, com 4 de 12 fora e cenas sem leitura. Com 1 cm o erro vai a 25%. A leitura precisa da pose a uns 3 mm. Cada pixel de canto vale uns 8 mm de pose nessa vista de raspão. Nenhum detector de borda entrega meio pixel com viés zero, então um canto por foto nunca fecha.
+
+O que fechou foi calibrar o arco, não a foto. As três posições de câmera são as mesmas em toda cena. O código novo detecta a borda próxima pelo degrau de densidade de bordas em faixas laterais: o trilho sólido tem pouca borda e a grade tem muita. Esse degrau senta uns 6 a 9 pixels abaixo da borda, com desvio estreito, medido nas medianas do treino (+8,8, +5,8 e +7,4 pixels por câmera na tangerina; +7,6, +6,2 e +7,4 no tomate). Esse deslocamento equivale a marcar a borda uma vez por posição do arco. Tirado o viés, cada cena de treino dá uma pose por IPPE, e a mediana robusta das cenas de treino vira a pose congelada do arco, a 1 cm da origem do Blender. A reta da leitura é ajustada de novo só no treino. A prova entra congelada, sem a pose gravada em nenhum ponto da pontuação.
+
+Com o arco calibrado só pelo treino, a tangerina ficou altura = −2,00 + 0,932 × leitura: treino com erro médio 2,0% (1 fora, a semente 2 em −12%) e prova com erro médio 2,3%, ninguém fora. O tomate ficou altura = 0,79 + 0,931 × leitura: treino com erro médio 3,5% nos litros (1 fora, a semente 1011 em +10%) e prova com erro médio 2,8%, ninguém fora. O cruzamento dos centros da fruta é o mesmo de antes. O teste `test_rim_pose.py` exige os cantos de três fotos de treino a menos de 25 pixels da boca projetada.
+
+Na cozinha isso vira protocolo: três posições marcadas no chão ou no balcão, uma marcação da borda por posição feita uma vez, e a mesma reta do treino. A Conferir ainda usa a pose gravada em `app/lib/arc-height.ts`. Ligar o arco calibrado no aplicativo é a próxima etapa, com o rig exportado como as posições do arco em vez do arquivo do Blender.
+
 ## O detector, em paralelo
 
 O YOLO nano não mede a altura. Ele marca a camada de cima, numa foto de 320 pixels. Nas 24 cenas que não entraram no treino, com confiança 0,55 e supressão de caixas sobrepostas em 0,45, a precisão e a revocação das caixas ficam em 94%. O erro absoluto médio da contagem visível é cerca de 5%, e o pior caso é 14%, no tomate da semente 1010 (42 frutas visíveis, 36 marcadas). O mAP50 é 0,97. Esse ponto de corte foi escolhido nessas mesmas 24 cenas, então ele não é uma prova cega. A Conferir desenha essas caixas a partir da exportação ONNX do mesmo peso, `sim/assets/detect/top-layer.pt`.

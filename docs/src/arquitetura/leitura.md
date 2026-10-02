@@ -2,6 +2,8 @@
 
 Este capítulo explica o código que produziu o erro citado no livro. A mesma leitura, para as fotos de 640 por 480 pixels, também roda na tela Conferir, em `app/lib/arc-height.ts`. A página Conta continua na conta de camadas de `app/lib/packing.ts`.
 
+A origem e a rotação da câmera, nesta leitura, são as que o renderizador gravou ao tirar a foto. A Conferir usa exatamente essa pose, em `app/lib/arc-cameras.json`. Em paralelo, o [histórico](../simulacao/historico.md) registra um arco calibrado só com fotos de treino, sem esse arquivo: tangerina com erro médio 2,3% na prova e tomate com 2,8%, ninguém fora de 10% em nenhuma das duas. Esse arco ainda não está ligado na Conferir. O que está abaixo é a leitura com a pose gravada.
+
 A ideia, nas duas frutas, é a mesma. A câmera fica acima da borda próxima e olha o monte. Uma fruta redonda aparece como um disco, e o centro do disco é a projeção do centro da fruta. Duas fotos do mesmo arco, de lugares um pouco diferentes, dão duas retas. As retas se encontram na fruta. O encontro da silhueta, aquele contorno escuro contra o fundo, cai no ar, fora da casca, e foi abandonado.
 
 A tangerina usa três fotos e uma reta de unidades. O tomate usa duas fotos e o volume. Os números de uma não servem na outra: o raio, o deslocamento de 4,22 cm e a reta de 8,859 frutas por centímetro são da tangerina desta caixa. Cenoura e banana não herdam esses números. A cenoura, quando entrar, usa a conta dos litros. A banana usa pencas, dedos e camadas de penca. O que as duas herdam é a caixa, o arco e a divisão treino/prova. A máscara e o leitor de altura são escritos para a forma da peça.

@@ -145,9 +145,14 @@ def _in_crate(point: np.ndarray) -> bool:
     )
 
 
-def matched_points(image_a: Path, image_b: Path, kind: str = "tangerine") -> list[np.ndarray]:
+def matched_points(
+    image_a: Path,
+    image_b: Path,
+    kind: str = "tangerine",
+    cameras: list[dict] | None = None,
+) -> list[np.ndarray]:
     """Where the same fruit is seen in both frames, in meters."""
-    cameras = CAMERAS["cameras"]
+    cameras = CAMERAS["cameras"] if cameras is None else cameras
     fruits_a = fruit_centers(image_a, cameras[0], kind)
     fruits_b = fruit_centers(image_b, cameras[1], kind)
     pairs = []
@@ -175,9 +180,17 @@ def matched_points(image_a: Path, image_b: Path, kind: str = "tangerine") -> lis
     return points
 
 
-def matched_tops(image_a: Path, image_b: Path, kind: str = "tangerine") -> list[float]:
+def matched_tops(
+    image_a: Path,
+    image_b: Path,
+    kind: str = "tangerine",
+    cameras: list[dict] | None = None,
+) -> list[float]:
     """Lid height of each fruit found in both frames, in meters above the floor."""
-    return [float(point[2] + RADIUS_M - CAMERAS["floor_z"]) for point in matched_points(image_a, image_b, kind)]
+    return [
+        float(point[2] + RADIUS_M - CAMERAS["floor_z"])
+        for point in matched_points(image_a, image_b, kind, cameras)
+    ]
 
 
 def lid_height_m(image_a: Path, image_b: Path) -> float:
@@ -188,9 +201,15 @@ def lid_height_m(image_a: Path, image_b: Path) -> float:
     return sum(tops) / len(tops)
 
 
-def matched_tops_three(image_a: Path, image_b: Path, image_c: Path, kind: str = "tangerine") -> list[float]:
+def matched_tops_three(
+    image_a: Path,
+    image_b: Path,
+    image_c: Path,
+    kind: str = "tangerine",
+    cameras: list[dict] | None = None,
+) -> list[float]:
     """Lid height of each fruit seen in all three frames, in meters above the floor."""
-    cameras = CAMERAS["cameras"]
+    cameras = CAMERAS["cameras"] if cameras is None else cameras
     groups = [
         fruit_centers(image_a, cameras[0], kind),
         fruit_centers(image_b, cameras[1], kind),
