@@ -2,7 +2,7 @@
 
 Este capítulo é o mapa para quem chega no código. Ele diz onde cada coisa mora, o que já roda no celular (ou no navegador que imita o celular), e o que só existe no computador da simulação.
 
-A tela Conferir lê a altura quando você abre as fotos do protocolo (os quadros A, B e, na tangerina, C). O erro de 2,2% e o de 3,0% foram medidos nessas fotos do simulador. Um vídeo qualquer, ou o clipe de teste, não traz as três câmeras calibradas e não reproduz esse erro.
+A tela Conferir lê a altura quando você abre as fotos do protocolo (os quadros A, B e, na tangerina, C). O erro de 2,2% e o de 3,0% foram medidos nessas fotos do simulador. Um vídeo qualquer não traz as três câmeras calibradas e não reproduz esse erro.
 
 ![A altura do arco está nos dois programas. O YOLO da camada de cima também.](dois-programas.svg)
 
@@ -20,13 +20,13 @@ Há ainda `scripts/` para abrir o Chrome com uma câmera falsa, e o `Makefile` n
 
 ## O que você pode testar hoje no aplicativo
 
-O aplicativo já percorre a jornada da cozinha com um clipe desenhado, sem fruta de verdade. O roteiro está em [Etapas de construção](../etapas.md). Em resumo:
+O aplicativo já percorre a jornada da cozinha sem fruta de verdade, com fotos do simulador. O roteiro está em [Etapas de construção](../etapas.md). Em resumo:
 
 1. `make dev`, e o endereço `http://localhost:3001`.
-2. Em Conferir, grave o clipe de teste, marque os quatro cantos e veja os anéis na casca laranja.
+2. Em Medidas, guarde um modelo de caixa. Em Conferir, escolha o modelo, abra os quadros e marque os quatro cantos para ver as caixas do YOLO.
 3. Em Conta, os números de exemplo devem mostrar 112 unidades de tangerina. Esse 112 sai da conta de camadas, não da leitura nova.
 
-Para medir a altura, não use só esse clipe. Abra as fotos do protocolo na etapa Quadros. O roteiro exato está no fim de [A leitura que a simulação mediu](leitura.md).
+Para medir a altura, abra as fotos do protocolo na etapa Quadros. O roteiro exato está no fim de [A leitura que a simulação mediu](leitura.md).
 
 ## O que a simulação já mediu
 

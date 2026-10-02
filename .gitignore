@@ -2,15 +2,13 @@
 __pycache__/
 .env
 docs/book/
-docs/src/temp/
-docs/src/.obsidian/
+docs/olho-na-caixa/.obsidian/
 .cursor
 app/node_modules/
 app/.next/
 app/tsconfig.tsbuildinfo
 weights/
 app/out/
-app/public/stills/
 app/public/models/
 app/public/ort/
 app/android/.gradle/

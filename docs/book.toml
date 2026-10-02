@@ -1,7 +1,7 @@
 [book]
 authors = ["LIAO — Liga Acadêmica de IA e Otimização"]
 language = "pt"
-src = "src"
+src = "olho-na-caixa"
 title = "Olho na Caixa"
 
 [output.html]

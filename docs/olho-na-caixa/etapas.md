@@ -39,10 +39,10 @@ O que você faz, no computador, sem fruta e sem webcam:
 
 1. Na raiz do repositório, rode `make dev`.
 2. Abra `http://localhost:3001` no Chrome normal.
-3. Clique em **Gravar clipe de teste**. A prévia mostra uma caixa desenhada e um quadrado laranja que anda.
+3. Clique em **Gravar da câmera**. A prévia mostra o que a câmera vê.
 4. Espere cerca de dois segundos e clique em **Parar**.
-5. Dê play no replay. A caixa e o quadrado têm de aparecer de novo.
-6. Abra Medidas, guarde um vão interno, e abra Conta. Os números de exemplo devem mostrar 112 unidades de tangerina. O tomate usa 0,55 kg por litro só como ilustração.
+5. Dê play no replay. A cena tem de aparecer de novo.
+6. Abra Medidas, guarde um modelo de caixa, e abra Conta. Os números de exemplo devem mostrar 112 unidades de tangerina. O tomate usa 0,55 kg por litro só como ilustração.
 
 O que você me diz: se o replay mostrou a caixa, e se a conta mostrou 112 unidades.
 
@@ -54,9 +54,9 @@ A etapa 2 está na tela Conferir. O que você faz, ainda sem fruta e sem webcam:
 
 1. Com `make dev` no ar, abra `http://localhost:3001`.
 2. Escolha tangerina ou tomate e continue.
-3. Confira o vão interno e continue.
-4. Clique em **Gravar clipe de teste**, espere uns dois segundos, pare, e continue.
-5. No vídeo, escolha um instante como vista de cima e outro como vista de lado. Cada botão mostra o instante, e **Pular para este quadro** volta o vídeo até ele. No clipe de teste, os dois podem ser o mesmo desenho.
+3. Escolha o modelo da caixa e continue.
+4. Grave um arco curto com a câmera (ou abra um vídeo), espere uns dois segundos, pare, e continue.
+5. No vídeo, escolha um instante como vista de cima e outro como vista de lado. Cada botão mostra o instante, e **Pular para este quadro** volta o vídeo até ele.
 6. Toque os quatro cantos internos na ordem pedida.
 7. Na última tela, confira se tangerina aparece em unidades e tomate em quilos, com um intervalo. A incerteza orçada ainda pede o peso da balança.
 
@@ -66,14 +66,12 @@ O que você me diz: se uma pessoa da cozinha entenderia esses passos, e se a uni
 
 O quadro de cima recebe as caixas do YOLO nano, uma vez, dentro da borda. O arquivo é a exportação ONNX do peso treinado no simulador. O diâmetro mediano dessas caixas usa a borda como régua. A marca pela cor continua no código, e a tela não a desenha. O tempo da passagem aparece na última tela, medido neste computador. O minuto oficial continua esperando o celular de referência, que ainda não foi escolhido. O formato do celular ainda é o ONNX no navegador, não o LiteRT.
 
-A página Marcas abre sozinha as 120 fotos de cima do simulador. Você não escolhe a pasta.
+A conferência das caixas acontece na última tela da Conferir: cada caixa desenhada é uma fruta da camada de cima, e o texto diz a contagem e o diâmetro mediano. A página Marcas, que abria sozinha as 120 fotos de cima do simulador, foi removida depois que essa leitura passou a morar na Conferir.
 
 O que você faz:
 
-1. Com `make dev` no ar, abra `http://localhost:3001/marcas/`.
-2. Espere a primeira foto. No tomate da semente 1010, a contagem fica perto de 36 caixas. Na tangerina da semente 46, perto de 50. A lista deixa você pular para esses nomes enquanto o resto carrega.
-
-O clipe de teste da Conferir tem círculos laranja desenhados. O modelo não foi treinado neles, então essa tela não é a prova das caixas. A prova é a página Marcas.
+1. Com `make dev` no ar, abra `http://localhost:3001` e complete a jornada com fotos do simulador.
+2. Na última tela, confira a contagem dentro da borda: no tomate da semente 1010, perto de 36 caixas; na tangerina da semente 46, perto de 50.
 
 ## Etapa 4. O número que vai para o edital
 

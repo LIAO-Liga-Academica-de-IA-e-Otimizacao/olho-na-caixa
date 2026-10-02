@@ -75,14 +75,14 @@ As fotos abaixo foram geradas neste computador e não entram no Git. Se a pasta 
 1. Na raiz do repositório, rode `make dev`.
 2. Abra `http://localhost:3001`. O livro, se estiver aberto, usa a porta 3000.
 3. Em Conferir, escolha **Tomate**.
-4. Na caixa, digite comprimento 39,2, largura 28,2 e altura 26. A conta dos litros ignora esses três números e usa a boca da caixa plástica 01, 28,2 cm por 39,2 cm. Continuar.
+4. Na caixa, confira comprimento 39,2, largura 28,2 e altura 25,7. A conta dos litros usa esses números. No celular, deixe **Simulador, 35 mm**, que é a lente dessas fotos. No tomate, o quilo por litro começa no exemplo, 0,55: troque quando o lote for pesado. Continuar.
 5. Em Filme, continue sem gravar.
-6. Em Quadros, abra estes arquivos, nesta ordem:
+6. Em Quadros, abra estes arquivos, nesta ordem. Cada quadro mostra o molde tracejado da boca: na foto real, a boca entra nesse molde.
    - Vista de cima: `sim/assets/detect/images/val/tomato-s1005.png`
    - Quadro A: `sim/assets/detect/sides/tomato/val/tomato-s1005.png`
    - Quadro B: `sim/assets/detect/sides/tomato/val/tomato-s1005-b.png`
 7. Continuar. Toque os quatro cantos internos da boca, na ordem que a tela pede.
-8. O resultado mostra a altura lida e os quilos. O quilo por litro ainda é o exemplo, 0,55. Nesta caixa a tela lê cerca de 11,9 cm, o que dá cerca de 7,2 kg. A planilha do Python, na mesma foto, lê 12,1 cm. A diferença é a transformada de distância do navegador, que não é a do OpenCV. As duas ficam dentro de 10% da altura verdadeira, 12,7 cm.
+8. O resultado mostra a altura lida e os quilos. Nesta caixa a tela lê cerca de 13,1 cm, o que dá cerca de 8,0 kg. A leitura em Python, na mesma foto, é 12,6 cm. A diferença é a transformada de distância do navegador, que não é a do OpenCV. As duas ficam dentro de 10% da altura verdadeira, 12,7 cm.
 
 Para a tangerina, o item é **Tangerina** e os quatro arquivos são:
 
@@ -91,4 +91,8 @@ Para a tangerina, o item é **Tangerina** e os quatro arquivos são:
 - Quadro B: `sim/assets/detect/sides/val/tangerine-s5-b.png`
 - Quadro C: `sim/assets/detect/sides/val/tangerine-s5-c.png`
 
-O total é a reta da altura, não a quantidade de anéis coloridos. Nesta caixa a tela lê cerca de 7,1 cm e cerca de 79 unidades. A leitura em Python, na mesma foto, é 7,5 cm e cerca de 82 unidades. A cena tem 86 frutas. O clipe de teste continua disponível em Filme, mas ele não mede altura.
+O total é a reta da altura, não a quantidade de caixas do YOLO. Nesta caixa a tela lê cerca de 7,6 cm e cerca de 83 unidades. A leitura em Python, na mesma foto, é 7,6 cm. A cena tem 86 frutas.
+
+## A camada de captura
+
+Três números separam a foto do simulador da foto da cozinha, e os três ficam salvos no aparelho. A lente sai da ficha técnica do celular, em milímetros equivalentes: o rig guarda posições, e os raios saem da lente digitada. A boca sai da trena: comprimento, largura e altura internos. A conta dos litros e a reta das unidades usam essa boca; mais de 2% longe da boca calibrada, a tela pede a balança. O molde tracejado da tela Quadros é a projeção dessa boca nas três posições do arco. A foto real entra recortada ao meio 4:3, sem esticar, para os raios continuarem válidos.
