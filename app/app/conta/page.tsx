@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { readCrate } from "@/lib/crate-store";
+import { activeCrate, readBook } from "@/lib/crate-store";
 import {
   fitsTolerance,
   interval,
@@ -27,7 +27,7 @@ export default function FormulaPage() {
   const [density, setDensity] = useState("0.55");
 
   useEffect(() => {
-    const saved = readCrate();
+    const saved = activeCrate(readBook());
     setCrate(saved);
     setStored(saved !== null);
   }, []);
@@ -57,7 +57,7 @@ export default function FormulaPage() {
         {stored ? null : (
           <>
             {" "}
-            <Link href="/medidas/">Guardar outro vão interno.</Link>
+            <Link href="/medidas/">Escolher outra caixa.</Link>
           </>
         )}
       </p>

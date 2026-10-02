@@ -2,7 +2,14 @@ import { inflateSync } from "node:zlib";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { cameraRoundtripMeters, readArcLid, type RgbImage } from "./arc-height";
+import {
+  cameraRoundtripMeters,
+  countFromHeight,
+  estimateFromLid,
+  mouthQuad,
+  readArcLid,
+  type RgbImage,
+} from "./arc-height";
 
 const ROOT = path.resolve(import.meta.dirname, "../..");
 
@@ -28,6 +35,28 @@ describe("arc height", () => {
     const lid = readArcLid("tomato", [readPng(`${stem}.png`), readPng(`${stem}-b.png`)]);
     expect(Math.abs(lid.heightCm - published)).toBeLessThan(0.6);
   }, 60000);
+
+  it("draws the mouth inside the still, near edge below far edge", () => {
+    const quad = mouthQuad("tangerine", 0, 35);
+    expect(quad).not.toBeNull();
+    for (const [x, y] of quad ?? []) {
+      expect(x).toBeGreaterThanOrEqual(0);
+      expect(x).toBeLessThanOrEqual(640);
+      expect(y).toBeGreaterThanOrEqual(0);
+      expect(y).toBeLessThanOrEqual(480);
+    }
+    expect((quad as [number, number][])[0][1]).toBeGreaterThan((quad as [number, number][])[2][1]);
+  });
+
+  it("scales the count with the typed mouth and flags a strange crate", () => {
+    const heightCm = 12;
+    const here = countFromHeight(heightCm, 5.1);
+    expect(countFromHeight(heightCm, 5.1, 2 * 28.2 * 39.2)).toBeCloseTo(2 * here, 9);
+    expect(estimateFromLid("tangerine", heightCm, 5.1, 0.55).flags).toEqual([]);
+    expect(estimateFromLid("tangerine", heightCm, 5.1, 0.55, 1.1 * 28.2 * 39.2).flags).toContain(
+      "uncalibrated_crate",
+    );
+  });
 
   it("reads the tangerine val still the way the frozen lid does", () => {
     const stem = path.join(ROOT, "sim/assets/detect/sides/val/tangerine-s5");

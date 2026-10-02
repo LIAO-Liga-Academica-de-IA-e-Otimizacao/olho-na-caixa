@@ -9,7 +9,6 @@ const links = [
   { href: "/medidas/", label: "Medidas" },
   { href: "/conta/", label: "Conta" },
   { href: "/coleta/", label: "Coleta" },
-  { href: "/marcas/", label: "Marcas" },
 ];
 
 export function Shell({ children }: { children: ReactNode }) {

@@ -1,17 +1,39 @@
 "use client";
 
 import { useEffect, useRef, useState, type MouseEvent } from "react";
+import Link from "next/link";
 import { flushSync } from "react-dom";
-import { readCrate, writeCrate } from "@/lib/crate-store";
+import {
+  activeCrate,
+  emptyBook,
+  readBook,
+  setActive,
+  writeBook,
+  type CrateBook,
+} from "@/lib/crate-store";
 import { analyzeFrame, isConvexQuad, type FrameQuality, type Point } from "@/lib/frame-quality";
-import { estimateFromLid, readArcLid, type RgbImage } from "@/lib/arc-height";
+import {
+  estimateFromLid,
+  mouthQuad,
+  readArcLid,
+  type Quad,
+  type RgbImage,
+} from "@/lib/arc-height";
 import { detectTopLayer } from "@/lib/yolo-detect";
 import type { TopLayer } from "@/lib/top-layer";
 import { FruitBoxes } from "./FruitBoxes";
-import { fitsTolerance, interval, type Crate, type Estimate } from "@/lib/packing";
+import { MouthGuide } from "./MouthGuide";
+import { baseAreaCm2, fitsTolerance, interval, type Crate, type Estimate } from "@/lib/packing";
+import { PHONE_PRESETS, readPhone, SIMULATOR_PHONE, writePhone } from "@/lib/phone";
 
-const TEST_CLIP = "/test-arc.mp4";
 const EXAMPLE_DENSITY = 0.55;
+const DENSITY_STORAGE_KEY = "olho-na-caixa.density";
+
+function readDensity(): string {
+  if (typeof window === "undefined") return String(EXAMPLE_DENSITY);
+  const raw = window.localStorage.getItem(DENSITY_STORAGE_KEY);
+  return raw && Number(raw) > 0 ? raw : String(EXAMPLE_DENSITY);
+}
 
 type ItemKind = "tangerine" | "tomato";
 type Step = "item" | "crate" | "film" | "frames" | "corners" | "result";
@@ -77,15 +99,21 @@ function imageToRgb(url: string): Promise<RgbImage> {
   return new Promise((resolve, reject) => {
     const image = new Image();
     image.onload = () => {
+      // Center-crop to 4:3, then scale to the 640×480 protocol. A symmetric
+      // crop keeps the lens center in the middle, so the rig rays stay valid.
+      const cropWidth = Math.min(image.naturalWidth, (image.naturalHeight * 4) / 3);
+      const cropHeight = Math.min(image.naturalHeight, (image.naturalWidth * 3) / 4);
+      const cropX = (image.naturalWidth - cropWidth) / 2;
+      const cropY = (image.naturalHeight - cropHeight) / 2;
       const canvas = document.createElement("canvas");
-      canvas.width = image.naturalWidth;
-      canvas.height = image.naturalHeight;
+      canvas.width = 640;
+      canvas.height = 480;
       const context = canvas.getContext("2d");
       if (!context) {
         reject(new Error("O quadro não pôde ser lido."));
         return;
       }
-      context.drawImage(image, 0, 0);
+      context.drawImage(image, cropX, cropY, cropWidth, cropHeight, 0, 0, 640, 480);
       const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
       const rgb = new Float32Array(canvas.width * canvas.height * 3);
       for (let index = 0, pixel = 0; index < pixels.data.length; index += 4, pixel += 3) {
@@ -121,10 +149,11 @@ export function Conference() {
 
   const [step, setStep] = useState<Step>("item");
   const [item, setItem] = useState<ItemKind>("tangerine");
-  const [name, setName] = useState("Caixa da cozinha");
-  const [lengthCm, setLengthCm] = useState("50");
-  const [widthCm, setWidthCm] = useState("30");
-  const [heightCm, setHeightCm] = useState("22");
+  const [book, setBook] = useState<CrateBook>(emptyBook);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [phoneName, setPhoneName] = useState(SIMULATOR_PHONE.name);
+  const [focalCm, setFocalCm] = useState(String(SIMULATOR_PHONE.focal35Mm));
+  const [density, setDensity] = useState(String(EXAMPLE_DENSITY));
   const [capturePhase, setCapturePhase] = useState<CapturePhase>("idle");
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const [filmLabel, setFilmLabel] = useState<string | null>(null);
@@ -148,13 +177,19 @@ export function Conference() {
   const [layerNote, setLayerNote] = useState<string | null>(null);
   const [passageMs, setPassageMs] = useState<number | null>(null);
 
+  const crate: Crate | null = activeCrate({ crates: book.crates, active: selected });
+  const crateReady = crate !== null;
+
   useEffect(() => {
-    const saved = readCrate();
-    if (!saved) return;
-    setName(saved.name);
-    setLengthCm(String(saved.lengthCm));
-    setWidthCm(String(saved.widthCm));
-    setHeightCm(String(saved.heightCm));
+    const saved = readBook();
+    setBook(saved);
+    setSelected(saved.active);
+    const phone = readPhone();
+    if (phone) {
+      setPhoneName(phone.name);
+      setFocalCm(String(phone.focal35Mm));
+    }
+    setDensity(readDensity());
   }, []);
 
   useEffect(() => {
@@ -174,7 +209,8 @@ export function Conference() {
   }, []);
 
   useEffect(() => {
-    if (step !== "result" || !topShot || corners.length !== 4) return;
+    if (step !== "result" || !topShot || corners.length !== 4 || !crate) return;
+    const mouth = crate;
     let cancelled = false;
     setLayer(null);
     setLayerNote(null);
@@ -193,8 +229,8 @@ export function Conference() {
       detectTopLayer(
         { data: pixels.data, width: pixels.width, height: pixels.height },
         corners,
-        Number(lengthCm),
-        Number(widthCm),
+        mouth.lengthCm,
+        mouth.widthCm,
         item,
       )
         .then((found) => {
@@ -213,7 +249,7 @@ export function Conference() {
     return () => {
       cancelled = true;
     };
-  }, [step, topShot, corners, item, lengthCm, widthCm]);
+  }, [step, topShot, corners, item, crate]);
 
   useEffect(() => {
     if (step !== "result") return;
@@ -226,10 +262,11 @@ export function Conference() {
     setLidCm(null);
     setArcNote("Lendo a altura nos quadros do arco.");
     const urls = [arcA, arcB, item === "tangerine" ? arcC : null].filter((url): url is string => url !== null);
+    const focalNow = Number(focalCm) > 0 ? Number(focalCm) : SIMULATOR_PHONE.focal35Mm;
     Promise.all(urls.map((url) => imageToRgb(url)))
       .then((frames) => {
         if (cancelled) return;
-        setLidCm(readArcLid(item, frames).heightCm);
+        setLidCm(readArcLid(item, frames, focalNow).heightCm);
         setArcNote(null);
       })
       .catch((reason: unknown) => {
@@ -242,13 +279,8 @@ export function Conference() {
     };
   }, [step, item, arcA, arcB, arcC]);
 
-  const crate: Crate = {
-    name: name.trim() || "Caixa",
-    lengthCm: Number(lengthCm),
-    widthCm: Number(widthCm),
-    heightCm: Number(heightCm),
-  };
-  const crateReady = crate.lengthCm > 0 && crate.widthCm > 0 && crate.heightCm > 0;
+  const focal = Number(focalCm) > 0 ? Number(focalCm) : SIMULATOR_PHONE.focal35Mm;
+  const densityKgPerLiter = Number(density) > 0 ? Number(density) : EXAMPLE_DENSITY;
 
   function stopTracks() {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -392,19 +424,25 @@ export function Conference() {
 
   const diameterCm = layer?.medianDiameterCm && layer.medianDiameterCm > 0 ? layer.medianDiameterCm : 5.1;
   let estimate: Estimate | null = null;
-  if (step === "result" && lidCm !== null && lidCm > 0) {
-    estimate = estimateFromLid(item, lidCm, diameterCm, EXAMPLE_DENSITY);
+  if (step === "result" && lidCm !== null && lidCm > 0 && crate) {
+    estimate = estimateFromLid(item, lidCm, diameterCm, densityKgPerLiter, baseAreaCm2(crate));
   }
   const arcReady = Boolean(arcA && arcB && (item === "tomato" || arcC));
   const needsScale = estimate ? !fitsTolerance(estimate, 0.1) || estimate.flags.length > 0 : false;
   const typedScale = Number(scaleKg);
   const cornersReady = corners.length === 4 && isConvexQuad(corners);
+  const stepIndex = STEPS.findIndex((entry) => entry.id === step);
 
   return (
     <>
       <p className="steps">
         {STEPS.map((entry, index) => (
-          <span key={entry.id} className={entry.id === step ? "step is-current" : "step"}>
+          <span
+            key={entry.id}
+            className={
+              entry.id === step ? "step is-current" : index < stepIndex ? "step is-done" : "step"
+            }
+          >
             {index + 1}. {entry.label}
           </span>
         ))}
@@ -439,33 +477,89 @@ export function Conference() {
 
       {step === "crate" ? (
         <section className="card">
-          <h1>Vão interno</h1>
-          <p className="lede">Medido por dentro, em centímetros. Fica salvo neste aparelho.</p>
+          <h1>Caixa e celular</h1>
+          <p className="lede">
+            Escolha um modelo do cadastro. A lente sai da ficha técnica do celular, em milímetros equivalentes. Os
+            dois ficam salvos neste aparelho.
+          </p>
+          {book.crates.length > 0 ? (
+            <div role="group" aria-label="Modelo da caixa">
+              {book.crates.map((entry) => (
+                <button
+                  key={entry.name}
+                  type="button"
+                  className={selected === entry.name ? "choice" : "choice secondary"}
+                  aria-pressed={selected === entry.name}
+                  onClick={() => setSelected(entry.name)}
+                >
+                  {entry.name} · {formatCm(entry.lengthCm)} × {formatCm(entry.widthCm)} ×{" "}
+                  {formatCm(entry.heightCm)} cm
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="flag">Nenhuma caixa guardada. Meça a primeira em Medidas.</p>
+          )}
+          <div className="actions">
+            <Link className="link-button" href="/medidas/">
+              Medir caixas
+            </Link>
+          </div>
+          <div className="preset-row" role="group" aria-label="Modelo do celular">
+            {PHONE_PRESETS.map((preset) => (
+              <button
+                key={preset.name}
+                type="button"
+                className={phoneName === preset.name ? "preset is-on" : "preset"}
+                aria-pressed={phoneName === preset.name}
+                onClick={() => {
+                  setPhoneName(preset.name);
+                  setFocalCm(String(preset.focal35Mm));
+                }}
+              >
+                {preset.name} · {preset.focal35Mm} mm
+              </button>
+            ))}
+          </div>
           <label>
-            Nome
-            <input value={name} onChange={(event) => setName(event.target.value)} />
+            Distância focal equivalente (mm)
+            <input
+              inputMode="decimal"
+              value={focalCm}
+              onChange={(event) => {
+                setFocalCm(event.target.value);
+                setPhoneName("Outro");
+              }}
+            />
           </label>
-          <label>
-            Comprimento
-            <input inputMode="decimal" value={lengthCm} onChange={(event) => setLengthCm(event.target.value)} />
-          </label>
-          <label>
-            Largura
-            <input inputMode="decimal" value={widthCm} onChange={(event) => setWidthCm(event.target.value)} />
-          </label>
-          <label>
-            Altura
-            <input inputMode="decimal" value={heightCm} onChange={(event) => setHeightCm(event.target.value)} />
-          </label>
+          {item === "tomato" ? (
+            <label>
+              Quilos por litro do lote
+              <input
+                inputMode="decimal"
+                value={density}
+                onChange={(event) => {
+                  setDensity(event.target.value);
+                  if (Number(event.target.value) > 0) {
+                    window.localStorage.setItem(DENSITY_STORAGE_KEY, event.target.value);
+                  }
+                }}
+              />
+            </label>
+          ) : null}
           <div className="actions">
             <button type="button" className="secondary" onClick={() => setStep("item")}>
               Voltar
             </button>
             <button
               type="button"
-              disabled={!crateReady}
+              disabled={!crate || !(Number(focalCm) > 0)}
               onClick={() => {
-                writeCrate(crate);
+                if (!crate || !selected) return;
+                const updated = setActive(book, selected);
+                writeBook(updated);
+                setBook(updated);
+                writePhone({ name: phoneName, focal35Mm: focal });
                 setStep("film");
               }}
             >
@@ -497,20 +591,6 @@ export function Conference() {
               <>
                 <button
                   type="button"
-                  className={filmLabel === "Clipe de teste" ? undefined : "secondary"}
-                  aria-pressed={filmLabel === "Clipe de teste"}
-                  onClick={() => {
-                    startFromClip(TEST_CLIP, "Clipe de teste").catch(() => {
-                      setFilmLabel(null);
-                      setCapturePhase("idle");
-                      setError("O clipe de teste não abriu.");
-                    });
-                  }}
-                >
-                  Gravar clipe de teste
-                </button>
-                <button
-                  type="button"
                   className={filmLabel === "Câmera" ? undefined : "secondary"}
                   aria-pressed={filmLabel === "Câmera"}
                   onClick={() => {
@@ -525,8 +605,8 @@ export function Conference() {
                 </button>
                 <button
                   type="button"
-                  className={filmLabel !== null && filmLabel !== "Clipe de teste" && filmLabel !== "Câmera" ? undefined : "secondary"}
-                  aria-pressed={filmLabel !== null && filmLabel !== "Clipe de teste" && filmLabel !== "Câmera"}
+                  className={filmLabel !== null && filmLabel !== "Câmera" ? undefined : "secondary"}
+                  aria-pressed={filmLabel !== null && filmLabel !== "Câmera"}
                   onClick={() => fileInputRef.current?.click()}
                 >
                   Abrir um vídeo
@@ -567,8 +647,8 @@ export function Conference() {
         <section className="card">
           <h1>Abra os quadros do arco</h1>
           <p className="lede">
-            A altura sai das fotos do protocolo, com 640 por 480 pixels. O quadro A não tem sufixo, o B termina em -b
-            e o C em -c. O clipe de teste não traz essas câmeras.
+            Fotografe cada posição com a boca dentro do molde tracejado. O aplicativo recorta o meio 4:3 da foto antes
+            de ler, então encha o molde sem cortar a borda. O quadro A não tem sufixo, o B termina em -b e o C em -c.
           </p>
           {recordingUrl ? (
             <>
@@ -587,10 +667,28 @@ export function Conference() {
             url={topFileName ? topShot?.url ?? null : null}
             onOpen={() => openImage("top")}
           />
-          <PickedStill label="Quadro A" fileName={arcNames.a} url={arcA} onOpen={() => openImage("a")} />
-          <PickedStill label="Quadro B" fileName={arcNames.b} url={arcB} onOpen={() => openImage("b")} />
+          <PickedStill
+            label="Quadro A"
+            fileName={arcNames.a}
+            url={arcA}
+            guide={mouthQuad(item, 0, focal)}
+            onOpen={() => openImage("a")}
+          />
+          <PickedStill
+            label="Quadro B"
+            fileName={arcNames.b}
+            url={arcB}
+            guide={mouthQuad(item, 1, focal)}
+            onOpen={() => openImage("b")}
+          />
           {item === "tangerine" ? (
-            <PickedStill label="Quadro C" fileName={arcNames.c} url={arcC} onOpen={() => openImage("c")} />
+            <PickedStill
+              label="Quadro C"
+              fileName={arcNames.c}
+              url={arcC}
+              guide={mouthQuad(item, 2, focal)}
+              onOpen={() => openImage("c")}
+            />
           ) : (
             <p className="note">O tomate não usa o quadro C.</p>
           )}
@@ -693,20 +791,21 @@ export function Conference() {
               referência.
             </p>
           ) : null}
-          {lidCm !== null && lidCm > 0 ? (
+          {lidCm !== null && lidCm > 0 && crate ? (
             <p className="ok">
-              Altura lida no arco: {formatCm(lidCm)} cm. A boca desta conta é a da caixa plástica 01, 28,2 cm por 39,2
-              cm.
+              Altura lida no arco: {formatCm(lidCm)} cm. A boca desta conta é a {crate.name},{" "}
+              {formatCm(crate.lengthCm)} cm por {formatCm(crate.widthCm)} cm.
             </p>
           ) : (
             <p className={arcNote ? "flag" : "note"}>{arcNote ?? "Lendo a altura nos quadros do arco."}</p>
           )}
           {item === "tomato" ? (
-            <p className="note">Quilos por litro de exemplo: {EXAMPLE_DENSITY}. O lote ainda não foi pesado.</p>
-          ) : (
             <p className="note">
-              As marcas contam a camada de cima. O total usa a altura do arco, nesta boca de 28,2 cm por 39,2 cm.
+              Quilos por litro do lote: {densityKgPerLiter.toLocaleString("pt-BR")}. Troque na tela da caixa se o lote
+              já foi pesado.
             </p>
+          ) : (
+            <p className="note">As marcas contam a camada de cima. O total usa a altura do arco nesta boca.</p>
           )}
           {estimate ? (
             <>
@@ -801,11 +900,13 @@ function PickedStill({
   label,
   fileName,
   url,
+  guide = null,
   onOpen,
 }: {
   label: string;
   fileName: string | null;
   url: string | null;
+  guide?: Quad | null;
   onOpen: () => void;
 }) {
   const picked = fileName !== null && url !== null;
@@ -816,11 +917,19 @@ function PickedStill({
       </button>
       {picked ? (
         <>
-          <img src={url} alt="" />
+          <div className="still-frame">
+            <img src={url} alt="" />
+            <MouthGuide quad={guide} label={`Molde da boca no ${label}`} />
+          </div>
           <p className="ok shot-moment">{fileName}</p>
         </>
       ) : (
-        <p className="note shot-moment">Ainda não escolhido.</p>
+        <>
+          <div className="still-frame is-empty">
+            <MouthGuide quad={guide} label={`Molde da boca no ${label}`} />
+          </div>
+          <p className="note shot-moment">Enquadre a boca no molde e escolha a foto.</p>
+        </>
       )}
     </div>
   );

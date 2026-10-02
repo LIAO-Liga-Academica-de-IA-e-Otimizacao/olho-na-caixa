@@ -64,6 +64,33 @@ export type ArcLid = {
 };
 
 const BOUNDS = camerasJson as Bounds;
+const SENSOR_MM = 36;
+
+export type Quad = Array<[number, number]>;
+
+/** Rig poses with the phone lens. Positions come from the rig, rays from the phone. */
+export function rigCameras(item: "tangerine" | "tomato", focal35Mm: number): Camera[] {
+  const rig = item === "tomato" ? BOUNDS.tomatoCameras : BOUNDS.cameras;
+  return rig.map((camera) => ({ ...camera, lens: focal35Mm, sensor_width: SENSOR_MM }));
+}
+
+/**
+ * Pixel mouth of one arc slot, in 640×480 still space, for the framing guide.
+ * Slot 0 is A, 1 is B, 2 is C. Order is near-left, near-right, far-right, far-left.
+ */
+export function mouthQuad(item: "tangerine" | "tomato", slot: 0 | 1 | 2, focal35Mm: number): Quad | null {
+  const camera = rigCameras(item, focal35Mm)[slot];
+  if (!camera) return null;
+  const corners: Quad = [];
+  for (const x of [BOUNDS.min_x, BOUNDS.max_x]) {
+    for (const y of [BOUNDS.max_y, BOUNDS.min_y]) {
+      const pixel = project(camera, [x, y, BOUNDS.rim_z]);
+      if (!pixel) return null;
+      corners.push(pixel);
+    }
+  }
+  return corners;
+}
 
 const CLOSE_OFFSETS = ellipseOffsets(7);
 const OPEN_OFFSETS = ellipseOffsets(5);
@@ -94,22 +121,23 @@ export function cameraRoundtripMeters(): number {
  * Tangerine needs frames A, B, and C. Tomato needs A and B. The images are
  * the rendered arc, not a frame grabbed from an arbitrary video.
  */
-export function readArcLid(item: "tangerine" | "tomato", frames: RgbImage[]): ArcLid {
+export function readArcLid(item: "tangerine" | "tomato", frames: RgbImage[], focal35Mm = 35): ArcLid {
   if (frames.length < 2) throw new Error("Faltam os quadros A e B do arco.");
   for (const frame of frames) {
     if (frame.width !== PROTOCOL_WIDTH || frame.height !== PROTOCOL_HEIGHT) {
       throw new Error("Os quadros do arco precisam ter 640 por 480 pixels.");
     }
   }
+  const cameras = rigCameras(item, focal35Mm);
   if (item === "tomato") {
-    const points = matchedPoints(frames[0], frames[1], "tomato", BOUNDS.tomatoCameras);
+    const points = matchedPoints(frames[0], frames[1], "tomato", cameras);
     const heightCm = tomatoLidCm(points);
     if (heightCm <= 0) throw new Error("Nenhuma fruta cruzou nos quadros A e B.");
     return { heightCm, matched: points.length };
   }
   if (!frames[2]) throw new Error("A tangerina precisa dos quadros A, B e C.");
-  const two = matchedTops(frames[0], frames[1], "tangerine");
-  const three = matchedTopsThree(frames[0], frames[1], frames[2], "tangerine");
+  const two = matchedTops(frames[0], frames[1], "tangerine", cameras);
+  const three = matchedTopsThree(frames[0], frames[1], frames[2], "tangerine", cameras);
   if (two.length === 0 || three.length === 0) {
     throw new Error("Nenhuma fruta apareceu nos três quadros.");
   }
@@ -119,37 +147,49 @@ export function readArcLid(item: "tangerine" | "tomato", frames: RgbImage[]): Ar
   return { heightCm: TANGERINE_OFFSET_CM + TANGERINE_SLOPE * reading, matched: three.length };
 }
 
-/** Units or kilograms from a lid height already read by `readArcLid`. */
+/**
+ * Units or kilograms from a lid height already read by `readArcLid`.
+ *
+ * `mouthCm2` is the typed crate mouth. The count line was fit on the 28.2 by
+ * 39.2 mouth, so another mouth rescales the line by the area ratio: same
+ * fruit, same height, count follows the floor area. That rescale is first
+ * order, so a mouth more than 2% off the calibration raises a flag and the
+ * screen asks for the scale.
+ */
 export function estimateFromLid(
   item: "tangerine" | "tomato",
   heightCm: number,
   diameterCm: number,
   densityKgPerLiter: number,
+  mouthCm2 = MOUTH_CM2,
 ): Estimate {
+  const flags: string[] = [];
+  if (Math.abs(mouthCm2 / MOUTH_CM2 - 1) > 0.02) flags.push("uncalibrated_crate");
   if (item === "tangerine") {
     return {
-      value: countFromHeight(heightCm, diameterCm),
+      value: countFromHeight(heightCm, diameterCm, mouthCm2),
       unit: "un",
       relativeSigma: Math.hypot(0.03, 0.04, 0.03, 0.04),
-      flags: [],
+      flags,
     };
   }
   if (densityKgPerLiter <= 0) throw new Error("bulk density must be positive");
   return {
-    value: ((MOUTH_CM2 * heightCm) / 1000) * densityKgPerLiter,
+    value: ((mouthCm2 * heightCm) / 1000) * densityKgPerLiter,
     unit: "kg",
     relativeSigma: Math.hypot(0.02, 0.05, 0.06),
-    flags: [],
+    flags,
   };
 }
 
-function countFromHeight(heightCm: number, diameterCm: number): number {
+export function countFromHeight(heightCm: number, diameterCm: number, mouthCm2 = MOUTH_CM2): number {
+  const ratio = mouthCm2 / MOUTH_CM2;
   if (heightCm < SWITCH_CM) {
     const radius = 0.5 * diameterCm;
     const volume = (4 / 3) * Math.PI * radius ** 3;
-    return (MOUTH_CM2 * (heightCm + diameterCm / 6) * PHI) / volume;
+    return (mouthCm2 * (heightCm + diameterCm / 6) * PHI) / volume;
   }
-  return COUNT_INTERCEPT + COUNT_SLOPE * heightCm;
+  return ratio * (COUNT_INTERCEPT + COUNT_SLOPE * heightCm);
 }
 
 function tomatoLidCm(points: Vec3[]): number {
@@ -162,8 +202,13 @@ function tomatoLidCm(points: Vec3[]): number {
   return TOMATO_OFFSET_CM + TOMATO_SLOPE * reading;
 }
 
-function matchedTops(imageA: RgbImage, imageB: RgbImage, kind: "tangerine" | "tomato"): number[] {
-  return matchedPoints(imageA, imageB, kind, BOUNDS.cameras).map(
+function matchedTops(
+  imageA: RgbImage,
+  imageB: RgbImage,
+  kind: "tangerine" | "tomato",
+  cameras: Camera[],
+): number[] {
+  return matchedPoints(imageA, imageB, kind, cameras).map(
     (point) => point[2] + RADIUS_M - BOUNDS.floor_z,
   );
 }
@@ -206,11 +251,12 @@ function matchedTopsThree(
   imageB: RgbImage,
   imageC: RgbImage,
   kind: "tangerine" | "tomato",
+  cameras: Camera[],
 ): number[] {
   const images = [imageA, imageB, imageC];
-  const groups = images.map((image, index) => fruitCenters(image, BOUNDS.cameras[index], kind));
+  const groups = images.map((image, index) => fruitCenters(image, cameras[index], kind));
   const rays = groups.map((fruits, index) =>
-    fruits.map((fruit) => pixelRay(BOUNDS.cameras[index], fruit.column, fruit.row)),
+    fruits.map((fruit) => pixelRay(cameras[index], fruit.column, fruit.row)),
   );
   const triples: { spread: number; indexA: number; indexB: number; indexC: number; mean: Vec3 }[] = [];
   for (let indexA = 0; indexA < groups[0].length; indexA += 1) {

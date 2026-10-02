@@ -1,32 +1,83 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { readCrate, writeCrate } from "@/lib/crate-store";
+import {
+  activeCrate,
+  emptyBook,
+  readBook,
+  removeCrate,
+  setActive,
+  upsertCrate,
+  writeBook,
+  type CrateBook,
+} from "@/lib/crate-store";
+
+function formatDims(lengthCm: number, widthCm: number, heightCm: number): string {
+  const parts = [lengthCm, widthCm, heightCm].map((value) =>
+    value.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+  );
+  return `${parts[0]} × ${parts[1]} × ${parts[2]} cm`;
+}
 
 export default function MeasuresPage() {
-  const [name, setName] = useState("Caixa da cozinha");
-  const [lengthCm, setLengthCm] = useState("50");
-  const [widthCm, setWidthCm] = useState("30");
-  const [heightCm, setHeightCm] = useState("22");
+  const [book, setBook] = useState<CrateBook>(emptyBook);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const [lengthCm, setLengthCm] = useState("");
+  const [widthCm, setWidthCm] = useState("");
+  const [heightCm, setHeightCm] = useState("");
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    const crate = readCrate();
+    setBook(readBook());
+  }, []);
+
+  function startNew() {
+    setEditing(null);
+    setName("");
+    setLengthCm("");
+    setWidthCm("");
+    setHeightCm("");
+    setSaved(false);
+  }
+
+  function startEdit(crateName: string) {
+    const crate = book.crates.find((entry) => entry.name === crateName);
     if (!crate) return;
+    setEditing(crate.name);
     setName(crate.name);
     setLengthCm(String(crate.lengthCm));
     setWidthCm(String(crate.widthCm));
     setHeightCm(String(crate.heightCm));
-  }, []);
+    setSaved(false);
+  }
 
   function save() {
-    writeCrate({
+    const crate = {
       name: name.trim(),
       lengthCm: Number(lengthCm),
       widthCm: Number(widthCm),
       heightCm: Number(heightCm),
-    });
+    };
+    const next = editing && editing !== crate.name ? removeCrate(book, editing) : book;
+    const updated = upsertCrate(next, crate);
+    writeBook(updated);
+    setBook(updated);
+    setEditing(crate.name);
     setSaved(true);
+  }
+
+  function drop(crateName: string) {
+    const updated = removeCrate(book, crateName);
+    writeBook(updated);
+    setBook(updated);
+    if (editing === crateName) startNew();
+  }
+
+  function use(crateName: string) {
+    const updated = setActive(book, crateName);
+    writeBook(updated);
+    setBook(updated);
   }
 
   const valid =
@@ -34,13 +85,48 @@ export default function MeasuresPage() {
     Number(lengthCm) > 0 &&
     Number(widthCm) > 0 &&
     Number(heightCm) > 0;
+  const current = activeCrate(book);
 
   return (
     <>
-      <h1>Vão interno</h1>
+      <h1>Caixas</h1>
       <p className="lede">
-        Comprimento, largura e altura de dentro da caixa, em centímetros. O valor fica neste aparelho.
+        Cada modelo guarda o vão interno, em centímetros. A Conferir e a Conta usam a caixa marcada como em uso. Tudo
+        fica neste aparelho.
       </p>
+
+      {book.crates.length > 0 ? (
+        <ul className="crate-list">
+          {book.crates.map((crate) => {
+            const inUse = current?.name === crate.name;
+            return (
+              <li key={crate.name} className={inUse ? "crate-row is-on" : "crate-row"}>
+                <div>
+                  <strong>{crate.name}</strong>
+                  <span className="note"> · {formatDims(crate.lengthCm, crate.widthCm, crate.heightCm)}</span>
+                  {inUse ? <span className="badge"> em uso</span> : null}
+                </div>
+                <div className="actions">
+                  {inUse ? null : (
+                    <button type="button" className="secondary" onClick={() => use(crate.name)}>
+                      Usar
+                    </button>
+                  )}
+                  <button type="button" className="secondary" onClick={() => startEdit(crate.name)}>
+                    Editar
+                  </button>
+                  <button type="button" className="secondary" onClick={() => drop(crate.name)}>
+                    Excluir
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="note">Nenhuma caixa guardada. Meça a primeira abaixo.</p>
+      )}
+
       <form
         className="card"
         onSubmit={(event) => {
@@ -48,6 +134,7 @@ export default function MeasuresPage() {
           if (valid) save();
         }}
       >
+        <h2>{editing ? `Editar ${editing}` : "Nova caixa"}</h2>
         <label>
           Nome do modelo
           <input
@@ -59,7 +146,7 @@ export default function MeasuresPage() {
           />
         </label>
         <label>
-          Comprimento (cm)
+          Comprimento interno (cm)
           <input
             inputMode="decimal"
             value={lengthCm}
@@ -70,7 +157,7 @@ export default function MeasuresPage() {
           />
         </label>
         <label>
-          Largura (cm)
+          Largura interna (cm)
           <input
             inputMode="decimal"
             value={widthCm}
@@ -81,7 +168,7 @@ export default function MeasuresPage() {
           />
         </label>
         <label>
-          Altura (cm)
+          Altura interna (cm)
           <input
             inputMode="decimal"
             value={heightCm}
@@ -92,6 +179,11 @@ export default function MeasuresPage() {
           />
         </label>
         <div className="actions">
+          {editing ? (
+            <button type="button" className="secondary" onClick={startNew}>
+              Nova
+            </button>
+          ) : null}
           <button type="submit" disabled={!valid}>
             Guardar
           </button>

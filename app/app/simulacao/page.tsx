@@ -53,7 +53,7 @@ export default function SimulationPage() {
           tomate, a mediana dos dois quadros, sem somar raio, deixa as 8 de prova em 3,0% nos litros, e nenhuma passa de
           10%. Cinco passam de 3%. Duas das 32 de treino passam de 10%, uma com a tampa em 8,8 cm e outra em 10,0 cm.
           A tela Conferir usa o arco calibrado: as mesmas 16 ficam em 2,3%, e as 8 do tomate em 2,8%, sem a pose
-          gravada. A marca da camada de cima continua pela cor. A página Conta continua na conta de camadas. O clipe de teste não traz essas câmeras.
+          gravada. A marca da camada de cima sai do YOLO; a marca pela cor continua no código para o teste de comparação. A página Conta continua na conta de camadas.
         </p>
       </section>
 
