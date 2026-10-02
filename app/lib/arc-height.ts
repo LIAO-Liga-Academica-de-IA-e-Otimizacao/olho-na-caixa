@@ -76,18 +76,23 @@ export function rigCameras(item: "tangerine" | "tomato", focal35Mm: number): Cam
 
 /**
  * Pixel mouth of one arc slot, in 640×480 still space, for the framing guide.
- * Slot 0 is A, 1 is B, 2 is C. Order is near-left, near-right, far-right, far-left.
+ * Slot 0 is A, 1 is B, 2 is C. Order goes around the rim: near-left,
+ * near-right, far-right, far-left, so the polygon stays convex.
  */
 export function mouthQuad(item: "tangerine" | "tomato", slot: 0 | 1 | 2, focal35Mm: number): Quad | null {
   const camera = rigCameras(item, focal35Mm)[slot];
   if (!camera) return null;
+  const ring: Vec3[] = [
+    [BOUNDS.min_x, BOUNDS.max_y, BOUNDS.rim_z],
+    [BOUNDS.min_x, BOUNDS.min_y, BOUNDS.rim_z],
+    [BOUNDS.max_x, BOUNDS.min_y, BOUNDS.rim_z],
+    [BOUNDS.max_x, BOUNDS.max_y, BOUNDS.rim_z],
+  ];
   const corners: Quad = [];
-  for (const x of [BOUNDS.min_x, BOUNDS.max_x]) {
-    for (const y of [BOUNDS.max_y, BOUNDS.min_y]) {
-      const pixel = project(camera, [x, y, BOUNDS.rim_z]);
-      if (!pixel) return null;
-      corners.push(pixel);
-    }
+  for (const point of ring) {
+    const pixel = project(camera, point);
+    if (!pixel) return null;
+    corners.push(pixel);
   }
   return corners;
 }

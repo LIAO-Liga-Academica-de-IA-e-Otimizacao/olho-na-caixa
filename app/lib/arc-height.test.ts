@@ -2,6 +2,7 @@ import { inflateSync } from "node:zlib";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { isConvexQuad } from "./frame-quality";
 import {
   cameraRoundtripMeters,
   countFromHeight,
@@ -37,15 +38,27 @@ describe("arc height", () => {
   }, 60000);
 
   it("draws the mouth inside the still, near edge below far edge", () => {
-    const quad = mouthQuad("tangerine", 0, 35);
-    expect(quad).not.toBeNull();
-    for (const [x, y] of quad ?? []) {
-      expect(x).toBeGreaterThanOrEqual(0);
-      expect(x).toBeLessThanOrEqual(640);
-      expect(y).toBeGreaterThanOrEqual(0);
-      expect(y).toBeLessThanOrEqual(480);
+    for (const item of ["tangerine", "tomato"] as const) {
+      const slots = item === "tangerine" ? [0, 1, 2] : [0, 1];
+      for (const slot of slots) {
+        const quad = mouthQuad(item, slot as 0 | 1 | 2, 35);
+        expect(quad).not.toBeNull();
+        for (const [x, y] of quad ?? []) {
+          expect(x).toBeGreaterThanOrEqual(0);
+          expect(x).toBeLessThanOrEqual(640);
+          expect(y).toBeGreaterThanOrEqual(0);
+          expect(y).toBeLessThanOrEqual(480);
+        }
+        const [[ax, ay], [bx, by], [cx, cy], [dx, dy]] = quad as [number, number][];
+        expect(isConvexQuad([
+          { x: ax, y: ay },
+          { x: bx, y: by },
+          { x: cx, y: cy },
+          { x: dx, y: dy },
+        ])).toBe(true);
+        expect(Math.min(ay, by)).toBeGreaterThan(Math.max(cy, dy));
+      }
     }
-    expect((quad as [number, number][])[0][1]).toBeGreaterThan((quad as [number, number][])[2][1]);
   });
 
   it("scales the count with the typed mouth and flags a strange crate", () => {
