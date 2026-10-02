@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { analyzeFrame, isConvexQuad } from "./frame-quality";
+import { analyzeFrame, blockedSlots, isConvexQuad } from "./frame-quality";
 
 function solid(luminance: number): Uint8ClampedArray {
   const data = new Uint8ClampedArray(8 * 8 * 4);
@@ -45,5 +45,29 @@ describe("isConvexQuad", () => {
         { x: 0, y: 1 },
       ]),
     ).toBe(false);
+  });
+});
+
+describe("blockedSlots", () => {
+  const clean = { brightness: 120, clippedFraction: 0, warnings: [] };
+  const dark = { brightness: 10, clippedFraction: 0, warnings: ["Escuro demais."] };
+
+  it("passes clean and missing shots", () => {
+    expect(
+      blockedSlots([
+        { slot: "top", label: "Vista de cima", quality: clean },
+        { slot: "a", label: "Quadro A", quality: null },
+      ]),
+    ).toEqual([]);
+  });
+
+  it("names every shot with warnings", () => {
+    expect(
+      blockedSlots([
+        { slot: "top", label: "Vista de cima", quality: clean },
+        { slot: "a", label: "Quadro A", quality: dark },
+        { slot: "b", label: "Quadro B", quality: dark },
+      ]).map((shot) => shot.slot),
+    ).toEqual(["a", "b"]);
   });
 });

@@ -11,7 +11,7 @@ import {
   writeBook,
   type CrateBook,
 } from "@/lib/crate-store";
-import { analyzeFrame, isConvexQuad, type FrameQuality, type Point } from "@/lib/frame-quality";
+import { analyzeFrame, blockedSlots, isConvexQuad, type FrameQuality, type Point, type SlotShot } from "@/lib/frame-quality";
 import {
   estimateFromLid,
   mouthQuad,
@@ -148,6 +148,11 @@ export function Conference() {
   const [arcA, setArcA] = useState<string | null>(null);
   const [arcB, setArcB] = useState<string | null>(null);
   const [arcC, setArcC] = useState<string | null>(null);
+  const [arcQuality, setArcQuality] = useState<{ a: FrameQuality | null; b: FrameQuality | null; c: FrameQuality | null }>({
+    a: null,
+    b: null,
+    c: null,
+  });
   const [arcNames, setArcNames] = useState<{ a: string | null; b: string | null; c: string | null }>({
     a: null,
     b: null,
@@ -329,12 +334,15 @@ export function Conference() {
       setCorners([]);
     } else if (slot === "a") {
       setArcA(url);
+      setArcQuality((current) => ({ ...current, a: quality }));
       setArcNames((current) => ({ ...current, a: "foto da câmera" }));
     } else if (slot === "b") {
       setArcB(url);
+      setArcQuality((current) => ({ ...current, b: quality }));
       setArcNames((current) => ({ ...current, b: "foto da câmera" }));
     } else {
       setArcC(url);
+      setArcQuality((current) => ({ ...current, c: quality }));
       setArcNames((current) => ({ ...current, c: "foto da câmera" }));
     }
     setError(null);
@@ -353,6 +361,7 @@ export function Conference() {
     setArcA(stills.a);
     setArcB(stills.b);
     setArcC(stills.c);
+    setArcQuality({ a: null, b: null, c: null });
     setArcNames({
       a: `${stills.label} (teste)`,
       b: `${stills.label}-b (teste)`,
@@ -368,24 +377,52 @@ export function Conference() {
     imageInputRef.current?.click();
   }
 
-  function storeImage(file: File) {
-    const url = URL.createObjectURL(file);
+  async function analyzeUpload(file: File): Promise<FrameQuality | null> {
+    try {
+      const bitmap = await createImageBitmap(file);
+      const canvas = document.createElement("canvas");
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const context = canvas.getContext("2d");
+      if (!context || bitmap.width === 0 || bitmap.height === 0) {
+        bitmap.close();
+        return null;
+      }
+      context.drawImage(bitmap, 0, 0);
+      const quality = analyzeFrame(context.getImageData(0, 0, canvas.width, canvas.height));
+      bitmap.close();
+      return quality;
+    } catch {
+      return null;
+    }
+  }
+
+  async function storeImage(file: File) {
     const slot = imageSlotRef.current;
+    const quality = await analyzeUpload(file);
+    if (!slot || !quality) {
+      setError("A foto não pôde ser lida.");
+      return;
+    }
+    const url = URL.createObjectURL(file);
     setAutoStills(false);
     if (slot === "top") {
-      setTopShot({ url, time: 0, quality: { brightness: 0, clippedFraction: 0, warnings: [] } });
+      setTopShot({ url, time: 0, quality });
       setTopFileName(file.name);
       setCorners([]);
       return;
     }
     if (slot === "a") {
       setArcA(url);
+      setArcQuality((current) => ({ ...current, a: quality }));
       setArcNames((current) => ({ ...current, a: file.name }));
     } else if (slot === "b") {
       setArcB(url);
+      setArcQuality((current) => ({ ...current, b: quality }));
       setArcNames((current) => ({ ...current, b: file.name }));
     } else {
       setArcC(url);
+      setArcQuality((current) => ({ ...current, c: quality }));
       setArcNames((current) => ({ ...current, c: file.name }));
     }
   }
@@ -407,6 +444,15 @@ export function Conference() {
     estimate = estimateFromLid(item, lidCm, diameterCm, densityKgPerLiter, baseAreaCm2(crate));
   }
   const arcReady = Boolean(arcA && arcB && (item === "tomato" || arcC));
+  const usedShots: SlotShot[] = [
+    ...(topShot ? [{ slot: "top" as const, label: "Vista de cima", quality: topShot.quality }] : []),
+    ...(arcA ? [{ slot: "a" as const, label: "Quadro A", quality: arcQuality.a }] : []),
+    ...(arcB ? [{ slot: "b" as const, label: "Quadro B", quality: arcQuality.b }] : []),
+    ...(item === "tangerine" && arcC
+      ? [{ slot: "c" as const, label: "Quadro C", quality: arcQuality.c }]
+      : []),
+  ];
+  const blocked = blockedSlots(usedShots);
   const needsScale = estimate ? !fitsTolerance(estimate, 0.1) || estimate.flags.length > 0 : false;
   const typedScale = Number(scaleKg);
   const cornersReady = corners.length === 4 && isConvexQuad(corners);
@@ -619,17 +665,22 @@ export function Conference() {
             onChange={(event) => {
               const file = event.target.files?.[0];
               event.target.value = "";
-              if (file) storeImage(file);
+              if (file) void storeImage(file);
             }}
           />
           {error ? <p className="flag">{error}</p> : null}
+          {blocked.map((shot) => (
+            <p key={shot.slot} className="flag">
+              {shot.label}: {shot.quality?.warnings.join(" ")} Fotografe de novo esse quadro.
+            </p>
+          ))}
           <div className="actions">
             <button type="button" className="secondary" onClick={() => setStep("crate")}>
               Voltar
             </button>
             <button
               type="button"
-              disabled={!topShot || !arcReady}
+              disabled={!topShot || !arcReady || blocked.length > 0}
               onClick={() => {
                 if (corners.length !== 4 || !autoStills) {
                   setCorners(FULL_CORNERS);

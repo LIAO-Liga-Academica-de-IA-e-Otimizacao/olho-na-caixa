@@ -39,6 +39,16 @@ export function analyzeFrame(buffer: PixelBuffer): FrameQuality {
 
 export type Point = { x: number; y: number };
 
+export type SlotShot = {
+  slot: "top" | "a" | "b" | "c";
+  label: string;
+  quality: FrameQuality | null;
+};
+
+export function blockedSlots(shots: SlotShot[]): SlotShot[] {
+  return shots.filter((shot) => shot.quality !== null && shot.quality.warnings.length > 0);
+}
+
 export function isConvexQuad(points: Point[]): boolean {
   if (points.length !== 4) return false;
   let sign = 0;

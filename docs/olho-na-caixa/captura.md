@@ -28,7 +28,7 @@ Andar com o celular em volta da caixa não cria uma trena. Vários ângulos ajud
 7. Se a borda não fechar sozinha em algum desses quadros, o operador marca os quatro cantos internos com quatro toques.
 8. Se o intervalo não couber na meta, o aplicativo pede o peso digitado da balança.
 
-Uma foto tremida, estourada de luz ou sem a borda não entra na conta. O aplicativo pede para repetir o arco. Essa recusa é o tratamento de exceção para luz ruim e para enquadramento ruim.
+Uma foto tremida, estourada de luz ou sem a borda não entra na conta. O aplicativo pede para repetir o arco. Essa recusa é o tratamento de exceção para luz ruim e para enquadramento ruim. A trava é dura: com aviso de luz em qualquer quadro usado, o botão de continuar desabilita e a tela nomeia o quadro a repetir. A foto pede luz difusa, sem sol direto sobre a caixa: o envelope medido está no [histórico](simulacao/historico.md).
 
 ## Caixa cheia e fruta acima da borda
 
