@@ -6,6 +6,14 @@ export type TestStillSet = {
   b: string;
   c: string | null;
   label: string;
+  /**
+   * True mouth corners in 0..1 photo space, screen order (top-left,
+   * top-right, bottom-right, bottom-left). Projected from the render
+   * camera of that seed: deterministic top pose plus the seeded light
+   * jitter, tracked against the rim bounds, and checked against the
+   * pixels. One corner can sit just outside the frame. Test-only.
+   */
+  corners: Array<[number, number]>;
 };
 
 /**
@@ -28,6 +36,12 @@ export function testStillSet(item: ProduceItem): TestStillSet {
       b: `${ROOT}/sides/tomato/val/tomato-s1005-b.png`,
       c: null,
       label: "tomato-s1005",
+      corners: [
+        [0.2236, 0.0778],
+        [0.7022, 0.0221],
+        [0.8433, 0.9533],
+        [0.2365, 1.0433],
+      ],
     };
   }
   return {
@@ -36,5 +50,11 @@ export function testStillSet(item: ProduceItem): TestStillSet {
     b: `${ROOT}/sides/val/tangerine-s5-b.png`,
     c: `${ROOT}/sides/val/tangerine-s5-c.png`,
     label: "tangerine-s5",
+    corners: [
+      [0.216, 0.0807],
+      [0.6967, 0.0141],
+      [0.8478, 0.9463],
+      [0.2462, 1.0513],
+    ],
   };
 }

@@ -176,6 +176,7 @@ export function Conference() {
   const [capturePhase, setCapturePhase] = useState<CapturePhase>("idle");
   const [photoSlot, setPhotoSlot] = useState<"top" | "a" | "b" | "c" | null>(null);
   const [autoStills, setAutoStills] = useState(false);
+  const [cornerSource, setCornerSource] = useState<"full" | "true" | "manual">("full");
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const [filmLabel, setFilmLabel] = useState<string | null>(null);
   const [seconds, setSeconds] = useState(0);
@@ -512,7 +513,8 @@ export function Conference() {
       b: `${stills.label}-b (teste)`,
       c: stills.c ? `${stills.label}-c (teste)` : null,
     });
-    setCorners([]);
+    setCorners(stills.corners.map(([x, y]) => ({ x, y })));
+    setCornerSource("true");
     setAutoStills(true);
   }
 
@@ -550,6 +552,7 @@ export function Conference() {
       x: (event.clientX - rect.left) / rect.width,
       y: (event.clientY - rect.top) / rect.height,
     };
+    setCornerSource("manual");
     setCorners((current) => [...current, point]);
   }
 
@@ -873,7 +876,10 @@ export function Conference() {
               type="button"
               disabled={!topShot || !arcReady}
               onClick={() => {
-                setCorners(FULL_CORNERS);
+                if (corners.length !== 4 || !autoStills) {
+                  setCorners(FULL_CORNERS);
+                  setCornerSource("full");
+                }
                 setStep("corners");
               }}
             >
@@ -891,6 +897,12 @@ export function Conference() {
               Toque os quatro cantos internos, nesta ordem: {CORNER_ORDER.join(", ")}.
               {corners.length > 0 ? ` Falta o ${CORNER_ORDER[corners.length]}.` : ""}
             </p>
+          ) : cornerSource === "true" ? (
+            <p className="lede">
+              A borda veio dos cantos da boca na foto de teste. Confira e confirme. Se não fechar, ajuste.
+            </p>
+          ) : cornerSource === "manual" ? (
+            <p className="lede">Quatro cantos marcados. Confira e confirme.</p>
           ) : (
             <p className="lede">
               A borda assumida é o quadro cheio. Se a boca encheu o quadro, confirme. Se não, ajuste.
@@ -927,7 +939,10 @@ export function Conference() {
                 <button
                   type="button"
                   className="secondary"
-                  onClick={() => setCorners(FULL_CORNERS)}
+                  onClick={() => {
+                    setCorners(FULL_CORNERS);
+                    setCornerSource("full");
+                  }}
                 >
                   Usar o quadro cheio
                 </button>
