@@ -28,6 +28,38 @@ export type TestStillSet = {
  */
 const ROOT = "/test-stills";
 
+export type ProbeKind = "dark" | "blown" | "ok";
+
+const PROBE_LABEL: Record<ProbeKind, string> = {
+  dark: "prova-escura",
+  blown: "prova-estourada",
+  ok: "prova-ok",
+};
+
+/**
+ * Solid-color frames that trip (or pass) the light gate, for testing the
+ * refusal without a camera. Served like the book scenes: drop
+ * `gate-dark.png`, `gate-blown.png` and `gate-ok.png` (all git-ignored)
+ * next to the val tops and `scripts/link-public.mjs` hard-links them into
+ * `public/test-stills/`. Goes away with the shortcut.
+ */
+export function probeStillSet(kind: ProbeKind): TestStillSet {
+  const url = `${ROOT}/images/val/gate-${kind}.png`;
+  return {
+    top: url,
+    a: url,
+    b: url,
+    c: url,
+    label: PROBE_LABEL[kind],
+    corners: [
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [0, 1],
+    ],
+  };
+}
+
 export function testStillSet(item: ProduceItem): TestStillSet {
   if (item === "tomato") {
     return {

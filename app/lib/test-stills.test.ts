@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { isConvexQuad } from "./frame-quality";
-import { testStillSet } from "./test-stills";
+import { probeStillSet, testStillSet } from "./test-stills";
 
 describe("test stills", () => {
   it("points at the book scenes under the served prefix", () => {
@@ -31,6 +31,20 @@ describe("test stills", () => {
         expect(y).toBeGreaterThanOrEqual(0);
         expect(y).toBeLessThanOrEqual(1.1);
       }
+    }
+  });
+});
+
+describe("probe stills", () => {
+  it("serves one solid frame per slot for each gate probe", () => {
+    for (const kind of ["dark", "blown", "ok"] as const) {
+      const set = probeStillSet(kind);
+      for (const url of [set.top, set.a, set.b, set.c]) {
+        expect(url).toBe(`/test-stills/images/val/gate-${kind}.png`);
+      }
+      expect(set.label.startsWith("prova-")).toBe(true);
+      expect(set.corners).toHaveLength(4);
+      expect(isConvexQuad(set.corners.map(([x, y]) => ({ x, y })))).toBe(true);
     }
   });
 });

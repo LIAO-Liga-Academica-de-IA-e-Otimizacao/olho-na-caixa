@@ -20,7 +20,7 @@ import {
   type RgbImage,
 } from "@/lib/arc-height";
 import { detectTopLayer } from "@/lib/yolo-detect";
-import { testStillSet } from "@/lib/test-stills";
+import { probeStillSet, testStillSet, type ProbeKind } from "@/lib/test-stills";
 import type { TopLayer } from "@/lib/top-layer";
 import { FruitBoxes } from "./FruitBoxes";
 import { MouthGuide } from "./MouthGuide";
@@ -349,6 +349,35 @@ export function Conference() {
     closeCamera();
   }
 
+  /** Temporary shortcut: solid probes that trip (or pass) the light gate. */
+  async function loadProbe(kind: ProbeKind) {
+    const stills = probeStillSet(kind);
+    setAutoStills(false);
+    setError(null);
+    const [topQ, aQ, bQ, cQ] = await Promise.all([
+      analyzeUrl(stills.top),
+      analyzeUrl(stills.a),
+      analyzeUrl(stills.b),
+      stills.c ? analyzeUrl(stills.c) : Promise.resolve(null),
+    ]);
+    if (!topQ || !aQ || !bQ || (item === "tangerine" && stills.c && !cQ)) {
+      setError("A foto de prova não pôde ser lida.");
+      return;
+    }
+    setTopShot({ url: stills.top, time: 0, quality: topQ });
+    setTopFileName(`${stills.label} (teste)`);
+    setArcA(stills.a);
+    setArcB(stills.b);
+    setArcC(item === "tangerine" ? stills.c : null);
+    setArcQuality({ a: aQ, b: bQ, c: item === "tangerine" ? cQ : null });
+    setArcNames({
+      a: `${stills.label} (teste)`,
+      b: `${stills.label}-b (teste)`,
+      c: item === "tangerine" && stills.c ? `${stills.label}-c (teste)` : null,
+    });
+    setCorners([]);
+  }
+
   /** Temporary shortcut: opening the frames empty fills them with the book scenes. */
   function loadTestStills() {
     const stills = testStillSet(item);
@@ -377,23 +406,36 @@ export function Conference() {
     imageInputRef.current?.click();
   }
 
+  function analyzeUrl(url: string): Promise<FrameQuality | null> {
+    return new Promise((resolve) => {
+      const image = new Image();
+      image.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = image.naturalWidth;
+          canvas.height = image.naturalHeight;
+          const context = canvas.getContext("2d");
+          if (!context || canvas.width === 0 || canvas.height === 0) {
+            resolve(null);
+            return;
+          }
+          context.drawImage(image, 0, 0);
+          resolve(analyzeFrame(context.getImageData(0, 0, canvas.width, canvas.height)));
+        } catch {
+          resolve(null);
+        }
+      };
+      image.onerror = () => resolve(null);
+      image.src = url;
+    });
+  }
+
   async function analyzeUpload(file: File): Promise<FrameQuality | null> {
+    const url = URL.createObjectURL(file);
     try {
-      const bitmap = await createImageBitmap(file);
-      const canvas = document.createElement("canvas");
-      canvas.width = bitmap.width;
-      canvas.height = bitmap.height;
-      const context = canvas.getContext("2d");
-      if (!context || bitmap.width === 0 || bitmap.height === 0) {
-        bitmap.close();
-        return null;
-      }
-      context.drawImage(bitmap, 0, 0);
-      const quality = analyzeFrame(context.getImageData(0, 0, canvas.width, canvas.height));
-      bitmap.close();
-      return quality;
-    } catch {
-      return null;
+      return await analyzeUrl(url);
+    } finally {
+      URL.revokeObjectURL(url);
     }
   }
 
@@ -669,6 +711,18 @@ export function Conference() {
             }}
           />
           {error ? <p className="flag">{error}</p> : null}
+          <div className="actions">
+            <span className="note">Provas da trava (teste):</span>
+            <button type="button" className="secondary" onClick={() => void loadProbe("dark")}>
+              Prova escura
+            </button>
+            <button type="button" className="secondary" onClick={() => void loadProbe("blown")}>
+              Prova estourada
+            </button>
+            <button type="button" className="secondary" onClick={() => void loadProbe("ok")}>
+              Prova ok
+            </button>
+          </div>
           {blocked.map((shot) => (
             <p key={shot.slot} className="flag">
               {shot.label}: {shot.quality?.warnings.join(" ")} Fotografe de novo esse quadro.
