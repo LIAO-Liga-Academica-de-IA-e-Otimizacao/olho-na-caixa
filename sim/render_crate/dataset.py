@@ -278,7 +278,7 @@ class DatasetWriter:
         fruits, kept, kept_bodies = self._settle(variants, source, bounds, job, "tangerine")
         stem = f"tangerine-s{seed}"
         image = self.root / "sides" / job["split"] / f"{stem}.png"
-        light = _light(seed)
+        light = _light(seed, "tangerine")
         frames = []
         for shot in _rim_shots(bounds, image):
             camera, _target = self.studio.render_views(scene, bounds, (shot,), len(kept), light)
@@ -312,7 +312,7 @@ class DatasetWriter:
         fruits, kept, _bodies = self._settle(variants, source, bounds, job, "tangerine")
         image = self.root / "sides" / job["split"] / f"tangerine-s{seed}.png"
         shot = _third_shot(bounds, image)
-        self.studio.render_views(scene, bounds, (shot,), len(kept), _light(seed))
+        self.studio.render_views(scene, bounds, (shot,), len(kept), _light(seed, "tangerine"))
         for obj in fruits:
             bpy.data.objects.remove(obj, do_unlink=True)
         print(f"THIRD tangerine-s{seed} split={job['split']} inside={len(kept)}", flush=True)
@@ -321,7 +321,7 @@ class DatasetWriter:
         seed = job["seed"]
         fruits, kept, kept_bodies = self._settle(variants, source, bounds, job, label)
         image = self.root / "sides" / label / job["split"] / f"{label}-s{seed}.png"
-        light = _light(seed)
+        light = _light(seed, label)
         for shot in (*_rim_shots(bounds, image), _third_shot(bounds, image)):
             self.studio.render_views(scene, bounds, (shot,), len(kept), light)
         row = {
@@ -345,7 +345,7 @@ class DatasetWriter:
         fruits, kept, kept_bodies = self._settle(variants, sources[label], bounds, job, label)
         stem = f"{label}-s{seed}"
         image = self.root / "images" / job["split"] / f"{stem}.png"
-        light = _light(seed)
+        light = _light(seed, label)
         shot = (_top_shot(self.cfg, bounds, image, light),)
         camera, _target = self.studio.render_views(scene, bounds, shot, len(kept), light)
         bpy.context.view_layer.update()
@@ -689,16 +689,31 @@ def _top_shot(cfg: Config, bounds: dict, image: Path, light: dict):
     return image, location, aim
 
 
-def _light(seed: int) -> dict:
+def _wide(seed: int, label: str) -> bool:
+    """Proof-extension scenes (past the original catalog) get wider light.
+
+    The original 80/40 scenes keep the narrow studio so their stills stay
+    reproducible; the new proof tests the frozen rig under harder light.
+    Seed numbers overlap between items, so the cutoff needs the label.
+    """
+    return seed > (1080 if label == "tomato" else 120)
+
+
+def _light(seed: int, label: str) -> dict:
     rng = random.Random(seed + LIGHT_SALT)
     base = (0.65, 0.12, 0.45)
+    wide = _wide(seed, label)
+    energy = (1.8, 8.0) if wide else (2.5, 6.5)
+    swing = 0.35 if wide else 0.18
+    tint = (0.75, 1.15) if wide else (0.85, 1.05)
     return {
-        "energy": rng.uniform(2.5, 6.5),
-        "rotation": tuple(angle + rng.uniform(-0.18, 0.18) for angle in base),
-        "world": [channel * rng.uniform(0.85, 1.05) for channel in (0.74, 0.73, 0.70)],
-        "dx": rng.uniform(-0.02, 0.02),
-        "dy": rng.uniform(-0.03, 0.03),
-        "height_scale": rng.uniform(0.92, 1.08),
+        "energy": rng.uniform(*energy),
+        "rotation": tuple(angle + rng.uniform(-swing, swing) for angle in base),
+        "world": [channel * rng.uniform(*tint) for channel in (0.74, 0.73, 0.70)],
+        "floor": [rng.uniform(0.7, 1.3) if wide else 1.0 for _channel in range(3)],
+        "dx": rng.uniform(-0.045, 0.045) if wide else rng.uniform(-0.02, 0.02),
+        "dy": rng.uniform(-0.06, 0.06) if wide else rng.uniform(-0.03, 0.03),
+        "height_scale": rng.uniform(0.88, 1.12) if wide else rng.uniform(0.92, 1.08),
     }
 
 

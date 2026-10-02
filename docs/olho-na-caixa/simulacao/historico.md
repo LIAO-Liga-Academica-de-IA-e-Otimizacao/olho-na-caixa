@@ -89,6 +89,14 @@ A prova cresceu com Blender de verdade, na placa NVIDIA: 8 tangerinas (sementes 
 
 Nas 8 tangerinas novas, erro médio 2,5%, nenhuma fora de 10% (pior: semente 105 em +7,4%). Junto com as 16 antigas, a prova combinada de 24 fica em 2,4%, ninguém fora (pior: semente 15 em +8,7%, cena antiga). Nos 8 tomates novos, erro médio 3,9% nos litros, nenhum fora (pior: semente 1070 em −7,0%). Junto com os 8 antigos, a prova combinada de 16 fica em 3,3%, ninguém fora.
 
+## Luz dura: onde a reta congelada quebra
+
+A prova cresceu de novo, agora para 256 cenas por fruta: 232 tangerinas (sementes 125 a 1280, passo 5) e 240 tomates (1085 a 2280, passo 5). Essas cenas usam luz mais dura: sol de 1,8 a 8,0 de energia com giro de ±0,35 radianos, matiz do piso e do mundo, e câmera de cima com deslocamento maior. As 80/40 originais continuam no estúdio estreito, bit a bit reproduzíveis; só o passado do corte 120/1080 varia. O teste `test_tomato_volume.py` continua valendo só a prova estreita (16 cenas), e a validação cruzada continua nas 80/40 originais.
+
+Com a reta congelada do treino original, as 232 tangerinas duras erram 5,6% em média, com 24 fora de 10% (pior: semente 715 em +78%). Os 240 tomates duros erram 10,1% nos litros, com 35 fora (pior: semente 2240 em +178%). Nenhum botão da luz explica sozinho: energia, giro, matiz do piso e do mundo correlacionam fraco com o erro (|r| abaixo de 0,2), e o deslocamento da câmera de cima, que o arco nem vê, fica perto de zero como controle. O deslocamento da câmera de cima não toca as fotos do arco; o fracasso está na luz das laterais.
+
+Reajustar no duro não conserta. O roteiro `sim/detect/diagnose_wide.py` refaz o arco e a reta em metade das cenas duras e pontua a outra metade: a tangerina fica em 6,0% com 15 fora, e o tomate piora para 16,2% com 40 fora, com a reta do tomate degenerando para 4,72 + 0,647 × leitura. Leitura corrompida não se salva na reta. O padrão sugere dois defeitos somados: um viés sistemático para cima na pose (o degrau de borda em pixels é a constante do estúdio estreito, e a luz dura o desloca) mais ruído no cruzamento das frutas. A direção de conserto é medir o degrau por condição de luz, como já se faz por posição do arco, e não reajustar a reta. Até lá, o envelope de operação é o estúdio estreito: 2,4% em 24 tangerinas e 3,3% em 16 tomates, ninguém fora.
+
 ## O detector, em paralelo
 
 O YOLO nano não mede a altura. Ele marca a camada de cima, numa foto de 320 pixels. Nas 24 cenas que não entraram no treino, com confiança 0,55 e supressão de caixas sobrepostas em 0,45, a precisão e a revocação das caixas ficam em 94%. O erro absoluto médio da contagem visível é cerca de 5%, e o pior caso é 14%, no tomate da semente 1010 (42 frutas visíveis, 36 marcadas). O mAP50 é 0,97. Esse ponto de corte foi escolhido nessas mesmas 24 cenas, então ele não é uma prova cega. A Conferir desenha essas caixas a partir da exportação ONNX do mesmo peso, `sim/assets/detect/top-layer.pt`.
@@ -99,6 +107,6 @@ Uma contagem direta, da foto para o número de frutas, foi deixada de lado: a ca
 
 Baixar a fração φ para a conta fechar não foi feito. A fração é a da geometria, não um ajuste.
 
-A noite de 300 cenas e a leva das esferas iguais, descritas em [Simulação no computador](../simulacao.md), não foram executadas. Os números deste capítulo são das 88 tangerinas e dos 48 tomates do conjunto do detector, com prova combinada de 24 e 16 cenas.
+A noite de 300 cenas e a leva das esferas iguais, descritas em [Simulação no computador](../simulacao.md), não foram executadas. Os números deste capítulo são das 320 tangerinas e dos 288 tomates do conjunto do detector: prova estreita de 24 e 16 cenas, mais 232 e 240 cenas de luz dura que delimitam o envelope em vez de provar a reta.
 
 Rafael contou 42 tangerinas na caixa da semente 5 e 45 na da semente 1, em fotos de cima anteriores. Esses pixels foram substituídos. Com diâmetro 5,3 cm e passo 0,82, as alturas médias de 12,1 cm e 20,1 cm não publicam as verdades 86 e 159. Foi essa conta de camadas, nas fotos antigas, que motivou medir a altura de outro jeito.

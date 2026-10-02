@@ -31,7 +31,7 @@ ITEMS: dict[str, Item] = {
         "layers",
         0,
         "tangerine",
-        tuple(range(1, 81)) + tuple(range(85, 121, 5)),
+        tuple(range(1, 81)) + tuple(range(85, 121, 5)) + tuple(range(125, 1281, 5)),
         "Units from the lid height and the count line.",
     ),
     "tomato": Item(
@@ -39,7 +39,7 @@ ITEMS: dict[str, Item] = {
         "liters",
         1,
         "tomato",
-        tuple(range(1001, 1041)) + tuple(range(1045, 1081, 5)),
+        tuple(range(1001, 1041)) + tuple(range(1045, 1081, 5)) + tuple(range(1085, 2281, 5)),
         "Liters from the lid height. Kilograms per liter come from the lot, not the photo.",
     ),
     "carrot": Item(

@@ -57,7 +57,11 @@ class StillStudio:
         plane = bpy.context.object
         floor = bpy.data.materials.new("crate-floor")
         floor.use_nodes = True
-        floor.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = tuple(studio.FLOOR_COLOR)
+        tint = light["floor"] if light and "floor" in light else (1.0, 1.0, 1.0)
+        base = tuple(studio.FLOOR_COLOR)
+        floor.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = tuple(
+            channel * shade for channel, shade in zip(base, (*tint, 1.0))
+        )
         floor.node_tree.nodes["Principled BSDF"].inputs["Roughness"].default_value = studio.FLOOR_ROUGHNESS
         plane.data.materials.append(floor)
 

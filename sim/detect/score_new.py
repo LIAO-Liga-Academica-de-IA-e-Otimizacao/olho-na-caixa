@@ -28,6 +28,8 @@ from detect.tomato_volume import liters, reading_cm
 
 TANGERINE_CUTOFF = 80
 TOMATO_CUTOFF = 1040
+TANGERINE_WIDE = 120
+TOMATO_WIDE = 1080
 
 
 def _split(rows: list[dict], cutoff: int) -> tuple[list[dict], list[int]]:
@@ -74,6 +76,12 @@ def score_new_tangerine(rows: list[dict]) -> list[tuple[int, float]]:
         estimate = count_from_height(height, float(row["d_cm"]))
         rels.append((seed, (estimate - float(row["inside"])) / float(row["inside"])))
     _summarize("tangerine new proof scenes", rels)
+    narrow = [(seed, rel) for seed, rel in rels if seed <= TANGERINE_WIDE]
+    wide = [(seed, rel) for seed, rel in rels if seed > TANGERINE_WIDE]
+    _summarize("tangerine narrow proof scenes", narrow)
+    _summarize("tangerine wide proof scenes", wide)
+    for seed, rel in wide:
+        print(f"WIDE-TANGERINE s{seed} {rel:+.1%}", flush=True)
     old_val = []
     for seed in stems:
         if seed % 5 != 0 or not readings[seed]:
@@ -118,6 +126,12 @@ def score_new_tomato(rows: list[dict]) -> list[tuple[int, float]]:
         value = float(row["h_area_cm"])
         rels.append((seed, (liters(height) - liters(value)) / liters(value)))
     _summarize("tomato new proof scenes", rels)
+    narrow = [(seed, rel) for seed, rel in rels if seed <= TOMATO_WIDE]
+    wide = [(seed, rel) for seed, rel in rels if seed > TOMATO_WIDE]
+    _summarize("tomato narrow proof scenes", narrow)
+    _summarize("tomato wide proof scenes", wide)
+    for seed, rel in wide:
+        print(f"WIDE-TOMATO s{seed} {rel:+.1%}", flush=True)
     old_val = []
     for seed in stems:
         if seed % 5 != 0 or not readings[seed]:
