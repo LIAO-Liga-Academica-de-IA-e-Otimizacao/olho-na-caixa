@@ -58,6 +58,22 @@ const CORNER_ORDER = [
   "inferior esquerdo",
 ];
 
+/** Normalized full frame, the assumed mouth when the photo filled the view. */
+const FULL_CORNERS: Point[] = [
+  { x: 0, y: 0 },
+  { x: 1, y: 0 },
+  { x: 1, y: 1 },
+  { x: 0, y: 1 },
+];
+
+/** Full 640×480 frame, the capture mold for the top view: fill it with the mouth. */
+const FULL_QUAD: Quad = [
+  [0, 0],
+  [640, 0],
+  [640, 480],
+  [0, 480],
+];
+
 function pickMimeType(): string | undefined {
   const candidates = ["video/webm;codecs=vp8", "video/webm", "video/mp4"];
   return candidates.find((type) => MediaRecorder.isTypeSupported(type));
@@ -291,13 +307,17 @@ export function Conference() {
 
   const focal = Number(focalCm) > 0 ? Number(focalCm) : SIMULATOR_PHONE.focal35Mm;
   const photoGuide =
-    photoSlot === "a"
-      ? mouthQuad(item, 0, focal)
-      : photoSlot === "b"
-        ? mouthQuad(item, 1, focal)
-        : photoSlot === "c"
-          ? mouthQuad(item, 2, focal)
-          : null;
+    photoSlot === "top"
+      ? FULL_QUAD
+      : photoSlot === "a"
+        ? mouthQuad(item, 0, focal)
+        : photoSlot === "b"
+          ? mouthQuad(item, 1, focal)
+          : photoSlot === "c"
+            ? mouthQuad(item, 2, focal)
+            : null;
+  const photoHint =
+    photoSlot === "top" ? "Encha o quadro com a boca." : "Encaixe a boca no molde.";
   const densityKgPerLiter = Number(density) > 0 ? Number(density) : EXAMPLE_DENSITY;
 
   function stopTracks() {
@@ -776,6 +796,7 @@ export function Conference() {
                 <video ref={photoRef} className="camera-video" muted playsInline />
                 <MouthGuide quad={photoGuide} label="Molde da boca na foto" />
               </div>
+              <p className="note">{photoHint}</p>
               <div className="actions">
                 <button type="button" onClick={() => shootPhoto()}>
                   Fotografar
@@ -852,7 +873,7 @@ export function Conference() {
               type="button"
               disabled={!topShot || !arcReady}
               onClick={() => {
-                setCorners([]);
+                setCorners(FULL_CORNERS);
                 setStep("corners");
               }}
             >
@@ -864,11 +885,17 @@ export function Conference() {
 
       {step === "corners" && topShot ? (
         <section className="card">
-          <h1>Marque a borda</h1>
-          <p className="lede">
-            Toque os quatro cantos internos, nesta ordem: {CORNER_ORDER.join(", ")}.
-            {corners.length < 4 ? ` Falta o ${CORNER_ORDER[corners.length]}.` : ""}
-          </p>
+          <h1>Confira a borda</h1>
+          {corners.length < 4 ? (
+            <p className="lede">
+              Toque os quatro cantos internos, nesta ordem: {CORNER_ORDER.join(", ")}.
+              {corners.length > 0 ? ` Falta o ${CORNER_ORDER[corners.length]}.` : ""}
+            </p>
+          ) : (
+            <p className="lede">
+              A borda assumida é o quadro cheio. Se a boca encheu o quadro, confirme. Se não, ajuste.
+            </p>
+          )}
           <div className="marker">
             <img src={topShot.url} alt="Vista de cima" onClick={addCorner} />
             {corners.map((point, index) => (
@@ -885,14 +912,35 @@ export function Conference() {
           {corners.length === 4 && !cornersReady ? (
             <p className="flag">Esses quatro pontos se cruzam. Toque de novo, seguindo a ordem.</p>
           ) : null}
-          <div className="actions">
-            <button type="button" className="secondary" onClick={() => setCorners([])}>
-              Refazer
-            </button>
-            <button type="button" disabled={!cornersReady} onClick={() => setStep("result")}>
-              Continuar
-            </button>
-          </div>
+          {corners.length === 4 ? (
+            <div className="actions">
+              <button type="button" className="secondary" onClick={() => setCorners([])}>
+                Ajustar
+              </button>
+              <button type="button" disabled={!cornersReady} onClick={() => setStep("result")}>
+                Confirmar
+              </button>
+            </div>
+          ) : (
+            <div className="actions">
+              {corners.length === 0 ? (
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => setCorners(FULL_CORNERS)}
+                >
+                  Usar o quadro cheio
+                </button>
+              ) : (
+                <button type="button" className="secondary" onClick={() => setCorners([])}>
+                  Refazer
+                </button>
+              )}
+              <button type="button" disabled={!cornersReady} onClick={() => setStep("result")}>
+                Continuar
+              </button>
+            </div>
+          )}
           <div className="actions">
             <button type="button" className="secondary" onClick={() => setStep("frames")}>
               Voltar

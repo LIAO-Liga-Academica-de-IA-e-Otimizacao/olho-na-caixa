@@ -57,7 +57,7 @@ A etapa 2 está na tela Conferir. O que você faz, ainda sem fruta e sem webcam:
 3. Escolha o modelo da caixa e continue.
 4. Grave um arco curto com a câmera (ou abra um vídeo), espere uns dois segundos, pare, e continue.
 5. No vídeo, escolha um instante como vista de cima e outro como vista de lado. Cada botão mostra o instante, e **Pular para este quadro** volta o vídeo até ele.
-6. Toque os quatro cantos internos na ordem pedida.
+6. Confira a borda assumida ou ajuste os quatro cantos internos na ordem pedida.
 7. Na última tela, confira se tangerina aparece em unidades e tomate em quilos, com um intervalo. A incerteza orçada ainda pede o peso da balança.
 
 O que você me diz: se uma pessoa da cozinha entenderia esses passos, e se a unidade de cada item ficou clara.

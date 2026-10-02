@@ -23,7 +23,7 @@ Há ainda `scripts/` para abrir o Chrome com uma câmera falsa, e o `Makefile` n
 O aplicativo já percorre a jornada da cozinha sem fruta de verdade, com fotos do simulador. O roteiro está em [Etapas de construção](../etapas.md). Em resumo:
 
 1. `make dev`, e o endereço `http://localhost:3001`.
-2. Em Medidas, guarde um modelo de caixa. Em Conferir, escolha o modelo, abra os quadros e marque os quatro cantos para ver as caixas do YOLO.
+2. Em Medidas, guarde um modelo de caixa. Em Conferir, escolha o modelo, abra os quadros e confira a borda para ver as caixas do YOLO.
 3. Em Conta, os números de exemplo devem mostrar 112 unidades de tangerina. Esse 112 sai da conta de camadas, não da leitura nova.
 
 Para medir a altura, abra as fotos do protocolo na etapa Quadros. O roteiro exato está no fim de [A leitura que a simulação mediu](leitura.md).

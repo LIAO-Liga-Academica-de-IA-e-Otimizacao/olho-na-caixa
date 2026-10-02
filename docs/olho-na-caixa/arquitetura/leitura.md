@@ -81,7 +81,7 @@ As fotos abaixo foram geradas neste computador e não entram no Git. Se a pasta 
    - Vista de cima: `sim/assets/detect/images/val/tomato-s1005.png`
    - Quadro A: `sim/assets/detect/sides/tomato/val/tomato-s1005.png`
    - Quadro B: `sim/assets/detect/sides/tomato/val/tomato-s1005-b.png`
-7. Continuar. Toque os quatro cantos internos da boca, na ordem que a tela pede.
+7. Continuar. Confira a borda assumida, que é o quadro cheio, ou ajuste os quatro cantos internos na ordem que a tela pede.
 8. O resultado mostra a altura lida e os quilos. Nesta caixa a tela lê cerca de 13,1 cm, o que dá cerca de 8,0 kg. A leitura em Python, na mesma foto, é 12,6 cm. A diferença é a transformada de distância do navegador, que não é a do OpenCV. As duas ficam dentro de 10% da altura verdadeira, 12,7 cm.
 
 Para a tangerina, o item é **Tangerina** e os quatro arquivos são:
