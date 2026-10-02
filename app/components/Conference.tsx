@@ -140,6 +140,8 @@ export function Conference() {
   const scrubRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const photoRef = useRef<HTMLVideoElement>(null);
+  const photoStreamRef = useRef<MediaStream | null>(null);
   const imageSlotRef = useRef<"top" | "a" | "b" | "c">("top");
   const startedAtRef = useRef(Date.now());
   const streamRef = useRef<MediaStream | null>(null);
@@ -155,6 +157,7 @@ export function Conference() {
   const [focalCm, setFocalCm] = useState(String(SIMULATOR_PHONE.focal35Mm));
   const [density, setDensity] = useState(String(EXAMPLE_DENSITY));
   const [capturePhase, setCapturePhase] = useState<CapturePhase>("idle");
+  const [photoSlot, setPhotoSlot] = useState<"top" | "a" | "b" | "c" | null>(null);
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const [filmLabel, setFilmLabel] = useState<string | null>(null);
   const [seconds, setSeconds] = useState(0);
@@ -205,8 +208,13 @@ export function Conference() {
     return () => {
       if (drawRef.current !== null) cancelAnimationFrame(drawRef.current);
       streamRef.current?.getTracks().forEach((track) => track.stop());
+      photoStreamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, []);
+
+  useEffect(() => {
+    if (step !== "frames") closeCamera();
+  }, [step]);
 
   useEffect(() => {
     if (step !== "result" || !topShot || corners.length !== 4 || !crate) return;
@@ -280,6 +288,14 @@ export function Conference() {
   }, [step, item, arcA, arcB, arcC]);
 
   const focal = Number(focalCm) > 0 ? Number(focalCm) : SIMULATOR_PHONE.focal35Mm;
+  const photoGuide =
+    photoSlot === "a"
+      ? mouthQuad(item, 0, focal)
+      : photoSlot === "b"
+        ? mouthQuad(item, 1, focal)
+        : photoSlot === "c"
+          ? mouthQuad(item, 2, focal)
+          : null;
   const densityKgPerLiter = Number(density) > 0 ? Number(density) : EXAMPLE_DENSITY;
 
   function stopTracks() {
@@ -384,6 +400,75 @@ export function Conference() {
     if (video.readyState >= 1) go();
     else video.addEventListener("loadedmetadata", go, { once: true });
     video.pause();
+  }
+
+  function stopPhotoTracks() {
+    photoStreamRef.current?.getTracks().forEach((track) => track.stop());
+    photoStreamRef.current = null;
+  }
+
+  function closeCamera() {
+    stopPhotoTracks();
+    setPhotoSlot(null);
+  }
+
+  async function openCamera(slot: "top" | "a" | "b" | "c") {
+    setError(null);
+    closeCamera();
+    flushSync(() => setPhotoSlot(slot));
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+      });
+      photoStreamRef.current = stream;
+      const video = photoRef.current;
+      if (!video) {
+        stream.getTracks().forEach((track) => track.stop());
+        throw new Error("missing preview");
+      }
+      video.srcObject = stream;
+      await video.play();
+    } catch {
+      closeCamera();
+      setError("A câmera não abriu.");
+    }
+  }
+
+  function shootPhoto() {
+    const video = photoRef.current;
+    const slot = photoSlot;
+    if (!video || !slot || video.videoWidth === 0) {
+      setError("Espere a imagem aparecer e fotografe de novo.");
+      return;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      setError("A foto não pôde ser lida.");
+      return;
+    }
+    context.drawImage(video, 0, 0);
+    const url = canvas.toDataURL("image/jpeg", 0.85);
+    const quality = analyzeFrame(context.getImageData(0, 0, canvas.width, canvas.height));
+    if (slot === "top") {
+      setTopShot({ url, time: 0, quality });
+      setTopFileName("foto da câmera");
+      setCorners([]);
+    } else if (slot === "a") {
+      setArcA(url);
+      setArcNames((current) => ({ ...current, a: "foto da câmera" }));
+    } else if (slot === "b") {
+      setArcB(url);
+      setArcNames((current) => ({ ...current, b: "foto da câmera" }));
+    } else {
+      setArcC(url);
+      setArcNames((current) => ({ ...current, c: "foto da câmera" }));
+    }
+    setError(null);
+    closeCamera();
   }
 
   function openImage(slot: "top" | "a" | "b" | "c") {
@@ -650,6 +735,22 @@ export function Conference() {
             Fotografe cada posição com a boca dentro do molde tracejado. O aplicativo recorta o meio 4:3 da foto antes
             de ler, então encha o molde sem cortar a borda. O quadro A não tem sufixo, o B termina em -b e o C em -c.
           </p>
+          {photoSlot ? (
+            <div className="camera-capture">
+              <div className="camera-frame">
+                <video ref={photoRef} className="camera-video" muted playsInline />
+                <MouthGuide quad={photoGuide} label="Molde da boca na foto" />
+              </div>
+              <div className="actions">
+                <button type="button" onClick={() => shootPhoto()}>
+                  Fotografar
+                </button>
+                <button type="button" className="secondary" onClick={() => closeCamera()}>
+                  Fechar
+                </button>
+              </div>
+            </div>
+          ) : null}
           {recordingUrl ? (
             <>
               <video className="preview preview-wide" ref={scrubRef} src={recordingUrl} controls playsInline />
@@ -666,6 +767,7 @@ export function Conference() {
             fileName={topFileName}
             url={topFileName ? topShot?.url ?? null : null}
             onOpen={() => openImage("top")}
+            onPhoto={() => void openCamera("top")}
           />
           <PickedStill
             label="Quadro A"
@@ -673,6 +775,7 @@ export function Conference() {
             url={arcA}
             guide={mouthQuad(item, 0, focal)}
             onOpen={() => openImage("a")}
+            onPhoto={() => void openCamera("a")}
           />
           <PickedStill
             label="Quadro B"
@@ -680,6 +783,7 @@ export function Conference() {
             url={arcB}
             guide={mouthQuad(item, 1, focal)}
             onOpen={() => openImage("b")}
+            onPhoto={() => void openCamera("b")}
           />
           {item === "tangerine" ? (
             <PickedStill
@@ -688,6 +792,7 @@ export function Conference() {
               url={arcC}
               guide={mouthQuad(item, 2, focal)}
               onOpen={() => openImage("c")}
+              onPhoto={() => void openCamera("c")}
             />
           ) : (
             <p className="note">O tomate não usa o quadro C.</p>
@@ -902,19 +1007,26 @@ function PickedStill({
   url,
   guide = null,
   onOpen,
+  onPhoto,
 }: {
   label: string;
   fileName: string | null;
   url: string | null;
   guide?: Quad | null;
   onOpen: () => void;
+  onPhoto: () => void;
 }) {
   const picked = fileName !== null && url !== null;
   return (
     <div className="still-pick">
-      <button type="button" className={picked ? undefined : "secondary"} aria-pressed={picked} onClick={onOpen}>
-        {picked ? `${label} · escolhido` : label}
-      </button>
+      <div className="actions">
+        <button type="button" className={picked ? undefined : "secondary"} aria-pressed={picked} onClick={onOpen}>
+          {picked ? `${label} · escolhido` : label}
+        </button>
+        <button type="button" className="secondary" onClick={onPhoto}>
+          Fotografar
+        </button>
+      </div>
       {picked ? (
         <>
           <div className="still-frame">

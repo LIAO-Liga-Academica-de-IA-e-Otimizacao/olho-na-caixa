@@ -75,9 +75,9 @@ As fotos abaixo foram geradas neste computador e não entram no Git. Se a pasta 
 1. Na raiz do repositório, rode `make dev`.
 2. Abra `http://localhost:3001`. O livro, se estiver aberto, usa a porta 3000.
 3. Em Conferir, escolha **Tomate**.
-4. Na caixa, confira comprimento 39,2, largura 28,2 e altura 25,7. A conta dos litros usa esses números. No celular, deixe **Simulador, 35 mm**, que é a lente dessas fotos. No tomate, o quilo por litro começa no exemplo, 0,55: troque quando o lote for pesado. Continuar.
+4. Na caixa, escolha o modelo com 39,2 por 28,2 por 25,7 cm. Se o cadastro estiver vazio, guarde esse modelo em Medidas primeiro. A conta dos litros usa esses números. No celular, deixe **Simulador, 35 mm**, que é a lente dessas fotos. No tomate, o quilo por litro começa no exemplo, 0,55: troque quando o lote for pesado. Continuar.
 5. Em Filme, continue sem gravar.
-6. Em Quadros, abra estes arquivos, nesta ordem. Cada quadro mostra o molde tracejado da boca: na foto real, a boca entra nesse molde.
+6. Em Quadros, abra estes arquivos, nesta ordem. Cada quadro mostra o molde tracejado da boca: na foto real, a boca entra nesse molde. Cada quadro também tem **Fotografar**: a câmera abre com o molde sobre a imagem, e o que couber no molde é o que a leitura recebe.
    - Vista de cima: `sim/assets/detect/images/val/tomato-s1005.png`
    - Quadro A: `sim/assets/detect/sides/tomato/val/tomato-s1005.png`
    - Quadro B: `sim/assets/detect/sides/tomato/val/tomato-s1005-b.png`
