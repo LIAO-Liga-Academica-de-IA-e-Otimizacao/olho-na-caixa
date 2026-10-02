@@ -20,6 +20,7 @@ import {
   type RgbImage,
 } from "@/lib/arc-height";
 import { detectTopLayer } from "@/lib/yolo-detect";
+import { testStillSet } from "@/lib/test-stills";
 import type { TopLayer } from "@/lib/top-layer";
 import { FruitBoxes } from "./FruitBoxes";
 import { MouthGuide } from "./MouthGuide";
@@ -158,6 +159,7 @@ export function Conference() {
   const [density, setDensity] = useState(String(EXAMPLE_DENSITY));
   const [capturePhase, setCapturePhase] = useState<CapturePhase>("idle");
   const [photoSlot, setPhotoSlot] = useState<"top" | "a" | "b" | "c" | null>(null);
+  const [autoStills, setAutoStills] = useState(false);
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const [filmLabel, setFilmLabel] = useState<string | null>(null);
   const [seconds, setSeconds] = useState(0);
@@ -385,6 +387,7 @@ export function Conference() {
       const shot = { ...grabShot(video), time: video.currentTime };
       setTopShot(shot);
       setTopFileName(null);
+      setAutoStills(false);
       setError(null);
     } catch {
       setError("Espere a imagem aparecer e escolha de novo.");
@@ -453,6 +456,7 @@ export function Conference() {
     context.drawImage(video, 0, 0);
     const url = canvas.toDataURL("image/jpeg", 0.85);
     const quality = analyzeFrame(context.getImageData(0, 0, canvas.width, canvas.height));
+    setAutoStills(false);
     if (slot === "top") {
       setTopShot({ url, time: 0, quality });
       setTopFileName("foto da câmera");
@@ -471,6 +475,27 @@ export function Conference() {
     closeCamera();
   }
 
+  /** Temporary shortcut: skipping the film step fills the frames with the book scenes. */
+  function loadTestStills() {
+    const stills = testStillSet(item);
+    setTopShot({
+      url: stills.top,
+      time: 0,
+      quality: { brightness: 0, clippedFraction: 0, warnings: [] },
+    });
+    setTopFileName(`${stills.label} (teste)`);
+    setArcA(stills.a);
+    setArcB(stills.b);
+    setArcC(stills.c);
+    setArcNames({
+      a: `${stills.label} (teste)`,
+      b: `${stills.label}-b (teste)`,
+      c: stills.c ? `${stills.label}-c (teste)` : null,
+    });
+    setCorners([]);
+    setAutoStills(true);
+  }
+
   function openImage(slot: "top" | "a" | "b" | "c") {
     imageSlotRef.current = slot;
     imageInputRef.current?.click();
@@ -479,6 +504,7 @@ export function Conference() {
   function storeImage(file: File) {
     const url = URL.createObjectURL(file);
     const slot = imageSlotRef.current;
+    setAutoStills(false);
     if (slot === "top") {
       setTopShot({ url, time: 0, quality: { brightness: 0, clippedFraction: 0, warnings: [] } });
       setTopFileName(file.name);
@@ -721,7 +747,13 @@ export function Conference() {
             <button type="button" className="secondary" onClick={() => setStep("crate")}>
               Voltar
             </button>
-            <button type="button" onClick={() => setStep("frames")}>
+            <button
+              type="button"
+              onClick={() => {
+                if (!recordingUrl) loadTestStills();
+                setStep("frames");
+              }}
+            >
               Continuar
             </button>
           </div>
@@ -735,6 +767,9 @@ export function Conference() {
             Fotografe cada posição com a boca dentro do molde tracejado. O aplicativo recorta o meio 4:3 da foto antes
             de ler, então encha o molde sem cortar a borda. O quadro A não tem sufixo, o B termina em -b e o C em -c.
           </p>
+          {autoStills ? (
+            <p className="note">Quadros de teste carregados sozinhos. Troque qualquer um abaixo.</p>
+          ) : null}
           {photoSlot ? (
             <div className="camera-capture">
               <div className="camera-frame">
