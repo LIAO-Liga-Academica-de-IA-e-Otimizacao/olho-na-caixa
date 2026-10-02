@@ -27,8 +27,10 @@ const NMS_IOU = 0.45;
 /**
  * Turn YOLO boxes into the same top-layer record the color marks use.
  *
- * Keeps boxes of the chosen item inside the opening, at or above the score
- * cutoff, after overlapping boxes are suppressed. Buried fruit is not in the
+ * Every box inside the opening counts as fruit: the detector leans on shape,
+ * and the confirmed item says which fruit, not the box label. The label
+ * majority stays as the wrong-item signal: most boxes wearing the other
+ * label means the photo shows another crate. Buried fruit is not in the
  * image, so it is not in the count.
  */
 export function layerFromDetections(
@@ -43,17 +45,17 @@ export function layerFromDetections(
   const kept = detections.filter(
     (box) => box.score >= SCORE_MIN && insideQuad({ x: box.cx, y: box.cy }, corners),
   );
-  const mine = kept.filter((box) => box.classId === wanted);
-  const others = kept.length - mine.length;
+  const others = kept.filter((box) => box.classId !== wanted).length;
   const toPlane = openingScale(corners, lengthCm, widthCm);
-  const marks = mine.map((box) => toMark(box, toPlane));
+  const marks = kept.map((box) => toMark(box, toPlane));
   marks.sort((a, b) => a.x - b.x);
   const diameters = marks.map((mark) => mark.diameterCm).sort((a, b) => a - b);
   return {
     marks,
     count: marks.length,
+    otherCount: others,
     medianDiameterCm: median(diameters),
-    matchesItem: mine.length > 0 && mine.length >= others,
+    matchesItem: marks.length > 0 && marks.length - others >= others,
     elapsedMs: performance.now() - started,
   };
 }

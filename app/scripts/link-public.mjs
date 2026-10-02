@@ -37,6 +37,10 @@ await placeTree(
   path.join(repoRoot, "sim/assets/detect/sides/tomato/val"),
   path.join(appRoot, "public/test-stills/sides/tomato/val"),
 );
+await placeTree(
+  path.join(repoRoot, "sim/assets/detect/probe"),
+  path.join(appRoot, "public/test-stills/probe"),
+);
 
 async function placeFile(from, to) {
   await mkdir(path.dirname(to), { recursive: true });

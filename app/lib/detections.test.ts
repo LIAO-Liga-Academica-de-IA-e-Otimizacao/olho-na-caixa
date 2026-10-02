@@ -38,7 +38,7 @@ describe("decodeYolo", () => {
 });
 
 describe("layerFromDetections", () => {
-  it("counts the chosen item and reads the diameter from the opening", () => {
+  it("counts every box inside, whatever the label, and reads the diameter", () => {
     const layer = layerFromDetections(
       [
         { classId: 0, cx: 0.5, cy: 0.5, width: 0.1, height: 0.1, score: 0.8 },
@@ -49,19 +49,31 @@ describe("layerFromDetections", () => {
       30,
       "tangerine",
     );
-    expect(layer.count).toBe(1);
+    expect(layer.count).toBe(2);
+    expect(layer.otherCount).toBe(1);
     expect(layer.matchesItem).toBe(true);
     expect(layer.medianDiameterCm).toBeCloseTo(3.5);
   });
 
-  it("refuses a frame whose boxes are the other fruit", () => {
+  it("flags a frame whose boxes mostly wear the other label", () => {
     const layer = layerFromDetections(
-      [{ classId: 1, cx: 0.5, cy: 0.5, width: 0.1, height: 0.1, score: 0.9 }],
+      [
+        { classId: 1, cx: 0.5, cy: 0.5, width: 0.1, height: 0.1, score: 0.9 },
+        { classId: 1, cx: 0.2, cy: 0.2, width: 0.1, height: 0.1, score: 0.9 },
+        { classId: 0, cx: 0.8, cy: 0.8, width: 0.1, height: 0.1, score: 0.9 },
+      ],
       FULL_OPENING,
       40,
       30,
       "tangerine",
     );
+    expect(layer.count).toBe(3);
+    expect(layer.otherCount).toBe(2);
+    expect(layer.matchesItem).toBe(false);
+  });
+
+  it("refuses a frame with no boxes at all", () => {
+    const layer = layerFromDetections([], FULL_OPENING, 40, 30, "tangerine");
     expect(layer.count).toBe(0);
     expect(layer.matchesItem).toBe(false);
   });

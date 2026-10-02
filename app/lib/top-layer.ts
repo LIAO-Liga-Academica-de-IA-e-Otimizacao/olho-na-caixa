@@ -18,6 +18,8 @@ export type Mark = {
 export type TopLayer = {
   marks: Mark[];
   count: number;
+  /** Boxes inside the opening whose label is the other fruit. A high share means the wrong item. */
+  otherCount: number;
   medianDiameterCm: number | null;
   matchesItem: boolean;
   elapsedMs: number;
@@ -53,6 +55,7 @@ export function markTopLayer(
   return {
     marks,
     count: marks.length,
+    otherCount: 0,
     medianDiameterCm,
     matchesItem: marks.length > 0,
     elapsedMs: performance.now() - started,

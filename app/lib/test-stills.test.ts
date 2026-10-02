@@ -40,7 +40,7 @@ describe("probe stills", () => {
     for (const kind of ["dark", "blown", "ok"] as const) {
       const set = probeStillSet(kind);
       for (const url of [set.top, set.a, set.b, set.c]) {
-        expect(url).toBe(`/test-stills/images/val/gate-${kind}.png`);
+        expect(url).toBe(`/test-stills/probe/gate-${kind}.png`);
       }
       expect(set.label.startsWith("prova-")).toBe(true);
       expect(set.corners).toHaveLength(4);

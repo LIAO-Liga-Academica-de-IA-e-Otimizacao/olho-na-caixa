@@ -39,12 +39,12 @@ const PROBE_LABEL: Record<ProbeKind, string> = {
 /**
  * Solid-color frames that trip (or pass) the light gate, for testing the
  * refusal without a camera. Served like the book scenes: drop
- * `gate-dark.png`, `gate-blown.png` and `gate-ok.png` (all git-ignored)
- * next to the val tops and `scripts/link-public.mjs` hard-links them into
- * `public/test-stills/`. Goes away with the shortcut.
+ * `gate-dark.png`, `gate-blown.png` and `gate-ok.png` (all git-ignored) in
+ * `sim/assets/detect/probe/` and `scripts/link-public.mjs` hard-links them
+ * into `public/test-stills/probe/`. Goes away with the shortcut.
  */
 export function probeStillSet(kind: ProbeKind): TestStillSet {
-  const url = `${ROOT}/images/val/gate-${kind}.png`;
+  const url = `${ROOT}/probe/gate-${kind}.png`;
   return {
     top: url,
     a: url,

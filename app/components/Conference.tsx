@@ -20,6 +20,8 @@ import {
   type RgbImage,
 } from "@/lib/arc-height";
 import { detectTopLayer } from "@/lib/yolo-detect";
+import { composeEvidence } from "@/lib/evidence";
+import { appendRecord, readLog, writeLog } from "@/lib/evidence-store";
 import { probeStillSet, testStillSet, type ProbeKind } from "@/lib/test-stills";
 import type { TopLayer } from "@/lib/top-layer";
 import { FruitBoxes } from "./FruitBoxes";
@@ -167,6 +169,7 @@ export function Conference() {
   const [layer, setLayer] = useState<TopLayer | null>(null);
   const [layerNote, setLayerNote] = useState<string | null>(null);
   const [passageMs, setPassageMs] = useState<number | null>(null);
+  const [savedNote, setSavedNote] = useState<string | null>(null);
 
   const crate: Crate | null = activeCrate({ crates: book.crates, active: selected });
   const crateReady = crate !== null;
@@ -440,6 +443,40 @@ export function Conference() {
     } finally {
       URL.revokeObjectURL(url);
     }
+  }
+
+  async function saveEvidence() {
+    if (!topShot || !crate) {
+      setSavedNote("Falta a foto de cima ou a caixa para guardar.");
+      return;
+    }
+    const photo = await composeEvidence(topShot.url, layer?.marks ?? []);
+    if (!photo) {
+      setSavedNote("A foto não pôde ser guardada.");
+      return;
+    }
+    const headline = estimate
+      ? formatEstimate(estimate)
+      : layer
+        ? `${layer.count} ${layer.count === 1 ? "caixa" : "caixas"} na camada de cima`
+        : "Sem leitura";
+    const id =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
+    writeLog(
+      appendRecord(readLog(), {
+        id,
+        savedAtISO: new Date().toISOString(),
+        item,
+        crateName: crate.name,
+        headline,
+        imageDataUrl: photo,
+      }),
+    );
+    setSavedNote(
+      `Guardada às ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}.`,
+    );
   }
 
   async function storeImage(file: File) {
@@ -846,9 +883,11 @@ export function Conference() {
             <p className={layer.matchesItem ? "ok" : "flag"}>
               {layer.matchesItem
                 ? `${layer.count} ${layer.count === 1 ? "caixa" : "caixas"} dentro da borda. Diâmetro mediano ${formatCm(layer.medianDiameterCm ?? 0)} cm. A leitura levou ${Math.round(layer.elapsedMs)} ms.`
-                : item === "tangerine"
-                  ? "Nenhuma tangerina dentro da borda. O total abaixo veio da altura do arco, não dessas caixas."
-                  : "Nenhum tomate dentro da borda. O quilo por litro continua sendo o exemplo."}
+                : layer.count === 0
+                  ? item === "tangerine"
+                    ? "Nenhuma fruta dentro da borda. O total abaixo veio da altura do arco, não dessas caixas."
+                    : "Nenhuma fruta dentro da borda. O quilo por litro continua sendo o exemplo."
+                  : `${layer.otherCount} de ${layer.count} caixas parecem ${item === "tangerine" ? "tomate" : "tangerina"}. Confira o item no primeiro passo; a contagem somou todas.`}
             </p>
           ) : (
             <p className={layerNote ? "flag" : "note"}>{layerNote ?? "Lendo o modelo da camada de cima."}</p>
@@ -922,7 +961,18 @@ export function Conference() {
             <button type="button" className="secondary" onClick={() => setStep("corners")}>
               Voltar
             </button>
+            <button type="button" onClick={() => void saveEvidence()}>
+              Guardar conferência
+            </button>
           </div>
+          {savedNote ? <p className="note">{savedNote}</p> : null}
+          {savedNote && savedNote.startsWith("Guardada") ? (
+            <p className="note">
+              <Link className="link-button" href="/guardadas/">
+                Ver guardadas
+              </Link>
+            </p>
+          ) : null}
         </section>
       ) : null}
     </>

@@ -26,7 +26,7 @@ A pasta `app/lib/` é a conta e o estado, separados da tela. A tela chama essas 
 
 `top-layer.ts` ainda tem a marca pela cor. A Conferir não a usa. Ela ficou para o teste que compara a cor com o modelo.
 
-`yolo-detect.ts` carrega `app/public/models/top-layer.onnx`, o mesmo peso de `sim/assets/detect/top-layer.pt`. A foto vai para um quadrado de 320 pixels, com margem 114, e as caixas voltam para a foto original. `detections.ts` fica com as que passam de 0,55 de confiança e suprime caixas sobrepostas com IoU 0,45. Esse ponto de corte foi escolhido nas fotos de prova do simulador. O notebook `sim/ver-yolo.ipynb` continua sendo o caminho no Python.
+`yolo-detect.ts` carrega `app/public/models/top-layer.onnx`, o mesmo peso de `sim/assets/detect/top-layer.pt`. A foto vai para um quadrado de 320 pixels, com margem 114, e as caixas voltam para a foto original. `detections.ts` fica com as que passam de 0,55 de confiança e suprime caixas sobrepostas com IoU 0,45. A contagem soma todas as caixas dentro da borda, de qualquer classe: a classe majoritária só confere o item confirmado no primeiro passo, porque o corte tangerina-contra-tomate não sobrevive fora do simulador. Esse ponto de corte foi escolhido nas fotos de prova do simulador. O notebook `sim/ver-yolo.ipynb` continua sendo o caminho no Python.
 
 `homography.ts` endereça a boca da caixa. Quatro cantos na imagem, mais o comprimento e a largura em centímetros, viram uma função que leva um pixel ao plano da boca. É a régua do diâmetro.
 
@@ -35,6 +35,8 @@ A pasta `app/lib/` é a conta e o estado, separados da tela. A tela chama essas 
 `crate-store.ts` guarda o cadastro de caixas (os modelos e qual está em uso) e `lots.ts` guarda os lotes, no `localStorage` do navegador. Não há banco. O que ainda não foi guardado se perde se a aba fechar.
 
 `report.ts` monta o texto do resultado: unidades ou quilos, o intervalo, e se a caixa fica incerta.
+
+`evidence.ts` grava a foto do resultado como registro: desenha as caixas do modelo sobre a vista de cima em JPEG de 640 pixels. `evidence-store.ts` guarda até 30 registros no `localStorage`, e a página **Guardadas** (`app/app/guardadas/page.tsx`, no menu) lista o que foi salvo. O registro existe para a cozinha auditar a conferência depois; ele não entra na conta.
 
 ## O que a tela não faz
 

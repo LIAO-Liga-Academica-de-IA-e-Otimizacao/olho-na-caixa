@@ -32,3 +32,7 @@ sim/assets/detect/*.pt
 !sim/assets/detect/top-layer.pt
 :memory:.ses
 render-tops.log
+sim/assets/detect/probe/
+
+# YOLO validation leftovers at repo root
+runs/
