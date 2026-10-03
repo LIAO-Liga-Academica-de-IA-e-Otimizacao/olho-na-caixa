@@ -28,13 +28,11 @@ Alguém mede, com trena, o vão **interno** das caixas que a cozinha piloto real
 
 Um cartão de tamanho conhecido, para uma caixa que não esteja no catálogo, fica fora do caminho crítico. Esse cartão só será feito se sobrar tempo no fim do prazo.
 
-## 4. Como a caixa é filmada
+## 4. Como a caixa é fotografada
 
-O operador dá a volta com o celular num arco ao redor da caixa, e o aplicativo escolhe os quadros. O detalhe está em [Captura em arco](captura.md).
+O operador fotografa cada posição do arco, com o molde da boca sobre a imagem: vista de cima, quadro A, quadro B e, na tangerina, quadro C. O detalhe está em [Captura em arco](captura.md).
 
-O arco serve para escolher as vistas e para ler a altura do monte. Os centímetros da caixa continuam vindo da decisão 3.
-
-A altura do monte sai do quadro de lado sempre que ele existir, e pode passar da boca. O desconto de coroa só substitui essa leitura quando o perfil falta e a vista de cima mostra a fruta nos quatro lados. Em 27 de setembro de 2026 a primeira caixa cheia renderizada mostrou fruta acima da borda; a conta dessa cena usa a leitura de lado, não o desconto.
+Os centímetros da caixa continuam vindo da decisão 3. A altura do monte sai dos quadros laterais, pela leitura do arco calibrado, e pode passar da boca.
 
 ## 5. Ajuda do operador
 
@@ -42,13 +40,13 @@ Nesta fase, a pessoa marca a borda com quatro toques quando o aplicativo não fe
 
 ## 6. Caixa tampada
 
-O operador abre a tampa e filma o miolo. Uma caixa lacrada, sem abertura, não oferece uma vista do conteúdo, então o aplicativo não produz estimativa para ela.
+O operador abre a tampa e fotografa o miolo. Uma caixa lacrada, sem abertura, não oferece uma vista do conteúdo, então o aplicativo não produz estimativa para ela.
 
 ## 7. Onde o cálculo roda
 
-O celular filma e o próprio celular calcula. O vídeo permanece no aparelho. O custo por conferência é zero, e a conferência funciona com a rede da escola caída.
+O celular fotografa e o próprio celular calcula. As fotos permanecem no aparelho. O custo por conferência é zero, e a conferência funciona com a rede da escola caída.
 
-A fórmula em si é imediata. O que leva tempo é escolher os quadros e detectar a fruta. O aplicativo percorre o vídeo só para medir nitidez, luz e se a borda aparece. O detector, um YOLO pequeno e quantizado, roda uma vez, no quadro de cima escolhido. Ele não roda em todo quadro do arco. A geometria da borda e a conta de camadas ou de quilos fecham em seguida, no mesmo aparelho.
+A fórmula em si é imediata. O que leva tempo é fotografar e detectar a fruta. Cada foto passa pela trava de luz. O detector, um YOLO pequeno, roda uma vez, no quadro de cima, no navegador (ONNX). A geometria da borda e a conta fecham em seguida, no mesmo aparelho.
 
 O tempo vale no celular de referência da decisão 14. Um computador de desenvolvimento pode servir para treinar o detector. Ele não faz parte da conferência na cozinha.
 

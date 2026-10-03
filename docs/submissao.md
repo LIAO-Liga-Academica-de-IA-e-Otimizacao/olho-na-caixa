@@ -19,7 +19,7 @@ Tempo estimado: três fotos guiadas de alguns segundos cada, quatro toques e con
 
 Os sinais que chegam ao número: área da boca (do catálogo de caixas medido uma vez), altura do monte (arco de três câmeras calibradas com pose mediana congelada e reta ajustada só no treino), camada visível de cima (YOLO nano com caixas filtradas ao quadrilátero da boca) e, no tomate, quilogramas por litro do lote para converter volume em peso — sem balança em nenhum ponto. A tangerina conta unidades por camadas (altura × área ÷ volume da fruta com passo de empilhamento); o tomate mede litros (área × altura) e multiplica pela densidade do lote.
 
-Cada conferência guarda para revisão: as três fotos, os quatro cantos usados, as leituras intermediárias de altura e o número final com o item e a caixa.
+Cada conferência pode guardar a vista de cima com as caixas do modelo, no próprio aparelho, pela página Guardadas. As outras fotos ficam na sessão.
 
 ## 3. PoC / protótipo funcional
 
@@ -36,12 +36,12 @@ Reta e arco congelados do treino; a prova entra sem reajuste. Validação cruzad
 
 ## 5. Limites conhecidos da solução
 
-Luz dura quebra a leitura: 232 tangerinas e 240 tomates sob sol forte e matiz variada erram 5,6% e 10,1%, com 24 e 35 fora de 10% — medido, não estimado. Reajustar na luz dura não conserta; o degrau de borda não se move (pose intacta) e o cruzamento das frutas corrompe. O envelope de operação é luz difusa, garantido pela trava de qualidade. A altura foi validada em simulador; em material real do kit, a localização das caixas transfere e a classe tangerina-contra-tomate não (pokan real sai como tomate), então a contagem deve usar caixa-contra-fundo com o item vindo do fluxo. Banana (pencas) e cenoura (vazios) estão fora desta entrega.
+Luz dura quebra a leitura: 232 tangerinas e 240 tomates sob sol forte e matiz variada erram 5,6% e 10,1%, com 24 e 35 fora de 10% — medido, não estimado. Reajustar na luz dura não conserta; o degrau de borda não se move (pose intacta) e o cruzamento das frutas corrompe. O envelope de operação é luz difusa, garantido pela trava de qualidade. A altura foi validada em simulador. Em material real do kit, a localização das caixas transfere e a classe tangerina-contra-tomate não (pokan real sai como tomate). A Conferir soma toda caixa dentro da borda, e a classe majoritária só confere o item. Banana (pencas) e cenoura (vazios) estão fora desta entrega.
 
 ## 6. Pontos extras atendidos
 
 - (x) Estima peso por imagem sem depender de balança (tomate: litros × kg/L do lote).
 - (x) Trata explicitamente casos em que não deve responder (trava de luz/enquadramento com recusa e repetição nomeada).
 - (x) Tempo total por caixa estimado abaixo de 1 minuto (a cronometrar em cozinha).
-- ( ) Custo por conferência: zero — sem API paga, tudo no aparelho.
+- (x) Custo por conferência: zero — sem API paga, tudo no aparelho.
 - ( ) Generaliza sem retrabalho: laranja segue a mesma conta de camadas (diâmetro + reta), sem validação; ponto não pleiteado.

@@ -8,11 +8,11 @@ A conta deste capítulo é a da página Conta, em `app/lib/packing.ts`. A tela C
 
 ## O que é medido em toda caixa
 
-Três grandezas saem da visita e do vídeo. São estas.
+Três grandezas saem da visita e das fotos. São estas.
 
 **A base** é o comprimento interno vezes a largura interna, ambos lidos do catálogo. Uma caixa de 50 cm por 30 cm tem base de 1500 cm². Isso equivale a 15 litros a cada 10 cm de altura, porque 1500 cm² × 10 cm = 15000 cm³ = 15 L.
 
-**A altura do monte, h.** No quadro de lado, a parede da caixa é um retângulo cujo tamanho real já é conhecido: o comprimento da face vezes a altura da caixa. O aplicativo endereita essa parede e lê o perfil da fruta, a partir do fundo interno, ao longo do comprimento inteiro. A altura que entra na conta é a média desse perfil. Onde o fundo aparece, aquele trecho vale zero. O pico, o ponto mais alto, fica registrado, mas não multiplica a camada de cima: num monte, só a coluna do meio tem essa altura. Se a fruta passa da boca, o perfil passa da altura interna. Essa leitura vale sempre que o perfil existir. Só na falta dele, e com a fruta encostada na borda dos quatro lados no quadro de cima, h é a altura interna menos um desconto pequeno de coroa. O desconto não soma um monte acima da parede. O detalhe está em [Captura em arco](captura.md).
+**A altura do monte, h.** Na Conferir, h sai dos quadros laterais do arco, pela leitura em [A leitura que a simulação mediu](arquitetura/leitura.md). Essa leitura pode passar da boca. A página Conta não lê foto: ela usa uma altura de exemplo na conta de camadas.
 
 **O tamanho da peça, d.** No quadro de cima, cada fruta visível é medida em centímetros, usando a borda como régua. O valor que entra na conta é a mediana dessas medidas. Uma fruta cortada, ou uma detecção dobrada, deixa de puxar o tamanho para cima ou para baixo.
 
@@ -50,7 +50,7 @@ Os litros do monte são a base vezes a altura. No exemplo de 50 cm × 30 cm × 2
 
 Quilos por litro já embute polpa, ar e fruta amassada. A conta usa esse número medido no lote. Ela não multiplica a densidade da água por uma fração de empacotamento tirada de livro.
 
-No tomate, o detector não é quem dá o peso. Ele confirma que o conteúdo é tomate, mede o calibre mediano (para escolher a linha da tabela, se um dia houver mais de uma variedade) e recusa caixa misturada ou com um buraco grande na camada de cima.
+No tomate, o detector não é quem dá o peso. Ele marca a camada de cima. A contagem soma toda caixa dentro da borda, e a classe majoritária só confere o item escolhido. O peso sai dos litros vezes o quilo por litro do lote.
 
 ## Quando a balança entra
 
@@ -71,7 +71,7 @@ A cenoura, em quilos, usa a mesma conta do tomate. Cenoura fina e cenoura grossa
 | Número | Onde nasce | Pode vir de um valor de livro? |
 | :--- | :--- | :--- |
 | Comprimento, largura e altura da caixa | Na trena, no vão interno, uma vez por modelo | Não pode |
-| Altura do monte | No quadro de lado, a média do perfil ao longo do comprimento. O pico fica registrado e não multiplica. Sem esse perfil, e com a caixa cheia vista de cima, a altura interna menos a coroa | Não pode |
+| Altura do monte | Nos quadros laterais do arco, pela leitura calibrada. Pode passar da boca | Não pode |
 | Frutas no topo e diâmetro | No quadro de cima, com o detector | Não pode |
 | Passo entre camadas | Nas caixas contadas à mão na calibração. A estimativa inicial, antes dessa contagem, é 0,82 | Só antes da primeira calibração |
 | Quilos por litro | Nas caixas pesadas na calibração | Não pode |

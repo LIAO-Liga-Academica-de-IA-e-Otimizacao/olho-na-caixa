@@ -111,6 +111,6 @@ Uma contagem direta, da foto para o número de frutas, foi deixada de lado: a ca
 
 Baixar a fração φ para a conta fechar não foi feito. A fração é a da geometria, não um ajuste.
 
-A noite de 300 cenas e a leva das esferas iguais, descritas em [Simulação no computador](../simulacao.md), não foram executadas. Os números deste capítulo são das 320 tangerinas e dos 288 tomates do conjunto do detector: prova estreita de 24 e 16 cenas, mais 232 e 240 cenas de luz dura que delimitam o envelope em vez de provar a reta.
+A noite de 300 cenas, a leva das esferas iguais e o Isaac Sim foram propostos e não rodaram. Os números deste capítulo são das 320 tangerinas e dos 288 tomates do conjunto do detector: prova estreita de 24 e 16 cenas, mais 232 e 240 cenas de luz dura que delimitam o envelope em vez de provar a reta.
 
 Rafael contou 42 tangerinas na caixa da semente 5 e 45 na da semente 1, em fotos de cima anteriores. Esses pixels foram substituídos. Com diâmetro 5,3 cm e passo 0,82, as alturas médias de 12,1 cm e 20,1 cm não publicam as verdades 86 e 159. Foi essa conta de camadas, nas fotos antigas, que motivou medir a altura de outro jeito.

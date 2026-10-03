@@ -10,7 +10,7 @@ Para abrir o aplicativo no navegador, na raiz do repositório:
 make dev
 ```
 
-A tela abre em `http://localhost:3001`. A porta 3000 fica com a documentação. Sem webcam, na tela Filmar use **Gravar clipe de teste**. O replay tem de mostrar a caixa desenhada. O vídeo não sai da máquina. Para esta primeira tela, não precisa de fruta.
+A tela abre em `http://localhost:3001`. A porta 3000 fica com a documentação. O passo a passo no celular, o que falta na entrega e o que cabe se sobrar tempo estão no capítulo [Para o time](docs/olho-na-caixa/para-o-time.md) do livro.
 
 A documentação do método está neste repositório, no formato de um livro local (mdBook). Para abri-la no navegador, na raiz do repositório:
 

@@ -66,7 +66,7 @@ export default function CollectionPage() {
           <li>Modelo da caixa, com o nome e o vão interno em centímetros.</li>
           <li>Variedade, se já tiver nome. Sem nome, o campo fica em branco.</li>
           <li>Altura do monte medida com régua, em centímetros.</li>
-          <li>Vídeo do arco. O arquivo permanece neste aparelho.</li>
+          <li>Fotos do arco (vista de cima, A, B e, na tangerina, C). Os arquivos permanecem neste aparelho.</li>
           <li>
             Tangerina: duas contagens independentes. Se a diferença passar de 2% da média das duas, uma terceira pessoa
             conta.
@@ -74,8 +74,8 @@ export default function CollectionPage() {
           <li>Tomate: o peso da balança, em quilos. Esse peso é a verdade, e substitui a estimativa da foto.</li>
         </ul>
         <p className="note">
-          Caixas guardadas neste aparelho: {storedCount}. A coleta espera uma caixa real. As hipóteses da simulação, ainda
-          sem render, estão em <Link href="/simulacao/">Simulação</Link>.
+          Caixas guardadas neste aparelho: {storedCount}. A coleta espera uma caixa real. O que o simulador já mediu está
+          em <Link href="/simulacao/">Simulação</Link>.
         </p>
       </section>
 

@@ -9,7 +9,7 @@ A calibração usa cerca de 30 caixas por item, para tangerina e para tomate. Ne
 - o modelo da caixa e as medidas internas;
 - a variedade;
 - a altura do monte medida com régua;
-- o vídeo do arco;
+- as fotos do arco;
 - a verdade de referência: contagem dupla, no caso da tangerina, e peso de balança, no caso do tomate.
 
 A contagem dupla vale quando os dois contadores diferem em menos de 2%. Se diferirem mais do que isso, um terceiro conta. A balança dessa etapa pode ser lenta. O limite de um minuto vale para o operador na demonstração. Quem está etiquetando as caixas de calibração não está sujeito a esse limite.

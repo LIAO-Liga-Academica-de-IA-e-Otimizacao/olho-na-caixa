@@ -2,7 +2,7 @@
 
 Este capítulo é o mapa para quem chega no código. Ele diz onde cada coisa mora, o que já roda no celular (ou no navegador que imita o celular), e o que só existe no computador da simulação.
 
-A tela Conferir lê a altura quando você abre as fotos do protocolo (os quadros A, B e, na tangerina, C). O erro de 2,3% e o de 2,8% foram medidos nessas fotos do simulador. Um vídeo qualquer não traz as três câmeras calibradas e não reproduz esse erro.
+A tela Conferir lê a altura quando você abre as fotos do protocolo (os quadros A, B e, na tangerina, C). O erro de 2,3% e o de 2,8% foram medidos nessas fotos do simulador. Uma foto fora dessas posições não traz as câmeras calibradas e não reproduz esse erro.
 
 ![A altura do arco está nos dois programas. O YOLO da camada de cima também.](dois-programas.svg)
 
@@ -20,7 +20,7 @@ Há ainda `scripts/` para abrir o Chrome com uma câmera falsa, e o `Makefile` n
 
 ## O que você pode testar hoje no aplicativo
 
-O aplicativo já percorre a jornada da cozinha sem fruta de verdade, com fotos do simulador. O roteiro está em [Etapas de construção](../etapas.md). Em resumo:
+O aplicativo já percorre a jornada da cozinha. O roteiro do celular, e a lista do que ainda falta entregar, está em [Para o time](../para-o-time.md). No computador, com fotos do simulador:
 
 1. `make dev`, e o endereço `http://localhost:3001`.
 2. Em Medidas, guarde um modelo de caixa. Em Conferir, escolha o modelo, abra os quadros e confira a borda para ver as caixas do YOLO.

@@ -1,12 +1,12 @@
 # O aplicativo
 
-O aplicativo é um site estático. No celular não haverá um servidor Node ao lado da câmera. Por isso o build usa export estático, e as telas que filmam e que contam rodam no próprio navegador. Server Actions ficam de fora. A decisão está em [Etapas de construção](../etapas.md), na seção da stack.
+O aplicativo é um site estático. No celular não haverá um servidor Node ao lado da câmera. Por isso o build usa export estático, e as telas que fotografam e que contam rodam no próprio navegador. Server Actions ficam de fora. O pacote Android é Capacitor 7: ele pega esse export e gera o projeto em `app/android/`. O detector no aparelho é o ONNX no navegador, o mesmo peso de `sim/assets/detect/top-layer.pt`.
 
-Hoje você usa o modo de desenvolvimento (`make dev`, porta 3001). O pacote Capacitor, que gera o projeto Android, está previsto e ainda não é o caminho do dia a dia.
+Hoje você usa o modo de desenvolvimento (`make dev`, porta 3001). O projeto Android em `app/android/` empacota esse export. O passo a passo dos dois caminhos está em [Para o time](../para-o-time.md).
 
 ## As telas
 
-O menu fica em `app/components/Shell.tsx`. São quatro entradas.
+O menu fica em `app/components/Shell.tsx`. São cinco entradas.
 
 **Conferir** (`app/app/page.tsx`) abre `Conference`. É a jornada: escolher tangerina ou tomate, escolher o modelo da caixa no cadastro, fotografar a vista de cima e os quadros do arco com os moldes, conferir a borda e ver o resultado.
 
@@ -15,6 +15,8 @@ O menu fica em `app/components/Shell.tsx`. São quatro entradas.
 **Conta** (`app/app/conta/page.tsx`) mostra a conta com números de exemplo, sem foto. É o lugar para ver a fórmula antiga sozinha. O exemplo da tangerina dá 112 unidades: 28 frutas visíveis, diâmetro 6 cm, altura de monte 21 cm, passo 0,82. A conta está no capítulo [Como a quantidade é calculada](../calculo.md).
 
 **Coleta** (`app/app/coleta/page.tsx`) é o caderno dos lotes. O quilo por litro do tomate, quando existir, entra por uma pesagem do lote, não por uma rede neural.
+
+**Guardadas** (`app/app/guardadas/page.tsx`) lista as conferências gravadas no aparelho: a vista de cima com as caixas do modelo. O registro não entra na conta.
 
 **Simulação** (`app/app/simulacao/page.tsx`) não está no menu. É uma página de texto sobre o que o computador já rodou. Ela não executa o Blender e não mostra o erro ao vivo.
 
@@ -30,7 +32,7 @@ A pasta `app/lib/` é a conta e o estado, separados da tela. A tela chama essas 
 
 `homography.ts` endereça a boca da caixa. Quatro cantos na imagem, mais o comprimento e a largura em centímetros, viram uma função que leva um pixel ao plano da boca. É a régua do diâmetro.
 
-`frame-quality.ts` olha um quadro e diz se ele está escuro, estourado ou torto demais para entrar na conta. O aplicativo percorre o vídeo por causa disso. O detector, quando existir no aparelho, não roda em todo quadro.
+`frame-quality.ts` olha um quadro e diz se ele está escuro ou estourado demais para entrar na conta. Com aviso em qualquer quadro usado, a Conferir trava o avanço e nomeia o quadro. O detector roda uma vez, no quadro de cima.
 
 `crate-store.ts` guarda o cadastro de caixas (os modelos e qual está em uso) e `lots.ts` guarda os lotes, no `localStorage` do navegador. Não há banco. O que ainda não foi guardado se perde se a aba fechar.
 
@@ -42,4 +44,4 @@ A pasta `app/lib/` é a conta e o estado, separados da tela. A tela chama essas 
 
 A tela não assenta frutas e não treina modelo. A Conferir lê a altura em `arc-height.ts` quando você abre os quadros do protocolo. A página Conta continua na conta de camadas de `packing.ts`.
 
-O modelo treinado no simulador está em `sim/assets/detect/top-layer.pt`. A Conferir carrega a exportação ONNX desse arquivo, em `app/public/models/top-layer.onnx`. O formato do celular (LiteRT) ainda não é este.
+O modelo treinado no simulador está em `sim/assets/detect/top-layer.pt`. A Conferir carrega a exportação ONNX desse arquivo, em `app/public/models/top-layer.onnx`.
