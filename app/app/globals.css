@@ -44,9 +44,9 @@ input {
 
 .topbar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
   max-width: 480px;
   width: 100%;
   margin: 0 auto;
@@ -58,37 +58,37 @@ input {
 .brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-weight: 750;
-  font-size: 1.05rem;
+  font-size: 1.2rem;
   letter-spacing: -0.02em;
+  line-height: 1;
   text-decoration: none;
   color: var(--ink);
   white-space: nowrap;
 }
 
-.brand::before {
-  content: "";
-  width: 12px;
-  height: 12px;
-  border-radius: 4px;
-  background: var(--orange);
+.brand-mark {
+  width: 40px;
+  height: 40px;
   flex: none;
 }
 
 .nav {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 4px;
-  font-size: 0.88rem;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px;
+  font-size: 0.82rem;
 }
 
 .nav a {
   text-decoration: none;
   color: var(--muted);
-  padding: 6px 10px;
+  padding: 6px 8px;
   border-radius: 999px;
+  white-space: nowrap;
 }
 
 .nav a[aria-current="page"] {

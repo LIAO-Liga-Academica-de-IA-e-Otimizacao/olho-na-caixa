@@ -19,6 +19,7 @@ export function Shell({ children }: { children: ReactNode }) {
     <div className="app-shell">
       <header className="topbar">
         <Link className="brand" href="/">
+          <img className="brand-mark" src="/logo.svg" alt="" width={40} height={40} />
           Olho na Caixa
         </Link>
         <nav className="nav">
