@@ -36,3 +36,6 @@ sim/assets/detect/probe/
 
 # YOLO validation leftovers at repo root
 runs/
+
+# Local Capacitor debug packages
+*.apk

@@ -12,6 +12,19 @@ A conta mora em `app/lib/`, e a tela chama essas funções. Um item novo é uma 
 
 Os testes do aplicativo são `npm test` dentro de `app/`. Os do simulador são `PYTHONPATH=sim sim/.venv/bin/python -m unittest discover -s sim/detect`. O livro abre com `make docs-serve`, em `http://localhost:3000`.
 
+## Ferramentas de desenvolvimento
+
+Em `app/.env`, defina `NEXT_PUBLIC_DEV_TOOLS=true` e reinicie `make dev`. A chave está documentada em `app/.env.example`; vazia ou diferente de `true`, mantém os atalhos desligados. Não coloque segredos em variáveis `NEXT_PUBLIC_`, que são públicas no navegador.
+
+Com essa opção ativa:
+
+- Ao guardar uma conferência, o app guarda também as fotos originais (sem as marcações do detector), as medidas da caixa, a lente, a densidade e os cantos da borda. Em **Guardadas → Reutilizar fotos (dev)**, esses dados abrem a etapa de fotos para conferir, trocar imagens ou repetir a análise. O cadastro de caixas e o perfil salvo do celular permanecem intactos ao recuperar os dados.
+- Conferências antigas, salvas sem as fotos originais, continuam disponíveis para revisão e não podem ser reutilizadas. As fotos extras ocupam mais armazenamento local; se faltar espaço, o app informa a falha e mantém o histórico anterior.
+- A URL `/?test=1` habilita as cenas do simulador e as provas de iluminação. Sem a configuração, a URL sozinha não ativa nada.
+- O preset de lente do simulador e o relatório com erros inventados da página Coleta ficam disponíveis apenas nesse modo.
+
+O controle exige `NODE_ENV=development`: `npm run build`, exportação estática e APK mantêm as ferramentas desligadas mesmo se `NEXT_PUBLIC_DEV_TOOLS=true`. Os arquivos de teste também são removidos de `public/test-stills/` durante o preparo do build. Como as variáveis públicas são incorporadas pelo Next.js ao compilar, reinicie o servidor após alterar a configuração.
+
 ## Testar no celular
 
 A câmera do Chrome só abre em contexto seguro. Os comandos abaixo usam `adb reverse` para ligar `http://localhost:3001` do celular à máquina de desenvolvimento, tanto por USB quanto por Wi-Fi. Um endereço `http://` da rede local não abre a câmera.

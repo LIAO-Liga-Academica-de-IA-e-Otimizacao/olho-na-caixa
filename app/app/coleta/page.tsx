@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { DEV_TOOLS_ENABLED } from "@/lib/dev-tools";
 import { readLots } from "@/lib/lots";
 import { frozenReport, type FrozenReport } from "@/lib/report";
 
@@ -93,7 +94,7 @@ export default function CollectionPage() {
         <p className="flag">Nenhuma caixa congelada. O número do edital ainda não existe.</p>
       </section>
 
-      {ILLUSTRATION ? (
+      {DEV_TOOLS_ENABLED && ILLUSTRATION ? (
         <section className="card">
           <h2>Ilustração do relatório</h2>
           <p className="lede">

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import Link from "next/link";
-import { flushSync } from "react-dom";
 import {
   activeCrate,
   emptyBook,
@@ -21,13 +20,16 @@ import {
 } from "@/lib/arc-height";
 import { detectTopLayer } from "@/lib/yolo-detect";
 import { composeEvidence } from "@/lib/evidence";
-import { appendRecord, readLog, writeLog } from "@/lib/evidence-store";
+import { appendRecord, readLog, writeLog, type EvidenceRecord, type EvidenceReplay } from "@/lib/evidence-store";
 import { probeStillSet, testStillSet, type ProbeKind } from "@/lib/test-stills";
 import type { TopLayer } from "@/lib/top-layer";
 import { FruitBoxes } from "./FruitBoxes";
 import { MouthGuide } from "./MouthGuide";
+import { CameraOverlay } from "./CameraOverlay";
 import { baseAreaCm2, fitsTolerance, interval, type Crate, type Estimate } from "@/lib/packing";
 import { PHONE_PRESETS, readPhone, SIMULATOR_PHONE, writePhone } from "@/lib/phone";
+import { positiveNumber } from "@/lib/positive-number";
+import { DEV_TOOLS_ENABLED } from "@/lib/dev-tools";
 
 const EXAMPLE_DENSITY = 0.55;
 const DENSITY_STORAGE_KEY = "olho-na-caixa.density";
@@ -35,7 +37,7 @@ const DENSITY_STORAGE_KEY = "olho-na-caixa.density";
 function readDensity(): string {
   if (typeof window === "undefined") return String(EXAMPLE_DENSITY);
   const raw = window.localStorage.getItem(DENSITY_STORAGE_KEY);
-  return raw && Number(raw) > 0 ? raw : String(EXAMPLE_DENSITY);
+  return raw && positiveNumber(raw) !== null ? raw : String(EXAMPLE_DENSITY);
 }
 
 type ItemKind = "tangerine" | "tomato";
@@ -46,7 +48,7 @@ type Shot = { url: string; quality: FrameQuality; time: number };
 const STEPS: { id: Step; label: string }[] = [
   { id: "item", label: "Item" },
   { id: "crate", label: "Caixa" },
-  { id: "frames", label: "Quadros" },
+  { id: "frames", label: "Fotos" },
   { id: "corners", label: "Borda" },
   { id: "result", label: "Resultado" },
 ];
@@ -128,22 +130,24 @@ function formatEstimate(estimate: Estimate): string {
 
 export function Conference() {
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const photoRef = useRef<HTMLVideoElement>(null);
-  const photoStreamRef = useRef<MediaStream | null>(null);
   const imageSlotRef = useRef<"top" | "a" | "b" | "c">("top");
   const startedAtRef = useRef(Date.now());
 
   const [step, setStep] = useState<Step>("item");
   const [item, setItem] = useState<ItemKind>("tangerine");
+  const [replayCrate, setReplayCrate] = useState<Crate | null>(null);
+  const [replayNote, setReplayNote] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [book, setBook] = useState<CrateBook>(emptyBook);
   const [selected, setSelected] = useState<string | null>(null);
-  const [phoneName, setPhoneName] = useState(SIMULATOR_PHONE.name);
-  const [focalCm, setFocalCm] = useState(String(SIMULATOR_PHONE.focal35Mm));
+  const [phoneName, setPhoneName] = useState(DEV_TOOLS_ENABLED ? SIMULATOR_PHONE.name : "Outro");
+  const [focalCm, setFocalCm] = useState(DEV_TOOLS_ENABLED ? String(SIMULATOR_PHONE.focal35Mm) : "");
   const [density, setDensity] = useState(String(EXAMPLE_DENSITY));
   const [photoSlot, setPhotoSlot] = useState<"top" | "a" | "b" | "c" | null>(null);
   const [autoStills, setAutoStills] = useState(false);
   const [cornerSource, setCornerSource] = useState<"full" | "true" | "manual">("full");
   const [error, setError] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
   const [topShot, setTopShot] = useState<Shot | null>(null);
   const [topFileName, setTopFileName] = useState<string | null>(null);
   const [corners, setCorners] = useState<Point[]>([]);
@@ -161,7 +165,7 @@ export function Conference() {
     c: null,
   });
   const [testMode] = useState(
-    () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("test") === "1",
+    () => DEV_TOOLS_ENABLED && typeof window !== "undefined" && new URLSearchParams(window.location.search).get("test") === "1",
   );
   const [lidCm, setLidCm] = useState<number | null>(null);
   const [arcNote, setArcNote] = useState<string | null>(null);
@@ -171,7 +175,10 @@ export function Conference() {
   const [passageMs, setPassageMs] = useState<number | null>(null);
   const [savedNote, setSavedNote] = useState<string | null>(null);
 
-  const crate: Crate | null = activeCrate({ crates: book.crates, active: selected });
+  const availableCrates = replayCrate
+    ? [replayCrate, ...book.crates.filter((entry) => entry.name !== replayCrate.name)]
+    : book.crates;
+  const crate: Crate | null = replayCrate?.name === selected ? replayCrate : activeCrate({ crates: book.crates, active: selected });
   const crateReady = crate !== null;
 
   useEffect(() => {
@@ -179,7 +186,7 @@ export function Conference() {
     setBook(saved);
     setSelected(saved.active);
     const phone = readPhone();
-    if (phone) {
+    if (phone && (DEV_TOOLS_ENABLED || phone.name !== SIMULATOR_PHONE.name)) {
       setPhoneName(phone.name);
       setFocalCm(String(phone.focal35Mm));
     }
@@ -187,13 +194,55 @@ export function Conference() {
   }, []);
 
   useEffect(() => {
-    return () => {
-      photoStreamRef.current?.getTracks().forEach((track) => track.stop());
-    };
+    if (!DEV_TOOLS_ENABLED) return;
+    const id = new URLSearchParams(window.location.search).get("replay");
+    if (!id) return;
+    let cancelled = false;
+    const record = readLog().records.find((entry) => entry.id === id);
+    const replay = record?.replay;
+    if (!record || !replay) {
+      setReplayNote("Esta conferência não tem as fotos originais para reutilizar. Guarde uma nova com as ferramentas de desenvolvimento ativas.");
+      return;
+    }
+    setReplayNote("Carregando fotos da conferência guardada…");
+    void Promise.all([replay.photos.top, replay.photos.a, replay.photos.b, replay.photos.c]
+      .map((url) => url ? analyzeUrl(url) : Promise.resolve(null)))
+      .then(([top, a, b, c]) => {
+        if (cancelled) return;
+        if (!top || !a || !b || (record.item === "tangerine" && !c)) {
+          setReplayNote("As fotos guardadas não puderam ser lidas. Importe novas fotos para conferir.");
+          return;
+        }
+        setItem(record.item);
+        setReplayCrate(replay.crate);
+        setSelected(replay.crate.name);
+        setPhoneName("Conferência guardada");
+        setFocalCm(String(replay.focal35Mm));
+        setDensity(String(replay.densityKgPerLiter));
+        setTopShot({ url: replay.photos.top, quality: top, time: 0 });
+        setTopFileName("Vista de cima · conferência guardada");
+        setArcA(replay.photos.a);
+        setArcB(replay.photos.b);
+        setArcC(replay.photos.c ?? null);
+        setArcQuality({ a, b, c });
+        setArcNames({ a: "Quadro A · conferência guardada", b: "Quadro B · conferência guardada", c: replay.photos.c ? "Quadro C · conferência guardada" : null });
+        setCorners(replay.corners);
+        setCornerSource("manual");
+        setAutoStills(false);
+        setReplayNote("Desenvolvimento: fotos, borda e medidas recuperadas. Confira ou troque as fotos antes de avançar. O cadastro de caixas não foi alterado.");
+        setStep("frames");
+      })
+      .catch(() => {
+        if (!cancelled) setReplayNote("Não foi possível recuperar esta conferência.");
+      });
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
-    if (step !== "frames") closeCamera();
+    setPhotoSlot(null);
+    const heading = document.querySelector<HTMLElement>("main h1");
+    heading?.focus({ preventScroll: true });
+    heading?.scrollIntoView({ block: "start" });
   }, [step]);
 
   useEffect(() => {
@@ -250,7 +299,12 @@ export function Conference() {
     setLidCm(null);
     setArcNote("Lendo a altura nos quadros do arco.");
     const urls = [arcA, arcB, item === "tangerine" ? arcC : null].filter((url): url is string => url !== null);
-    const focalNow = Number(focalCm) > 0 ? Number(focalCm) : SIMULATOR_PHONE.focal35Mm;
+    const focalNow = positiveNumber(focalCm);
+    if (focalNow === null) {
+      setLidCm(null);
+      setArcNote("Informe uma distância focal maior que zero na tela da caixa.");
+      return;
+    }
     Promise.all(urls.map((url) => imageToRgb(url)))
       .then((frames) => {
         if (cancelled) return;
@@ -265,9 +319,9 @@ export function Conference() {
     return () => {
       cancelled = true;
     };
-  }, [step, item, arcA, arcB, arcC]);
+  }, [step, item, arcA, arcB, arcC, focalCm]);
 
-  const focal = Number(focalCm) > 0 ? Number(focalCm) : SIMULATOR_PHONE.focal35Mm;
+  const focal = positiveNumber(focalCm) ?? 0;
   const photoGuide =
     photoSlot === "top"
       ? FULL_QUAD
@@ -280,63 +334,25 @@ export function Conference() {
             : null;
   const photoHint =
     photoSlot === "top" ? "Encha o quadro com a boca." : "Encaixe a boca no molde.";
-  const densityKgPerLiter = Number(density) > 0 ? Number(density) : EXAMPLE_DENSITY;
-
-  function stopPhotoTracks() {
-    photoStreamRef.current?.getTracks().forEach((track) => track.stop());
-    photoStreamRef.current = null;
-  }
+  const densityKgPerLiter = positiveNumber(density) ?? 0;
 
   function closeCamera() {
-    stopPhotoTracks();
     setPhotoSlot(null);
   }
 
-  async function openCamera(slot: "top" | "a" | "b" | "c") {
+  function openCamera(slot: "top" | "a" | "b" | "c") {
     setError(null);
-    closeCamera();
-    flushSync(() => setPhotoSlot(slot));
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
-      });
-      photoStreamRef.current = stream;
-      const video = photoRef.current;
-      if (!video) {
-        stream.getTracks().forEach((track) => track.stop());
-        throw new Error("missing preview");
-      }
-      video.srcObject = stream;
-      await video.play();
-    } catch {
-      closeCamera();
-      setError("A câmera não abriu.");
-    }
+    setPhotoSlot(slot);
   }
 
-  function shootPhoto() {
-    const video = photoRef.current;
+  function receivePhoto(url: string, quality: FrameQuality) {
     const slot = photoSlot;
-    if (!video || !slot || video.videoWidth === 0) {
-      setError("Espere a imagem aparecer e fotografe de novo.");
-      return;
-    }
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const context = canvas.getContext("2d");
-    if (!context) {
-      setError("A foto não pôde ser lida.");
-      return;
-    }
-    context.drawImage(video, 0, 0);
-    const url = canvas.toDataURL("image/jpeg", 0.85);
-    const quality = analyzeFrame(context.getImageData(0, 0, canvas.width, canvas.height));
+    if (!slot) return;
     setAutoStills(false);
     if (slot === "top") {
       setTopShot({ url, time: 0, quality });
       setTopFileName("foto da câmera");
+      setCornerSource("full");
       setCorners([]);
     } else if (slot === "a") {
       setArcA(url);
@@ -407,7 +423,31 @@ export function Conference() {
     setAutoStills(true);
   }
 
+  function chooseItem(next: ItemKind) {
+    if (next === item) return;
+    setItem(next);
+    setTopShot(null);
+    setTopFileName(null);
+    setArcA(null);
+    setArcB(null);
+    setArcC(null);
+    setArcQuality({ a: null, b: null, c: null });
+    setArcNames({ a: null, b: null, c: null });
+    setCorners([]);
+    setAutoStills(false);
+    setError(null);
+    setLayer(null);
+    setLayerNote(null);
+    setLidCm(null);
+    setArcNote(null);
+    setScaleKg("");
+    setSavedNote(null);
+    setPassageMs(null);
+    startedAtRef.current = Date.now();
+  }
+
   function openImage(slot: "top" | "a" | "b" | "c") {
+    setError(null);
     imageSlotRef.current = slot;
     imageInputRef.current?.click();
   }
@@ -436,61 +476,106 @@ export function Conference() {
     });
   }
 
-  async function analyzeUpload(file: File): Promise<FrameQuality | null> {
-    const url = URL.createObjectURL(file);
+  async function analyzeUpload(file: File): Promise<{ url: string; quality: FrameQuality } | null> {
+    const source = URL.createObjectURL(file);
     try {
-      return await analyzeUrl(url);
+      return await new Promise((resolve) => {
+        const image = new Image();
+        image.onerror = () => resolve(null);
+        image.onload = () => {
+          try {
+            const canvas = document.createElement("canvas");
+            canvas.width = 640;
+            canvas.height = 480;
+            const context = canvas.getContext("2d");
+            if (!context || !image.naturalWidth || !image.naturalHeight) return resolve(null);
+            const width = Math.min(image.naturalWidth, image.naturalHeight * 4 / 3);
+            const height = Math.min(image.naturalHeight, image.naturalWidth * 3 / 4);
+            context.drawImage(image, (image.naturalWidth - width) / 2, (image.naturalHeight - height) / 2,
+              width, height, 0, 0, 640, 480);
+            resolve({
+              url: canvas.toDataURL("image/jpeg", 0.92),
+              quality: analyzeFrame(context.getImageData(0, 0, 640, 480)),
+            });
+          } catch {
+            resolve(null);
+          }
+        };
+        image.src = source;
+      });
     } finally {
-      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(source);
     }
   }
 
+  async function originalPhoto(url: string): Promise<string> {
+    if (url.startsWith("data:image/")) return url;
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onerror = () => reject(new Error("Foto indisponível"));
+      image.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = image.naturalWidth;
+          canvas.height = image.naturalHeight;
+          const context = canvas.getContext("2d");
+          if (!context || !canvas.width || !canvas.height) throw new Error("Foto indisponível");
+          context.drawImage(image, 0, 0);
+          resolve(canvas.toDataURL("image/jpeg", 0.92));
+        } catch (reason) { reject(reason); }
+      };
+      image.src = url;
+    });
+  }
+
   async function saveEvidence() {
+    if (saving) return;
     if (!topShot || !crate) {
       setSavedNote("Falta a foto de cima ou a caixa para guardar.");
       return;
     }
-    const photo = await composeEvidence(topShot.url, layer?.marks ?? []);
-    if (!photo) {
-      setSavedNote("A foto não pôde ser guardada.");
-      return;
-    }
-    const headline = estimate
-      ? formatEstimate(estimate)
-      : layer
-        ? `${layer.count} ${layer.count === 1 ? "caixa" : "caixas"} na camada de cima`
-        : "Sem leitura";
-    const id =
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        : `${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
-    writeLog(
-      appendRecord(readLog(), {
-        id,
-        savedAtISO: new Date().toISOString(),
-        item,
-        crateName: crate.name,
-        headline,
-        imageDataUrl: photo,
-      }),
-    );
-    setSavedNote(
-      `Guardada às ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}.`,
-    );
+    setSaving(true);
+    setSavedNote(null);
+    try {
+      const photo = await composeEvidence(topShot.url, layer?.marks ?? []);
+      if (!photo) throw new Error("A foto não pôde ser guardada.");
+      let replay: EvidenceReplay | undefined;
+      if (DEV_TOOLS_ENABLED && arcA && arcB && (item === "tomato" || arcC)) {
+        const [top, a, b, c] = await Promise.all([
+          originalPhoto(topShot.url), originalPhoto(arcA), originalPhoto(arcB),
+          arcC && item === "tangerine" ? originalPhoto(arcC) : Promise.resolve(undefined),
+        ]);
+        replay = { photos: { top, a, b, ...(c ? { c } : {}) }, crate: { ...crate },
+          focal35Mm: focal, densityKgPerLiter, corners: corners.map((point) => ({ ...point })) };
+      }
+      const headline = estimate ? formatEstimate(estimate) : layer
+        ? `${layer.count} ${layer.count === 1 ? "caixa" : "caixas"} na camada de cima` : "Sem leitura";
+      const id = typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID() : `${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
+      const record: EvidenceRecord = { id, savedAtISO: new Date().toISOString(), item,
+        crateName: crate.name, headline, imageDataUrl: photo, ...(replay ? { replay } : {}) };
+      writeLog(appendRecord(readLog(), record));
+      setSavedNote(`Guardada às ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}.`);
+    } catch (reason) {
+      const full = reason instanceof DOMException && reason.name === "QuotaExceededError";
+      setSavedNote(full ? "Não foi possível guardar: o armazenamento deste aparelho está cheio. As conferências anteriores foram mantidas."
+        : "A conferência não pôde ser guardada. Tente novamente. As conferências anteriores foram mantidas.");
+    } finally { setSaving(false); }
   }
 
   async function storeImage(file: File) {
     const slot = imageSlotRef.current;
-    const quality = await analyzeUpload(file);
-    if (!slot || !quality) {
+    const photo = await analyzeUpload(file);
+    if (!photo) {
       setError("A foto não pôde ser lida.");
       return;
     }
-    const url = URL.createObjectURL(file);
+    const { url, quality } = photo;
     setAutoStills(false);
     if (slot === "top") {
       setTopShot({ url, time: 0, quality });
       setTopFileName(file.name);
+      setCornerSource("full");
       setCorners([]);
       return;
     }
@@ -536,16 +621,20 @@ export function Conference() {
   ];
   const blocked = blockedSlots(usedShots);
   const needsScale = estimate ? !fitsTolerance(estimate, 0.1) || estimate.flags.length > 0 : false;
-  const typedScale = Number(scaleKg);
+  const typedScale = positiveNumber(scaleKg) ?? 0;
+  const focalValue = positiveNumber(focalCm);
+  const densityValue = positiveNumber(density);
   const cornersReady = corners.length === 4 && isConvexQuad(corners);
   const stepIndex = STEPS.findIndex((entry) => entry.id === step);
 
   return (
     <>
-      <p className="steps">
+      <p className="steps" role="list" aria-label="Etapas da conferência">
         {STEPS.map((entry, index) => (
           <span
             key={entry.id}
+            role="listitem"
+            aria-current={entry.id === step ? "step" : undefined}
             className={
               entry.id === step ? "step is-current" : index < stepIndex ? "step is-done" : "step"
             }
@@ -555,14 +644,16 @@ export function Conference() {
         ))}
       </p>
 
+      {DEV_TOOLS_ENABLED && replayNote ? <p className="note" role="status">{replayNote}</p> : null}
+
       {step === "item" ? (
         <section className="card">
-          <h1>O que chegou?</h1>
+          <h1 tabIndex={-1}>O que chegou?</h1>
           <button
             type="button"
             className={item === "tangerine" ? "choice" : "choice secondary"}
             aria-pressed={item === "tangerine"}
-            onClick={() => setItem("tangerine")}
+            onClick={() => chooseItem("tangerine")}
           >
             Tangerina, em unidades
           </button>
@@ -570,13 +661,13 @@ export function Conference() {
             type="button"
             className={item === "tomato" ? "choice" : "choice secondary"}
             aria-pressed={item === "tomato"}
-            onClick={() => setItem("tomato")}
+            onClick={() => chooseItem("tomato")}
           >
             Tomate, em quilos
           </button>
           <div className="actions">
             <button type="button" onClick={() => setStep("crate")}>
-              Continuar
+              Avançar
             </button>
           </div>
         </section>
@@ -584,14 +675,14 @@ export function Conference() {
 
       {step === "crate" ? (
         <section className="card">
-          <h1>Caixa e celular</h1>
+          <h1 tabIndex={-1}>Caixa e celular</h1>
           <p className="lede">
             Escolha um modelo do cadastro. A lente sai da ficha técnica do celular, em milímetros equivalentes. Os
             dois ficam salvos neste aparelho.
           </p>
-          {book.crates.length > 0 ? (
+          {availableCrates.length > 0 ? (
             <div role="group" aria-label="Modelo da caixa">
-              {book.crates.map((entry) => (
+              {availableCrates.map((entry) => (
                 <button
                   key={entry.name}
                   type="button"
@@ -613,7 +704,7 @@ export function Conference() {
             </Link>
           </div>
           <div className="preset-row" role="group" aria-label="Modelo do celular">
-            {PHONE_PRESETS.map((preset) => (
+            {PHONE_PRESETS.filter((preset) => DEV_TOOLS_ENABLED || preset.name !== SIMULATOR_PHONE.name).map((preset) => (
               <button
                 key={preset.name}
                 type="button"
@@ -639,6 +730,7 @@ export function Conference() {
               }}
             />
           </label>
+          {focalValue === null ? <p className="flag">Informe um número maior que zero.</p> : null}
           {item === "tomato" ? (
             <label>
               Quilos por litro do lote
@@ -647,12 +739,15 @@ export function Conference() {
                 value={density}
                 onChange={(event) => {
                   setDensity(event.target.value);
-                  if (Number(event.target.value) > 0) {
+                  if (positiveNumber(event.target.value) !== null) {
                     window.localStorage.setItem(DENSITY_STORAGE_KEY, event.target.value);
                   }
                 }}
               />
             </label>
+          ) : null}
+          {item === "tomato" && densityValue === null ? (
+            <p className="flag">Informe a densidade do lote como um número maior que zero.</p>
           ) : null}
           <div className="actions">
             <button type="button" className="secondary" onClick={() => setStep("item")}>
@@ -660,18 +755,20 @@ export function Conference() {
             </button>
             <button
               type="button"
-              disabled={!crate || !(Number(focalCm) > 0)}
+              disabled={!crate || focalValue === null || (item === "tomato" && densityValue === null)}
               onClick={() => {
-                if (!crate || !selected) return;
+                if (!crate || !selected || focalValue === null || (item === "tomato" && densityValue === null)) return;
                 const updated = setActive(book, selected);
-                writeBook(updated);
-                setBook(updated);
-                writePhone({ name: phoneName, focal35Mm: focal });
+                if (replayCrate?.name !== selected) {
+                  writeBook(updated);
+                  setBook(updated);
+                  writePhone({ name: phoneName, focal35Mm: focalValue });
+                }
                 if (testMode && (autoStills || (!topShot && !arcA && !arcB && !arcC))) loadTestStills();
                 setStep("frames");
               }}
             >
-              Continuar
+              Avançar
             </button>
           </div>
         </section>
@@ -679,35 +776,28 @@ export function Conference() {
 
       {step === "frames" ? (
         <section className="card">
-          <h1>Fotografe os quadros</h1>
+          <h1 tabIndex={-1}>Fotografe os quadros</h1>
           <p className="lede">
-            Fotografe cada posição com a boca dentro do molde tracejado. O aplicativo recorta o meio 4:3 da foto antes
-            de ler, então encha o molde sem cortar a borda. O quadro A não tem sufixo, o B termina em -b e o C em -c.
+            Em cada posição, importe uma foto do aparelho ou abra a câmera para fotografar.
+            Enquadre a boca da caixa no molde tracejado, sem cortar a borda. As fotos são recortadas no centro para 4:3.
           </p>
           {autoStills ? (
             <p className="note">Quadros de teste carregados sozinhos. Troque qualquer um abaixo.</p>
           ) : null}
           {photoSlot ? (
-            <div className="camera-capture">
-              <div className="camera-frame">
-                <video ref={photoRef} className="camera-video" muted playsInline />
-                <MouthGuide quad={photoGuide} label="Molde da boca na foto" />
-              </div>
-              <p className="note">{photoHint}</p>
-              <div className="actions">
-                <button type="button" onClick={() => shootPhoto()}>
-                  Fotografar
-                </button>
-                <button type="button" className="secondary" onClick={() => closeCamera()}>
-                  Fechar
-                </button>
-              </div>
-            </div>
+            <CameraOverlay
+              slotLabel={photoSlot === "top" ? "Vista de cima" : `Quadro ${photoSlot.toUpperCase()}`}
+              guide={photoGuide}
+              hint={photoHint}
+              onCapture={receivePhoto}
+              onClose={closeCamera}
+            />
           ) : null}
           <PickedStill
             label="Vista de cima"
             fileName={topFileName}
             url={topFileName ? topShot?.url ?? null : null}
+            disabled={importing}
             onOpen={() => openImage("top")}
             onPhoto={() => void openCamera("top")}
           />
@@ -716,6 +806,7 @@ export function Conference() {
             fileName={arcNames.a}
             url={arcA}
             guide={mouthQuad(item, 0, focal)}
+            disabled={importing}
             onOpen={() => openImage("a")}
             onPhoto={() => void openCamera("a")}
           />
@@ -724,6 +815,7 @@ export function Conference() {
             fileName={arcNames.b}
             url={arcB}
             guide={mouthQuad(item, 1, focal)}
+            disabled={importing}
             onOpen={() => openImage("b")}
             onPhoto={() => void openCamera("b")}
           />
@@ -733,6 +825,7 @@ export function Conference() {
               fileName={arcNames.c}
               url={arcC}
               guide={mouthQuad(item, 2, focal)}
+              disabled={importing}
               onOpen={() => openImage("c")}
               onPhoto={() => void openCamera("c")}
             />
@@ -747,10 +840,17 @@ export function Conference() {
             onChange={(event) => {
               const file = event.target.files?.[0];
               event.target.value = "";
-              if (file) void storeImage(file);
+              if (file) {
+                setImporting(true);
+                setError(null);
+                void storeImage(file)
+                  .catch(() => setError("A foto não pôde ser importada. Tente outra imagem PNG ou JPEG."))
+                  .finally(() => setImporting(false));
+              }
             }}
           />
-          {error ? <p className="flag">{error}</p> : null}
+          {importing ? <p className="note" role="status">Importando foto…</p> : null}
+          {error ? <p className="flag" role="alert">{error}</p> : null}
           {testMode ? (
           <div className="actions">
             <span className="note">Provas da trava (teste):</span>
@@ -770,22 +870,26 @@ export function Conference() {
               {shot.label}: {shot.quality?.warnings.join(" ")} Fotografe de novo esse quadro.
             </p>
           ))}
+          <p className="note" role="status">
+            {usedShots.length} de {item === "tangerine" ? 4 : 3} fotos adicionadas.
+            {!topShot || !arcReady ? " Adicione todas as fotos para avançar." : blocked.length > 0 ? " Troque as fotos com aviso de iluminação para avançar." : " Fotos prontas para conferir a borda."}
+          </p>
           <div className="actions">
-            <button type="button" className="secondary" onClick={() => setStep("crate")}>
+            <button type="button" className="secondary" disabled={importing} onClick={() => setStep("crate")}>
               Voltar
             </button>
             <button
               type="button"
-              disabled={!topShot || !arcReady || blocked.length > 0}
+              disabled={importing || !topShot || !arcReady || blocked.length > 0}
               onClick={() => {
-                if (corners.length !== 4 || !autoStills) {
+                if (corners.length === 0 && cornerSource !== "manual") {
                   setCorners(FULL_CORNERS);
                   setCornerSource("full");
                 }
                 setStep("corners");
               }}
             >
-              Continuar
+              Avançar
             </button>
           </div>
         </section>
@@ -793,7 +897,7 @@ export function Conference() {
 
       {step === "corners" && topShot ? (
         <section className="card">
-          <h1>Confira a borda</h1>
+          <h1 tabIndex={-1}>Confira a borda</h1>
           {corners.length < 4 ? (
             <p className="lede">
               Toque os quatro cantos internos, nesta ordem: {CORNER_ORDER.join(", ")}.
@@ -826,41 +930,34 @@ export function Conference() {
           {corners.length === 4 && !cornersReady ? (
             <p className="flag">Esses quatro pontos se cruzam. Toque de novo, seguindo a ordem.</p>
           ) : null}
-          {corners.length === 4 ? (
-            <div className="actions">
-              <button type="button" className="secondary" onClick={() => setCorners([])}>
+          <div className="actions">
+            {corners.length === 4 ? (
+              <button type="button" className="secondary" onClick={() => { setCornerSource("manual"); setCorners([]); }}>
                 Ajustar
               </button>
-              <button type="button" disabled={!cornersReady} onClick={() => setStep("result")}>
-                Confirmar
+            ) : corners.length === 0 ? (
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => {
+                  setCorners(FULL_CORNERS);
+                  setCornerSource("full");
+                }}
+              >
+                Usar o quadro cheio
               </button>
-            </div>
-          ) : (
-            <div className="actions">
-              {corners.length === 0 ? (
-                <button
-                  type="button"
-                  className="secondary"
-                  onClick={() => {
-                    setCorners(FULL_CORNERS);
-                    setCornerSource("full");
-                  }}
-                >
-                  Usar o quadro cheio
-                </button>
-              ) : (
-                <button type="button" className="secondary" onClick={() => setCorners([])}>
-                  Refazer
-                </button>
-              )}
-              <button type="button" disabled={!cornersReady} onClick={() => setStep("result")}>
-                Continuar
+            ) : (
+              <button type="button" className="secondary" onClick={() => { setCornerSource("manual"); setCorners([]); }}>
+                Refazer
               </button>
-            </div>
-          )}
+            )}
+          </div>
           <div className="actions">
             <button type="button" className="secondary" onClick={() => setStep("frames")}>
               Voltar
+            </button>
+            <button type="button" disabled={!cornersReady} onClick={() => setStep("result")}>
+              Ver resultado
             </button>
           </div>
         </section>
@@ -868,7 +965,7 @@ export function Conference() {
 
       {step === "result" ? (
         <section className="card">
-          <h1>{item === "tangerine" ? "Tangerina" : "Tomate"}</h1>
+          <h1 tabIndex={-1}>{item === "tangerine" ? "Tangerina" : "Tomate"}</h1>
           <p className="lede">
             Cada caixa é uma fruta que o YOLO marcou na camada de cima, uma vez, no quadro de cima. A fruta enterrada
             não entra. A altura do monte sai dos quadros do arco.
@@ -958,11 +1055,11 @@ export function Conference() {
             <p className="flag">A altura ainda não saiu dos quadros do arco.</p>
           )}
           <div className="actions">
-            <button type="button" className="secondary" onClick={() => setStep("corners")}>
+            <button type="button" className="secondary" disabled={saving} onClick={() => setStep("corners")}>
               Voltar
             </button>
-            <button type="button" onClick={() => void saveEvidence()}>
-              Guardar conferência
+            <button type="button" disabled={saving} onClick={() => void saveEvidence()}>
+              {saving ? "Guardando…" : "Guardar conferência"}
             </button>
           </div>
           {savedNote ? <p className="note">{savedNote}</p> : null}
@@ -986,6 +1083,7 @@ function PickedStill({
   guide = null,
   onOpen,
   onPhoto,
+  disabled = false,
 }: {
   label: string;
   fileName: string | null;
@@ -993,22 +1091,24 @@ function PickedStill({
   guide?: Quad | null;
   onOpen: () => void;
   onPhoto: () => void;
+  disabled?: boolean;
 }) {
   const picked = fileName !== null && url !== null;
   return (
     <div className="still-pick">
+      <h2>{label}</h2>
       <div className="actions">
-        <button type="button" className={picked ? undefined : "secondary"} aria-pressed={picked} onClick={onOpen}>
-          {picked ? `${label} · escolhido` : label}
+        <button type="button" className="secondary" disabled={disabled} aria-label={`${picked ? "Trocar" : "Importar"} foto: ${label}`} onClick={onOpen}>
+          {picked ? "Trocar foto" : "Importar foto"}
         </button>
-        <button type="button" className="secondary" onClick={onPhoto}>
-          Fotografar
+        <button type="button" className="secondary" disabled={disabled} aria-label={`Abrir câmera: ${label}`} onClick={onPhoto}>
+          Abrir câmera
         </button>
       </div>
       {picked ? (
         <>
           <div className="still-frame">
-            <img src={url} alt="" />
+            <img src={url} alt={`Foto adicionada: ${label}`} />
             <MouthGuide quad={guide} label={`Molde da boca no ${label}`} />
           </div>
           <p className="ok shot-moment">{fileName}</p>
@@ -1018,7 +1118,7 @@ function PickedStill({
           <div className="still-frame is-empty">
             <MouthGuide quad={guide} label={`Molde da boca no ${label}`} />
           </div>
-          <p className="note shot-moment">Enquadre a boca no molde e escolha a foto.</p>
+          <p className="note shot-moment">Importe uma foto PNG ou JPEG, ou use a câmera.</p>
         </>
       )}
     </div>

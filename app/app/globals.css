@@ -381,25 +381,6 @@ a:focus-visible {
   flex: 1;
 }
 
-.camera-capture {
-  margin-top: 14px;
-}
-
-.camera-frame {
-  position: relative;
-  aspect-ratio: 4 / 3;
-  border-radius: 16px;
-  overflow: hidden;
-  background: var(--green-deep);
-}
-
-.camera-video {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .guide-quad {
   position: absolute;
   inset: 0;
@@ -498,4 +479,105 @@ button.preset.is-on:hover:not(:disabled) {
   transform: translate(-50%, -50%);
   aspect-ratio: 1;
   pointer-events: none;
+}
+
+.camera-overlay {
+  width: min(100%, 560px);
+  max-width: calc(100vw - 24px);
+  max-height: min(94dvh, 900px);
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 20px 70px rgb(0 0 0 / 0.3);
+}
+
+.camera-overlay::backdrop {
+  background: rgb(16 27 21 / 0.68);
+}
+
+.camera-overlay-panel {
+  padding: 18px;
+}
+
+.camera-overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.camera-overlay-header h2 {
+  margin: 0;
+}
+
+.camera-overlay-eyebrow {
+  margin: 0 0 2px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.camera-overlay-close {
+  flex: none;
+  padding: 8px 14px;
+}
+
+.camera-overlay-frame {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #17271e;
+}
+
+.camera-overlay-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-overlay-status {
+  position: absolute;
+  inset: auto 12px 12px;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.66);
+  color: #fff;
+  text-align: center;
+}
+
+.camera-overlay-hint {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.camera-overlay-error {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff0e8;
+  color: #7b341b;
+  font-size: 0.9rem;
+}
+
+.camera-overlay-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+@media (max-width: 420px) {
+  .camera-overlay-panel {
+    padding: 14px;
+  }
+
+  .camera-overlay-header {
+    margin-bottom: 10px;
+  }
 }

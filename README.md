@@ -33,4 +33,8 @@ Instale **JDK 21** e **Android SDK com Platform 35 e Build-Tools**. Configure `J
 
 O arquivo sai em **`app/android/app/build/outputs/apk/debug/app-debug.apk`**, assinado para testes. Transfira ao celular e autorize sua instalação. Funciona sem computador ou rede; alterações exigem gerar e instalar outro APK. A primeira compilação precisa de internet.
 
-Recuperação de conexão, configuração alternativa do SDK/JDK e roteiro de teste: [Para o time](docs/olho-na-caixa/para-o-time.md). Mais comandos: `make help`.
+## Ferramentas de desenvolvimento
+
+Em `app/.env`, defina `NEXT_PUBLIC_DEV_TOOLS=true` e reinicie o servidor. Libera reutilização das fotos em **Guardadas**, cenas com `/?test=1`, lente do simulador e dados fictícios de Coleta. Só funciona em desenvolvimento; build e APK mantêm os atalhos desligados. Variáveis `NEXT_PUBLIC_` são públicas: não coloque segredos nelas.
+
+Recuperação de conexão, configuração alternativa do SDK/JDK, armazenamento das fotos e roteiro de teste: [Para o time](docs/olho-na-caixa/para-o-time.md). Mais comandos: `make help`.

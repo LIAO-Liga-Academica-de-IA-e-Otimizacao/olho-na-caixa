@@ -12,6 +12,9 @@
   "dependencies": {
     "@capacitor/android": "^7.4.3",
     "@capacitor/core": "^7.4.3",
+    "@capacitor/filesystem": "^7.1.9",
+    "@capacitor/share": "^7.0.4",
+    "@next/env": "^15.5.26",
     "next": "^15.5.3",
     "onnxruntime-web": "^1.30.0",
     "react": "^19.1.1",
