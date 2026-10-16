@@ -14,9 +14,9 @@ Os testes do aplicativo são `npm test` dentro de `app/`. Os do simulador são `
 
 ## Testar no celular
 
-A câmera do Chrome só abre em contexto seguro. No celular, esse contexto é `http://localhost:3001`, depois que o `adb reverse` liga essa porta à máquina de desenvolvimento. Um endereço `http://` da rede local não abre a câmera.
+A câmera do Chrome só abre em contexto seguro. Os comandos abaixo usam `adb reverse` para ligar `http://localhost:3001` do celular à máquina de desenvolvimento, tanto por USB quanto por Wi-Fi. Um endereço `http://` da rede local não abre a câmera.
 
-Você precisa do repositório, do Node, de um celular Android com cabo USB, do Chrome nesse celular e do comando `adb` (Android platform-tools).
+Você precisa do repositório, do Node, de Python 3, do Chrome no Android e de `adb` no PATH ([Android SDK Platform-Tools](https://developer.android.com/tools/releases/platform-tools)). Para liberar as opções do desenvolvedor, toque sete vezes no número da versão em Sobre o telefone; o nome varia conforme o fabricante.
 
 Na primeira vez, na pasta `app/`:
 
@@ -24,24 +24,77 @@ Na primeira vez, na pasta `app/`:
 npm install
 ```
 
-Na raiz, deixe o servidor no ar:
+Escolha uma conexão abaixo. Rode os comandos na raiz. Eles preparam a porta e sobem o servidor; se a porta 3001 já estiver ocupada, aproveitam o servidor existente. Confira se é o aplicativo deste projeto. Não precisa executar `make dev` em outro terminal.
+
+### Wi-Fi normal, sem cabo
+
+No Android 11 ou superior, conecte celular e notebook à mesma rede Wi-Fi. Em **Opções do desenvolvedor → Depuração sem fio**, ligue a opção e abra **Parear dispositivo com código**:
 
 ```bash
-make dev
+make dev-wifi
 ```
 
-O aplicativo fica em `http://localhost:3001` nesta máquina.
+O comando pede o **IP:porta de pareamento**, depois o código. Volte à tela principal de depuração sem fio e informe o **IP:porta de conexão**. As portas são diferentes. Nas próximas vezes, rode o mesmo comando: uma conexão ativa é reutilizada; sem ela, pule o pareamento com Enter e informe o endereço atual de conexão.
 
-No celular, abra as opções do desenvolvedor e ligue a depuração USB. Conecte o cabo e aceite a chave do computador. Nesta máquina:
+Para passar endereços sem as perguntas (o código continua sendo pedido pelo ADB):
 
 ```bash
-adb devices
-adb reverse tcp:3001 tcp:3001
+make dev-wifi PAIR=192.168.1.10:37000 CONNECT=192.168.1.10:40000
 ```
 
-`adb devices` tem de listar o aparelho como `device`. Se o cabo sair, rode o `reverse` de novo.
+Substitua os exemplos pelos endereços do aparelho. Se já pareou, passe só `CONNECT`. A porta pode mudar ao reativar a depuração. Redes de convidados ou com isolamento entre dispositivos podem impedir a conexão. Em Android anterior ao 11, use o procedimento de USB inicial da seção seguinte com o IP do celular no Wi-Fi.
+
+#### Se o pareamento falhar
+
+`error: protocol fault (couldn't read status message): Success` é uma falha do ADB; a palavra final não confirma o pareamento e a mensagem sozinha não identifica a causa.
+
+1. Feche e reabra **Parear dispositivo com código**. Copie o novo IP:porta e use o novo código. Mantenha essa janela aberta até a confirmação no terminal; só depois volte à tela principal para obter a porta de conexão. O comando permite repetir a tentativa sem recomeçar tudo.
+2. Se continuar falhando, encerre o comando, desligue e ligue a depuração sem fio no celular e reinicie o servidor ADB no notebook:
+
+   ```bash
+   adb kill-server
+   adb start-server
+   make dev-wifi
+   ```
+
+3. Confira a versão com `adb version` e atualize **Android SDK Platform-Tools** pelo SDK Manager do Android Studio. Confirme que o terminal está usando esse mesmo binário. Verifique se VPN, firewall ou isolamento da rede bloqueiam a comunicação entre notebook e celular.
+
+Se o computador já aparece como pareado no celular, tente `make dev-wifi CONNECT=IP:PORTA` com o endereço da tela principal. Se nada disso resolver, guarde a saída de `adb version`, o modelo e a versão do Android para investigar; USB e o modo com USB inicial continuam como alternativas.
+
+### Roteador móvel: o celular fornece internet ao notebook
+
+Ligue o hotspot e conecte o notebook a ele. **USB não é obrigatório se o celular permitir manter a depuração sem fio ativa enquanto fornece o hotspot.** Nesse caso, use `make dev-wifi` para parear ou, se já pareou, `make dev-wifi CONNECT=IP:PORTA` com o endereço atual da tela principal de Depuração sem fio. Depois abra `http://localhost:3001` no Chrome do celular.
+
+Se o Android exigir conexão a outra rede Wi-Fi para habilitar a depuração, estar pareado não remove essa exigência. Use então **`make dev-hotspot` como alternativa com USB inicial**, que prepara ADB por TCP/IP:
+
+1. Ligue **Depuração USB**, conecte o cabo e aceite a chave do computador no celular.
+2. Execute `make dev-hotspot`.
+3. Informe o IP do celular no hotspot. Consulte **gateway/roteador** nos detalhes da conexão Wi-Fi do notebook; em Linux, `ip route` costuma mostrar esse endereço depois de `default via`.
+4. Quando aparecer a confirmação de conexão pelo hotspot, retire o cabo.
+
+O comando executa `adb tcpip 5555`, conecta pelo IP informado e prepara o encaminhamento da porta. Para reconectar depois, sem USB:
+
+```bash
+make dev-hotspot PHONE_IP=192.168.43.1
+```
+
+Troque pelo IP real; não há um endereço fixo para todos os aparelhos. Se reiniciar o celular ou perder o modo TCP/IP, conecte o cabo e repita. O fabricante pode bloquear ADB no hotspot; nesse caso, use USB. O mesmo comando serve para Wi-Fi comum com USB inicial, usando o IP do celular nessa rede. Use uma rede de confiança e, ao terminar, desligue a depuração USB ou reinicie o celular para encerrar o modo TCP/IP.
+
+### Cabo USB
+
+Ligue **Depuração USB**, conecte o cabo e aceite a chave do computador no celular:
+
+```bash
+make dev-usb
+```
+
+Mantenha o cabo conectado durante o teste. Se a conexão cair, rode novamente. Se aparecer `unauthorized` em `adb devices -l`, desbloqueie o celular e aceite a autorização. Com mais de um aparelho, passe `DEVICE=serial` ao comando; o serial aparece nessa listagem. No Wi-Fi, use o identificador da conexão sem fio.
+
+### Abrir e atualizar
 
 No Chrome do celular, abra `http://localhost:3001` e permita a câmera quando o site pedir.
+
+Mantenha o servidor no terminal. Alterações no código web aparecem ao salvar, nos três modos de conexão. Para parar o servidor iniciado pelo comando, use Ctrl+C. Se perder a conexão, execute novamente o comando correspondente. Esse fluxo não consome dados móveis para transportar o app entre notebook e celular; instalações e outros downloads podem consumir.
 
 ### A jornada
 
@@ -67,14 +120,21 @@ Anote o modelo do celular, o item, as três medidas da caixa, a lente em milíme
 
 ### Pacote instalado, sem cabo
 
-O caminho de cima precisa do computador ligado. O pacote Android leva o site estático para o aparelho e, depois de instalado, não precisa de cabo nem de rede. Na pasta `app/`:
+Os caminhos de desenvolvimento precisam do computador ligado. O pacote Android leva o site estático, o modelo e o runtime para o aparelho e, depois de instalado, não precisa de cabo nem de rede.
+
+Instale JDK 21 e Android SDK com SDK Platform 35 e Build-Tools pelo Android Studio. Configure `JAVA_HOME` para o JDK 21 e `ANDROID_HOME` para o SDK (ou `sdk.dir` em `app/android/local.properties`). Quando `JAVA_HOME` não está definido, o script procura o JDK 21 instalado pelo Homebrew. Depois de `npm install` em `app/`, na raiz:
 
 ```bash
-npm run cap:sync
-npx cap open android
+make apk
 ```
 
-O Android Studio abre o projeto em `app/android/`. Rode no aparelho. O identificador é `br.ufba.liao.olhonacaixa`. A permissão de câmera já está no manifesto. Esse pacote compilou. Uma conferência inteira nele, com câmera e com o modelo, ainda é o teste que este capítulo pede. Uma falha que só aparece aqui é falha do WebView, e o caminho com `adb reverse` continua válido.
+O comando compila a exportação estática, sincroniza o Capacitor e recria o pacote com `:app:clean :app:assembleDebug` pelo Gradle Wrapper. A primeira compilação precisa de internet para baixar dependências. O arquivo sai em **`app/android/app/build/outputs/apk/debug/app-debug.apk`**. É um APK assinado para testes; publicação exige uma assinatura de distribuição.
+
+As fotos do simulador em `test-stills` ficam fora do APK para reduzir o tamanho. O atalho `?test=1` continua disponível no navegador durante o desenvolvimento; no pacote, use fotos reais. O modelo e o runtime de inferência estão incluídos.
+
+Envie o arquivo ao celular, abra e autorize a instalação pela aplicação usada para abrir o APK. Para atualizar o código, gere e instale outro APK; este pacote não usa live reload. Builds de computadores diferentes podem ter assinaturas de teste diferentes: se a atualização for recusada, use a mesma chave ou desinstale a versão anterior (isso apaga os dados locais).
+
+O identificador é `br.ufba.liao.olhonacaixa`. A permissão de câmera já está no manifesto. Uma conferência inteira nele, com câmera e com o modelo, ainda é o teste que este capítulo pede. Teste também em modo avião. Uma falha que só aparece aqui pode ser específica do WebView; compare com o caminho do Chrome usando `adb reverse`.
 
 ## O que falta antes da entrega
 

@@ -1,9 +1,20 @@
-.PHONY: help dev dev-camera docs-serve render-crate render-dataset detect-train detect-score
+.PHONY: help dev dev-usb dev-wifi dev-hotspot apk dev-camera docs-serve render-crate render-dataset detect-train detect-score
 .DEFAULT_GOAL := dev
+
+# Passed as environment variables so device addresses never become shell code.
+export DEVICE PAIR CONNECT PHONE_IP
 
 help:
 	@printf '%s\n' \
 		'dev            Sobe o aplicativo em http://localhost:3001.' \
+		'dev-usb        Conecta o Android por USB e sobe o app com atualização ao salvar.' \
+		'dev-wifi       Conecta por depuração sem fio (Android 11+). Orienta o pareamento.' \
+		'               Já pareou? Na tela principal de Depuração sem fio, copie IP:porta.' \
+		'               Rode: make dev-wifi CONNECT=IP:PORTA (não use a porta de pareamento).' \
+		'               Depois abra http://localhost:3001 no Chrome do celular e permita a câmera.' \
+		'               Mantenha o servidor no terminal; o app atualiza ao salvar.' \
+		'dev-hotspot    Conecta pelo roteador móvel. USB inicial; depois, sem cabo.' \
+		'apk            Gera app/android/app/build/outputs/apk/debug/app-debug.apk.' \
 		'dev-camera     Abre o Chrome com um vídeo falso no lugar da câmera. O make dev já tem de estar no ar.' \
 		'docs-serve     Sobe o livro do método em http://localhost:3000. Precisa do mdBook.' \
 		'render-crate   Gera uma caixa, de cima e de lado, na máquina com a placa.' \
@@ -19,6 +30,18 @@ help:
 
 dev:
 	cd app && npm run dev
+
+dev-usb:
+	python3 scripts/dev-phone.py usb
+
+dev-wifi:
+	python3 scripts/dev-phone.py wifi
+
+dev-hotspot:
+	python3 scripts/dev-phone.py hotspot
+
+apk:
+	sh scripts/build-apk.sh
 
 dev-camera:
 	./scripts/open-with-fake-camera.sh
