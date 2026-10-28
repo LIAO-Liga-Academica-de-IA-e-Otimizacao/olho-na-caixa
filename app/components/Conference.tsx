@@ -322,15 +322,18 @@ export function Conference() {
   }, [step, item, arcA, arcB, arcC, focalCm]);
 
   const focal = positiveNumber(focalCm) ?? 0;
+  const savedMouth = crate
+    ? { lengthCm: crate.lengthCm, widthCm: crate.widthCm, heightCm: crate.heightCm }
+    : undefined;
   const photoGuide =
     photoSlot === "top"
       ? FULL_QUAD
       : photoSlot === "a"
-        ? mouthQuad(item, 0, focal)
+        ? mouthQuad(item, 0, focal, savedMouth)
         : photoSlot === "b"
-          ? mouthQuad(item, 1, focal)
+          ? mouthQuad(item, 1, focal, savedMouth)
           : photoSlot === "c"
-            ? mouthQuad(item, 2, focal)
+            ? mouthQuad(item, 2, focal, savedMouth)
             : null;
   const photoHint =
     photoSlot === "top" ? "Encha o quadro com a boca." : "Encaixe a boca no molde.";
@@ -805,7 +808,7 @@ export function Conference() {
             label="Quadro A"
             fileName={arcNames.a}
             url={arcA}
-            guide={mouthQuad(item, 0, focal)}
+            guide={mouthQuad(item, 0, focal, savedMouth)}
             disabled={importing}
             onOpen={() => openImage("a")}
             onPhoto={() => void openCamera("a")}
@@ -814,7 +817,7 @@ export function Conference() {
             label="Quadro B"
             fileName={arcNames.b}
             url={arcB}
-            guide={mouthQuad(item, 1, focal)}
+            guide={mouthQuad(item, 1, focal, savedMouth)}
             disabled={importing}
             onOpen={() => openImage("b")}
             onPhoto={() => void openCamera("b")}
@@ -824,7 +827,7 @@ export function Conference() {
               label="Quadro C"
               fileName={arcNames.c}
               url={arcC}
-              guide={mouthQuad(item, 2, focal)}
+              guide={mouthQuad(item, 2, focal, savedMouth)}
               disabled={importing}
               onOpen={() => openImage("c")}
               onPhoto={() => void openCamera("c")}

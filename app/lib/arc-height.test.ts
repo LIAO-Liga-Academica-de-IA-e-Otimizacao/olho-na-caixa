@@ -3,12 +3,14 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { isConvexQuad } from "./frame-quality";
+import camerasJson from "./arc-cameras.json";
 import {
   cameraRoundtripMeters,
   countFromHeight,
   estimateFromLid,
   mouthQuad,
   readArcLid,
+  type Quad,
   type RgbImage,
 } from "./arc-height";
 
@@ -59,6 +61,36 @@ describe("arc height", () => {
         expect(Math.min(ay, by)).toBeGreaterThan(Math.max(cy, dy));
       }
     }
+  });
+
+  it("projects the saved mouth and rebuilds the rig mouth from its centimeters", () => {
+    const bounds = camerasJson as {
+      floor_z: number;
+      rim_z: number;
+      min_x: number;
+      max_x: number;
+      min_y: number;
+      max_y: number;
+    };
+    const mesh = {
+      lengthCm: (bounds.max_y - bounds.min_y) * 100,
+      widthCm: (bounds.max_x - bounds.min_x) * 100,
+      heightCm: (bounds.rim_z - bounds.floor_z) * 100,
+    };
+    const rig = mouthQuad("tangerine", 0, 35);
+    const typed = mouthQuad("tangerine", 0, 35, mesh);
+    expect(typed).toEqual(rig);
+    const nearSpan = (quad: Quad) => Math.abs(quad[0][0] - quad[1][0]);
+    const longer = mouthQuad("tangerine", 0, 35, { ...mesh, lengthCm: mesh.lengthCm * 1.4 });
+    const deeper = mouthQuad("tangerine", 0, 35, { ...mesh, widthCm: mesh.widthCm * 1.4 });
+    const taller = mouthQuad("tangerine", 0, 35, { ...mesh, heightCm: mesh.heightCm * 1.4 });
+    expect(longer).not.toBeNull();
+    expect(deeper).not.toBeNull();
+    expect(taller).not.toBeNull();
+    expect(nearSpan(longer as Quad)).toBeGreaterThan(nearSpan(rig as Quad));
+    expect(nearSpan(deeper as Quad)).toBeGreaterThan(nearSpan(rig as Quad));
+    const meanRow = (quad: Quad) => quad.reduce((sum, point) => sum + point[1], 0) / quad.length;
+    expect(meanRow(taller as Quad)).toBeLessThan(meanRow(rig as Quad));
   });
 
   it("scales the count with the typed mouth and flags a strange crate", () => {

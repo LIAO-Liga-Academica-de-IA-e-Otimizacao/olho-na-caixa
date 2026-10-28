@@ -74,27 +74,61 @@ export function rigCameras(item: "tangerine" | "tomato", focal35Mm: number): Cam
   return rig.map((camera) => ({ ...camera, lens: focal35Mm, sensor_width: SENSOR_MM }));
 }
 
+/** Inner opening the operator measured. Length runs across the arc camera, width runs away from it. */
+export type MouthCm = {
+  lengthCm: number;
+  widthCm: number;
+  heightCm: number;
+};
+
 /**
  * Pixel mouth of one arc slot, in 640×480 still space, for the framing guide.
  * Slot 0 is A, 1 is B, 2 is C. Order goes around the rim: near-left,
  * near-right, far-right, far-left, so the polygon stays convex.
+ *
+ * `mouth` is the crate saved in Medidas. The phone stays on the calibrated
+ * arc, and the rectangle is that opening: length across the camera, width
+ * in depth, rim at the inner height above the same floor. Omit it and the
+ * guide is the mesh the rig was fit on, 28.2 cm by 39.2 cm.
  */
-export function mouthQuad(item: "tangerine" | "tomato", slot: 0 | 1 | 2, focal35Mm: number): Quad | null {
+export function mouthQuad(
+  item: "tangerine" | "tomato",
+  slot: 0 | 1 | 2,
+  focal35Mm: number,
+  mouth?: MouthCm,
+): Quad | null {
   const camera = rigCameras(item, focal35Mm)[slot];
   if (!camera) return null;
-  const ring: Vec3[] = [
-    [BOUNDS.min_x, BOUNDS.max_y, BOUNDS.rim_z],
-    [BOUNDS.min_x, BOUNDS.min_y, BOUNDS.rim_z],
-    [BOUNDS.max_x, BOUNDS.min_y, BOUNDS.rim_z],
-    [BOUNDS.max_x, BOUNDS.max_y, BOUNDS.rim_z],
-  ];
+  if (mouth && !(mouth.lengthCm > 0 && mouth.widthCm > 0 && mouth.heightCm > 0)) return null;
   const corners: Quad = [];
-  for (const point of ring) {
+  for (const point of mouthRing(mouth)) {
     const pixel = project(camera, point);
     if (!pixel) return null;
     corners.push(pixel);
   }
   return corners;
+}
+
+function mouthRing(mouth?: MouthCm): Vec3[] {
+  if (!mouth) {
+    return [
+      [BOUNDS.min_x, BOUNDS.max_y, BOUNDS.rim_z],
+      [BOUNDS.min_x, BOUNDS.min_y, BOUNDS.rim_z],
+      [BOUNDS.max_x, BOUNDS.min_y, BOUNDS.rim_z],
+      [BOUNDS.max_x, BOUNDS.max_y, BOUNDS.rim_z],
+    ];
+  }
+  const centerX = (BOUNDS.min_x + BOUNDS.max_x) / 2;
+  const centerY = (BOUNDS.min_y + BOUNDS.max_y) / 2;
+  const halfDepth = mouth.widthCm / 200;
+  const halfAcross = mouth.lengthCm / 200;
+  const rimZ = BOUNDS.floor_z + mouth.heightCm / 100;
+  return [
+    [centerX - halfDepth, centerY + halfAcross, rimZ],
+    [centerX - halfDepth, centerY - halfAcross, rimZ],
+    [centerX + halfDepth, centerY - halfAcross, rimZ],
+    [centerX + halfDepth, centerY + halfAcross, rimZ],
+  ];
 }
 
 const CLOSE_OFFSETS = ellipseOffsets(7);
