@@ -40,3 +40,4 @@ runs/
 
 # Local Capacitor debug packages
 *.apk
+node_modules/
