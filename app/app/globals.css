@@ -81,6 +81,13 @@ input {
   justify-content: space-between;
   gap: 2px;
   font-size: 0.82rem;
+  overflow-x: auto;
+}
+
+.app-shell.is-wide .topbar,
+.app-shell.is-wide main {
+  max-width: 1080px;
+  width: min(1080px, 100%);
 }
 
 .nav a {
@@ -570,6 +577,101 @@ button.preset.is-on:hover:not(:disabled) {
   display: flex;
   justify-content: flex-end;
   margin-top: 14px;
+}
+
+.demo-layout {
+  display: grid;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+@media (min-width: 800px) {
+  .demo-layout {
+    grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.7fr);
+    align-items: start;
+  }
+}
+
+.demo-frame {
+  position: relative;
+  margin-top: 12px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #b5b2ae;
+  aspect-ratio: 4 / 3;
+}
+
+.demo-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.demo-wait {
+  margin: 0;
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.demo-plan {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.demo-plan polygon {
+  fill: #f3e3d4;
+  stroke: var(--ink);
+  stroke-width: 0.8;
+}
+
+.demo-plan line {
+  stroke: var(--line);
+  stroke-width: 0.6;
+}
+
+.demo-plan line.is-on {
+  stroke: var(--orange);
+  stroke-width: 0.9;
+}
+
+.demo-plan line.near {
+  stroke: var(--orange);
+  stroke-width: 1.6;
+}
+
+.demo-plan .mark circle {
+  fill: var(--green-deep);
+}
+
+.demo-plan .mark.is-on circle {
+  fill: var(--orange);
+}
+
+.demo-plan text {
+  fill: var(--ink);
+  font-size: 4.2px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.demo-read .result strong {
+  font-size: 2rem;
+}
+
+.demo-truth {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.demo-truth .field-list {
+  margin-top: 8px;
 }
 
 @media (max-width: 420px) {

@@ -2,13 +2,15 @@
 
 O aplicativo é um site estático. No celular não haverá um servidor Node ao lado da câmera. Por isso o build usa export estático, e as telas que fotografam e que contam rodam no próprio navegador. Server Actions ficam de fora. O pacote Android é Capacitor 7: ele pega esse export e gera o projeto em `app/android/`. O detector no aparelho é o ONNX no navegador, o mesmo peso de `sim/assets/detect/top-layer.pt`.
 
-Hoje você usa o modo de desenvolvimento (`make dev`, porta 3001). O projeto Android em `app/android/` empacota esse export. O passo a passo dos dois caminhos está em [Para o time](../para-o-time.md).
+Hoje você usa o modo de desenvolvimento (`make dev`). O endereço padrão é `localhost:3001`; `PORT` e `HOSTNAME` em `app/.env` trocam isso. O projeto Android em `app/android/` empacota esse export. O passo a passo dos dois caminhos está em [Para o time](../para-o-time.md).
 
 ## As telas
 
-O menu fica em `app/components/Shell.tsx`. São cinco entradas.
+O menu fica em `app/components/Shell.tsx`. São seis entradas.
 
 **Conferir** (`app/app/page.tsx`) abre `Conference`. É a jornada: escolher tangerina ou tomate, escolher o modelo da caixa no cadastro, fotografar a vista de cima e os quadros do arco com os moldes, conferir a borda e ver o resultado.
+
+**Demo** (`app/app/demo/page.tsx`) mostra as fotos renderizadas da semente 5 (tangerina) e da 1005 (tomate) assentadas no molde de cada posição. Na vista de cima a boca preenche o quadro. Nos quadros A, B e C o trapézio é a projeção da boca do catálogo na pose daquele quadro, e a foto é puxada para a boca coincidir com ele. O desenho ao lado marca onde cada câmera fica. **Ler esta caixa** executa a leitura da Conferir nas fotos originais: o assentamento é só o enquadramento da tela. As fotos não entram no Git. Sem elas, a página diz que faltam. O pacote do celular não as leva.
 
 **Medidas** (`app/app/medidas/page.tsx`) guarda o cadastro de caixas: cada modelo com o vão interno medido com trena, comprimento, largura e altura. A Conferir e a Conta usam a caixa marcada como em uso. Esse vão é a régua. A foto não inventa o centímetro da caixa.
 

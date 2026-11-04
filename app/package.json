@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "predev": "node scripts/link-public.mjs",
-    "dev": "next dev -p 3001",
+    "dev": "node scripts/run-dev.mjs",
     "prebuild": "node scripts/link-public.mjs",
     "build": "next build",
     "test": "vitest run",

@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 
 const links = [
   { href: "/", label: "Conferir" },
+  { href: "/demo/", label: "Demo" },
   { href: "/medidas/", label: "Medidas" },
   { href: "/conta/", label: "Conta" },
   { href: "/coleta/", label: "Coleta" },
@@ -14,9 +15,10 @@ const links = [
 
 export function Shell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const wide = pathname === "/demo" || pathname === "/demo/";
 
   return (
-    <div className="app-shell">
+    <div className={wide ? "app-shell is-wide" : "app-shell"}>
       <header className="topbar">
         <Link className="brand" href="/">
           <img className="brand-mark" src="/logo.svg" alt="" width={40} height={40} />

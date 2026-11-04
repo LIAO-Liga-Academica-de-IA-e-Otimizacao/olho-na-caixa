@@ -6,7 +6,8 @@ export DEVICE PAIR CONNECT PHONE_IP
 
 help:
 	@printf '%s\n' \
-		'dev            Sobe o aplicativo em http://localhost:3001.' \
+		'dev            Sobe o aplicativo. Endereço padrão: http://localhost:3001.' \
+		'               Troque PORT e HOSTNAME em app/.env se a porta estiver ocupada.' \
 		'dev-usb        Conecta o Android por USB e sobe o app com atualização ao salvar.' \
 		'dev-wifi       Conecta por depuração sem fio (Android 11+). Orienta o pareamento.' \
 		'               Já pareou? Na tela principal de Depuração sem fio, copie IP:porta.' \

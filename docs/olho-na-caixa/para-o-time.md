@@ -16,6 +16,8 @@ Os testes do aplicativo são `npm test` dentro de `app/`. Os do simulador são `
 
 Em `app/.env`, defina `NEXT_PUBLIC_DEV_TOOLS=true` e reinicie `make dev`. A chave está documentada em `app/.env.example`; vazia ou diferente de `true`, mantém os atalhos desligados. Não coloque segredos em variáveis `NEXT_PUBLIC_`, que são públicas no navegador.
 
+`PORT` e `HOSTNAME` em `app/.env` escolhem o endereço de `make dev` (padrão `localhost:3001`). Se a porta estiver ocupada, mude `PORT` e reinicie. Os comandos do celular (`make dev-usb`, `dev-wifi`, `dev-hotspot`) leem a mesma `PORT` para o `adb reverse`.
+
 Com essa opção ativa:
 
 - Ao guardar uma conferência, o app guarda também as fotos originais (sem as marcações do detector), as medidas da caixa, a lente, a densidade e os cantos da borda. Em **Guardadas → Reutilizar fotos (dev)**, esses dados abrem a etapa de fotos para conferir, trocar imagens ou repetir a análise. O cadastro de caixas e o perfil salvo do celular permanecem intactos ao recuperar os dados.
@@ -126,6 +128,8 @@ A reta da altura foi ajustada numa boca de 28,2 cm por 39,2 cm. Uma boca mais de
 O nome do quadro no botão abre um arquivo, se a câmera falhar. Isso testa o resto da jornada. Não testa a câmera.
 
 `?test=1` enche os quadros com fotos do simulador. É um atalho do computador. Não é o teste do celular.
+
+A página **Demo** (`http://localhost:3001/demo/`) é o que se abre numa chamada: as mesmas cenas, com a boca no trapézio de cada posição, e o botão **Ler esta caixa**. O primeiro passo da Conferir também aponta para ela.
 
 ### O que anotar num bug
 

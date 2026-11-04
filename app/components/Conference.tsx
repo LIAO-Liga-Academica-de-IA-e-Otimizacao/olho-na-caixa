@@ -673,6 +673,9 @@ export function Conference() {
               Avançar
             </button>
           </div>
+          <p className="note">
+            <Link href="/demo/">Abrir a demonstração</Link> com as fotos renderizadas no trapézio de cada posição.
+          </p>
         </section>
       ) : null}
 
@@ -1000,8 +1003,8 @@ export function Conference() {
           ) : null}
           {lidCm !== null && lidCm > 0 && crate ? (
             <p className="ok">
-              Altura lida no arco: {formatCm(lidCm)} cm. A boca desta conta é a {crate.name},{" "}
-              {formatCm(crate.lengthCm)} cm por {formatCm(crate.widthCm)} cm.
+              Altura do monte: {formatCm(lidCm)} cm (lida nos quadros do arco; pode passar da boca). A boca desta conta
+              é a {crate.name}, {formatCm(crate.lengthCm)} cm por {formatCm(crate.widthCm)} cm.
             </p>
           ) : (
             <p className={arcNote ? "flag" : "note"}>{arcNote ?? "Lendo a altura nos quadros do arco."}</p>

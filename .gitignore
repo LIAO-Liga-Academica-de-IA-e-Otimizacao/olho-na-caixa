@@ -11,6 +11,7 @@ weights/
 app/out/
 app/public/models/
 app/public/test-stills/
+app/public/demo-stills/
 app/public/ort/
 app/android/.gradle/
 app/android/app/build/

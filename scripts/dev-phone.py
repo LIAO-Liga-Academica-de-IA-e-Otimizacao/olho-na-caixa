@@ -11,6 +11,24 @@ import time
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def env_value(name: str, default: str) -> str:
+    """Read one key from app/.env without printing the rest of the file."""
+    path = ROOT / "app" / ".env"
+    if path.is_file():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            raw = line.strip()
+            if not raw or raw.startswith("#") or "=" not in raw:
+                continue
+            if raw.startswith("export "):
+                raw = raw[7:]
+            key, _, value = raw.partition("=")
+            if key.strip() != name:
+                continue
+            value = value.strip().strip("'\"")
+            return value or default
+    return os.environ.get(name, default).strip() or default
+
+
 def fail(message):
     raise SystemExit(message)
 
@@ -152,13 +170,19 @@ def main():
     if mode not in ("usb", "wifi", "hotspot"):
         fail("Uso: dev-phone.py usb|wifi|hotspot")
     serial = {"usb": usb_device, "wifi": wifi, "hotspot": hotspot}[mode]()
-    adb("-s", serial, "reverse", "tcp:3001", "tcp:3001")
-    print("No Chrome do celular, abra http://localhost:3001 e permita a câmera.")
+    port = env_value("PORT", "3001")
+    if not port.isdigit():
+        fail(f"PORT inválida em app/.env: {port!r}. Use só dígitos.")
+    host = env_value("HOSTNAME", "localhost")
+    adb("-s", serial, "reverse", f"tcp:{port}", f"tcp:{port}")
+    print(f"No Chrome do celular, abra http://localhost:{port} e permita a câmera.")
+    if host not in ("localhost", "127.0.0.1", "::1"):
+        print(f"HOSTNAME={host}: o reverse do adb continua em localhost:{port} no celular.")
     print("Mudanças no código web aparecem ao salvar. Se a conexão cair, repita o comando make.")
     with socket.socket() as probe:
         probe.settimeout(1)
-        if probe.connect_ex(("127.0.0.1", 3001)) == 0:
-            print("A porta 3001 já está em uso: usando o servidor existente. Confira se é o app.")
+        if probe.connect_ex(("127.0.0.1", int(port))) == 0:
+            print(f"A porta {port} já está em uso: usando o servidor existente. Confira se é o app.")
             return
     os.chdir(ROOT / "app")
     sys.stdout.flush()

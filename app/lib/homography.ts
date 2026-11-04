@@ -16,6 +16,13 @@ export function openingScale(
   return (point) => applyHomography(h, point);
 }
 
+/** Maps each corner of `from` onto the matching corner of `to`. */
+export function quadMap(from: Point[], to: Point[]): (point: Point) => Point {
+  if (from.length !== 4 || to.length !== 4) throw new Error("a quad needs four corners");
+  const h = solveHomography(from, to);
+  return (point) => applyHomography(h, point);
+}
+
 function solveHomography(from: Point[], to: Point[]): number[] {
   const rows: number[][] = [];
   const values: number[] = [];

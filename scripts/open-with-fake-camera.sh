@@ -4,6 +4,29 @@
 
 set -eu
 
+root="$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)"
+port=3001
+host=localhost
+if [ -f "$root/app/.env" ]; then
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      ''|\#*) continue ;;
+      PORT=*)
+        value=${line#PORT=}
+        value=${value%%#*}
+        value=$(printf '%s' "$value" | tr -d " \t\r\"'")
+        [ -n "$value" ] && port=$value
+        ;;
+      HOSTNAME=*)
+        value=${line#HOSTNAME=}
+        value=${value%%#*}
+        value=$(printf '%s' "$value" | tr -d " \t\r\"'")
+        [ -n "$value" ] && host=$value
+        ;;
+    esac
+  done <"$root/app/.env"
+fi
+
 video="${TMPDIR:-/tmp}/olho-na-caixa-fake.y4m"
 profile="${TMPDIR:-/tmp}/olho-na-caixa-chrome"
 
@@ -16,4 +39,4 @@ exec google-chrome-stable \
   --use-fake-ui-for-media-stream \
   --use-fake-device-for-media-stream \
   --use-file-for-fake-video-capture="$video" \
-  "http://localhost:3001/"
+  "http://${host}:${port}/"
