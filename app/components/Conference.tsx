@@ -15,6 +15,7 @@ import {
   estimateFromLid,
   mouthQuad,
   readArcLid,
+  topMouthQuad,
   type Quad,
   type RgbImage,
 } from "@/lib/arc-height";
@@ -66,14 +67,6 @@ const FULL_CORNERS: Point[] = [
   { x: 1, y: 0 },
   { x: 1, y: 1 },
   { x: 0, y: 1 },
-];
-
-/** Full 640×480 frame, the capture mold for the top view: fill it with the mouth. */
-const FULL_QUAD: Quad = [
-  [0, 0],
-  [640, 0],
-  [640, 480],
-  [0, 480],
 ];
 
 function formatClock(seconds: number): string {
@@ -305,10 +298,13 @@ export function Conference() {
       setArcNote("Informe uma distância focal maior que zero na tela da caixa.");
       return;
     }
+    const mouth = crate
+      ? { lengthCm: crate.lengthCm, widthCm: crate.widthCm, heightCm: crate.heightCm }
+      : undefined;
     Promise.all(urls.map((url) => imageToRgb(url)))
       .then((frames) => {
         if (cancelled) return;
-        setLidCm(readArcLid(item, frames, focalNow).heightCm);
+        setLidCm(readArcLid(item, frames, focalNow, mouth).heightCm);
         setArcNote(null);
       })
       .catch((reason: unknown) => {
@@ -319,7 +315,7 @@ export function Conference() {
     return () => {
       cancelled = true;
     };
-  }, [step, item, arcA, arcB, arcC, focalCm]);
+  }, [step, item, arcA, arcB, arcC, focalCm, crate]);
 
   const focal = positiveNumber(focalCm) ?? 0;
   const savedMouth = crate
@@ -327,7 +323,7 @@ export function Conference() {
     : undefined;
   const photoGuide =
     photoSlot === "top"
-      ? FULL_QUAD
+      ? topMouthQuad(focal, savedMouth)
       : photoSlot === "a"
         ? mouthQuad(item, 0, focal, savedMouth)
         : photoSlot === "b"
@@ -336,7 +332,7 @@ export function Conference() {
             ? mouthQuad(item, 2, focal, savedMouth)
             : null;
   const photoHint =
-    photoSlot === "top" ? "Encha o quadro com a boca." : "Encaixe a boca no molde.";
+    photoSlot === "top" ? "Encaixe a boca no retângulo." : "Encaixe a boca no molde.";
   const densityKgPerLiter = positiveNumber(density) ?? 0;
 
   function closeCamera() {
@@ -803,6 +799,7 @@ export function Conference() {
             label="Vista de cima"
             fileName={topFileName}
             url={topFileName ? topShot?.url ?? null : null}
+            guide={topMouthQuad(focal, savedMouth)}
             disabled={importing}
             onOpen={() => openImage("top")}
             onPhoto={() => void openCamera("top")}

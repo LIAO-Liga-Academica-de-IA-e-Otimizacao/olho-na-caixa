@@ -68,10 +68,31 @@ const SENSOR_MM = 36;
 
 export type Quad = Array<[number, number]>;
 
+/** Pixels kept clear once the rig pose would draw the mouth outside the still. */
+export const MOUTH_FRAME_MARGIN = 24;
+
+const STROKE_MARGIN = 3;
+
+/**
+ * Meters above the rim the rig was fit on.
+ *
+ * `arc-cameras.json` has no top camera. 0.52 m is how high the rendered top
+ * still sits above that rim. The guide does not copy that still: the still
+ * is shifted sideways and tilted, and a tilt would turn the mouth into a
+ * trapezoid. The phone here is on the vertical through the mouth center
+ * and looks straight down, so the opening stays a rectangle.
+ */
+const TOP_STATION_ABOVE_RIM_M = 0.52;
+
 /** Rig poses with the phone lens. Positions come from the rig, rays from the phone. */
 export function rigCameras(item: "tangerine" | "tomato", focal35Mm: number): Camera[] {
   const rig = item === "tomato" ? BOUNDS.tomatoCameras : BOUNDS.cameras;
   return rig.map((camera) => ({ ...camera, lens: focal35Mm, sensor_width: SENSOR_MM }));
+}
+
+/** Same aim as the rig, stepped back when the mouth would leave the still. */
+function framedCameras(item: "tangerine" | "tomato", focal35Mm: number, mouth?: MouthCm): Camera[] {
+  return rigCameras(item, focal35Mm).map((camera) => frameCamera(camera, mouth, photoClear));
 }
 
 /** Inner opening the operator measured. Length runs across the arc camera, width runs away from it. */
@@ -86,10 +107,13 @@ export type MouthCm = {
  * Slot 0 is A, 1 is B, 2 is C. Order goes around the rim: near-left,
  * near-right, far-right, far-left, so the polygon stays convex.
  *
- * `mouth` is the crate saved in Medidas. The phone stays on the calibrated
- * arc, and the rectangle is that opening: length across the camera, width
- * in depth, rim at the inner height above the same floor. Omit it and the
- * guide is the mesh the rig was fit on, 28.2 cm by 39.2 cm.
+ * `mouth` is the crate saved in Medidas. The aim is the calibrated arc.
+ * Length runs across the camera, width runs in depth, and the rim sits at
+ * the inner height above the same floor. When that rectangle would leave
+ * the still, the camera steps back along the same aim until the mouth fits
+ * with `MOUTH_FRAME_MARGIN` of clearance. A pose already 3 px inside the
+ * photo edges stays, which is the calibrated 35 mm mesh. Omit `mouth` and
+ * the guide is the mesh the rig was fit on, 28.2 cm by 39.2 cm.
  */
 export function mouthQuad(
   item: "tangerine" | "tomato",
@@ -97,16 +121,52 @@ export function mouthQuad(
   focal35Mm: number,
   mouth?: MouthCm,
 ): Quad | null {
-  const camera = rigCameras(item, focal35Mm)[slot];
+  if (mouth && !positiveMouth(mouth)) return null;
+  const camera = framedCameras(item, focal35Mm, mouth)[slot];
   if (!camera) return null;
-  if (mouth && !(mouth.lengthCm > 0 && mouth.widthCm > 0 && mouth.heightCm > 0)) return null;
-  const corners: Quad = [];
-  for (const point of mouthRing(mouth)) {
-    const pixel = project(camera, point);
-    if (!pixel) return null;
-    corners.push(pixel);
-  }
+  const corners = projectRing(camera, mouthRing(mouth));
+  if (!corners || !photoClear(corners, STROKE_MARGIN)) return null;
   return corners;
+}
+
+/**
+ * Pixel rectangle of the top station, in 640×480 still space.
+ *
+ * The opening is the saved inner mouth: length across the image, width up
+ * the image. The lens is the phone focal length. The aim is `topStation`,
+ * not a row of `arc-cameras.json`. When the rectangle would leave the still,
+ * that aim steps straight up until the mouth fits with `MOUTH_FRAME_MARGIN`.
+ * Omit `mouth` and the rectangle is the mesh the rig was fit on, 28.2 cm
+ * by 39.2 cm.
+ */
+export function topMouthQuad(focal35Mm: number, mouth?: MouthCm): Quad | null {
+  if (mouth && !positiveMouth(mouth)) return null;
+  const camera = frameCamera(topStation(focal35Mm), mouth);
+  const corners = projectRing(camera, mouthRing(mouth));
+  if (!corners || !quadInside(corners, STROKE_MARGIN)) return null;
+  return corners;
+}
+
+/**
+ * Phone above the opening, looking down.
+ *
+ * Camera +X runs along world −Y, so length is horizontal. Camera +Y runs
+ * along world +X, so the far wall is toward the top of the still. Camera +Z
+ * is world +Z: the lens looks down its own −Z, and stepping back climbs.
+ */
+function topStation(focal35Mm: number): Camera {
+  const centerX = (BOUNDS.min_x + BOUNDS.max_x) / 2;
+  const centerY = (BOUNDS.min_y + BOUNDS.max_y) / 2;
+  return {
+    origin: [centerX, centerY, BOUNDS.rim_z + TOP_STATION_ABOVE_RIM_M],
+    rotation: [
+      [0, 1, 0],
+      [-1, 0, 0],
+      [0, 0, 1],
+    ],
+    lens: focal35Mm,
+    sensor_width: SENSOR_MM,
+  };
 }
 
 function mouthRing(mouth?: MouthCm): Vec3[] {
@@ -129,6 +189,84 @@ function mouthRing(mouth?: MouthCm): Vec3[] {
     [centerX + halfDepth, centerY - halfAcross, rimZ],
     [centerX + halfDepth, centerY + halfAcross, rimZ],
   ];
+}
+
+/**
+ * Rig aim, stepped back along the optical axis until the mouth fits.
+ *
+ * A pose that already keeps every corner inside the stroke stays put. That
+ * is the calibrated arc, and the simulator stills were taken there. The
+ * caller chooses the stroke test. A larger mouth or a longer lens steps
+ * back to `MOUTH_FRAME_MARGIN`: the nearest distance at which this focal
+ * length can frame that opening.
+ */
+function frameCamera(
+  camera: Camera,
+  mouth?: MouthCm,
+  stays: (quad: Quad, margin: number) => boolean = quadInside,
+): Camera {
+  const ring = mouthRing(mouth);
+  const here = projectRing(camera, ring);
+  if (here && stays(here, STROKE_MARGIN)) return camera;
+  let high = 0.05;
+  let found = false;
+  while (high <= 30) {
+    const quad = projectRing(shiftBack(camera, high), ring);
+    if (quad && quadInside(quad, MOUTH_FRAME_MARGIN)) {
+      found = true;
+      break;
+    }
+    high *= 2;
+  }
+  if (!found) return camera;
+  let low = 0;
+  for (let step = 0; step < 32; step += 1) {
+    const mid = (low + high) / 2;
+    const quad = projectRing(shiftBack(camera, mid), ring);
+    if (quad && quadInside(quad, MOUTH_FRAME_MARGIN)) high = mid;
+    else low = mid;
+  }
+  return shiftBack(camera, high);
+}
+
+function positiveMouth(mouth: MouthCm): boolean {
+  return mouth.lengthCm > 0 && mouth.widthCm > 0 && mouth.heightCm > 0;
+}
+
+function projectRing(camera: Camera, ring: Vec3[]): Quad | null {
+  const corners: Quad = [];
+  for (const point of ring) {
+    const pixel = project(camera, point);
+    if (!pixel) return null;
+    corners.push(pixel);
+  }
+  return corners;
+}
+
+function quadInside(quad: Quad, margin: number): boolean {
+  const right = PROTOCOL_WIDTH - 1 - margin;
+  const bottom = PROTOCOL_HEIGHT - 1 - margin;
+  return quad.every(([x, y]) => x >= margin && y >= margin && x <= right && y <= bottom);
+}
+
+/** Clearance from the photo edges the side mold is drawn on, 0 and 640 by 480. */
+function photoClear(quad: Quad, margin: number): boolean {
+  return quad.every(
+    ([x, y]) => x >= margin && y >= margin && x <= PROTOCOL_WIDTH - margin && y <= PROTOCOL_HEIGHT - margin,
+  );
+}
+
+/** World step opposite the lens axis. The camera looks down its own −Z. */
+function shiftBack(camera: Camera, meters: number): Camera {
+  const axis = unit([camera.rotation[0][2], camera.rotation[1][2], camera.rotation[2][2]]);
+  return {
+    ...camera,
+    origin: [
+      camera.origin[0] + meters * axis[0],
+      camera.origin[1] + meters * axis[1],
+      camera.origin[2] + meters * axis[2],
+    ],
+  };
 }
 
 const CLOSE_OFFSETS = ellipseOffsets(7);
@@ -158,25 +296,33 @@ export function cameraRoundtripMeters(): number {
  * Lid height, in centimeters, from the protocol stills.
  *
  * Tangerine needs frames A, B, and C. Tomato needs A and B. The images are
- * the rendered arc, not a frame grabbed from an arbitrary video.
+ * the rendered arc, not a frame grabbed from an arbitrary video. `mouth` is
+ * the opening the operator framed; the cameras are the same poses the guide
+ * drew, including a step back when that opening would leave the still.
  */
-export function readArcLid(item: "tangerine" | "tomato", frames: RgbImage[], focal35Mm = 35): ArcLid {
+export function readArcLid(
+  item: "tangerine" | "tomato",
+  frames: RgbImage[],
+  focal35Mm = 35,
+  mouth?: MouthCm,
+): ArcLid {
   if (frames.length < 2) throw new Error("Faltam os quadros A e B do arco.");
   for (const frame of frames) {
     if (frame.width !== PROTOCOL_WIDTH || frame.height !== PROTOCOL_HEIGHT) {
       throw new Error("Os quadros do arco precisam ter 640 por 480 pixels.");
     }
   }
-  const cameras = rigCameras(item, focal35Mm);
+  const opening = mouth && positiveMouth(mouth) ? mouth : undefined;
+  const cameras = framedCameras(item, focal35Mm, opening);
   if (item === "tomato") {
-    const points = matchedPoints(frames[0], frames[1], "tomato", cameras);
+    const points = matchedPoints(frames[0], frames[1], "tomato", cameras, opening);
     const heightCm = tomatoLidCm(points);
     if (heightCm <= 0) throw new Error("Nenhuma fruta cruzou nos quadros A e B.");
     return { heightCm, matched: points.length };
   }
   if (!frames[2]) throw new Error("A tangerina precisa dos quadros A, B e C.");
-  const two = matchedTops(frames[0], frames[1], "tangerine", cameras);
-  const three = matchedTopsThree(frames[0], frames[1], frames[2], "tangerine", cameras);
+  const two = matchedTops(frames[0], frames[1], "tangerine", cameras, opening);
+  const three = matchedTopsThree(frames[0], frames[1], frames[2], "tangerine", cameras, opening);
   if (two.length === 0 || three.length === 0) {
     throw new Error("Nenhuma fruta apareceu nos três quadros.");
   }
@@ -246,8 +392,9 @@ function matchedTops(
   imageB: RgbImage,
   kind: "tangerine" | "tomato",
   cameras: Camera[],
+  mouth?: MouthCm,
 ): number[] {
-  return matchedPoints(imageA, imageB, kind, cameras).map(
+  return matchedPoints(imageA, imageB, kind, cameras, mouth).map(
     (point) => point[2] + RADIUS_M - BOUNDS.floor_z,
   );
 }
@@ -257,9 +404,10 @@ function matchedPoints(
   imageB: RgbImage,
   kind: "tangerine" | "tomato",
   cameras: Camera[],
+  mouth?: MouthCm,
 ): Vec3[] {
-  const fruitsA = fruitCenters(imageA, cameras[0], kind);
-  const fruitsB = fruitCenters(imageB, cameras[1], kind);
+  const fruitsA = fruitCenters(imageA, cameras[0], kind, mouth);
+  const fruitsB = fruitCenters(imageB, cameras[1], kind, mouth);
   const raysA = fruitsA.map((fruit) => pixelRay(cameras[0], fruit.column, fruit.row));
   const raysB = fruitsB.map((fruit) => pixelRay(cameras[1], fruit.column, fruit.row));
   const pairs: { color: number; indexA: number; indexB: number; mid: Vec3 }[] = [];
@@ -291,9 +439,10 @@ function matchedTopsThree(
   imageC: RgbImage,
   kind: "tangerine" | "tomato",
   cameras: Camera[],
+  mouth?: MouthCm,
 ): number[] {
   const images = [imageA, imageB, imageC];
-  const groups = images.map((image, index) => fruitCenters(image, cameras[index], kind));
+  const groups = images.map((image, index) => fruitCenters(image, cameras[index], kind, mouth));
   const rays = groups.map((fruits, index) =>
     fruits.map((fruit) => pixelRay(cameras[index], fruit.column, fruit.row)),
   );
@@ -333,7 +482,12 @@ function matchedTopsThree(
   return tops;
 }
 
-function fruitCenters(image: RgbImage, camera: Camera, kind: "tangerine" | "tomato"): Fruit[] {
+function fruitCenters(
+  image: RgbImage,
+  camera: Camera,
+  kind: "tangerine" | "tomato",
+  mouth?: MouthCm,
+): Fruit[] {
   const count = image.width * image.height;
   const peel = new Uint8Array(count);
   for (let index = 0; index < count; index += 1) {
@@ -357,7 +511,7 @@ function fruitCenters(image: RgbImage, camera: Camera, kind: "tangerine" | "toma
     "dilate",
   );
   const distance = distanceTransform(opened, image.width, image.height);
-  const opening = openingPolygon(camera);
+  const opening = openingPolygon(camera, mouth);
   if (!opening) return [];
   const peaks: Array<[number, number]> = [];
   for (let row = 0; row < image.height; row += 1) {
@@ -458,14 +612,12 @@ function diskColor(image: RgbImage, column: number, row: number): Vec3 {
   return [red / count, green / count, blue / count];
 }
 
-function openingPolygon(camera: Camera): Array<[number, number]> | null {
+function openingPolygon(camera: Camera, mouth?: MouthCm): Array<[number, number]> | null {
   const corners: Array<[number, number]> = [];
-  for (const x of [BOUNDS.min_x, BOUNDS.max_x]) {
-    for (const y of [BOUNDS.min_y, BOUNDS.max_y]) {
-      const pixel = project(camera, [x, y, BOUNDS.rim_z]);
-      if (!pixel) return null;
-      corners.push(pixel);
-    }
+  for (const point of mouthRing(mouth)) {
+    const pixel = project(camera, point);
+    if (!pixel) return null;
+    corners.push(pixel);
   }
   const centerX = corners.reduce((sum, point) => sum + point[0], 0) / corners.length;
   const centerY = corners.reduce((sum, point) => sum + point[1], 0) / corners.length;

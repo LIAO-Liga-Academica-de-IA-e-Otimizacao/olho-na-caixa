@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { activeCrate, readBook } from "@/lib/crate-store";
+import { positiveNumber } from "@/lib/positive-number";
 import {
   fitsTolerance,
   interval,
@@ -39,14 +40,25 @@ export default function FormulaPage() {
     heightCm: 22,
   };
 
-  const height = Number(fillHeight);
-  const diameterCm = Number(diameter);
-  const count = Number(topCount);
-  const bulkDensity = Number(density);
+  const height = positiveNumber(fillHeight);
+  const diameterCm = positiveNumber(diameter);
+  const count = Number(topCount.trim().replace(",", "."));
+  const bulkDensity = positiveNumber(density);
   const inputsReady =
-    height > 0 && diameterCm > 0 && count >= 0 && bulkDensity > 0 && height <= active.heightCm;
-  const tangerine = inputsReady ? tangerineCount(count, diameterCm, height) : null;
-  const tomato = inputsReady ? tomatoMassKg(active, height, bulkDensity) : null;
+    height !== null &&
+    diameterCm !== null &&
+    Number.isFinite(count) &&
+    count >= 0 &&
+    bulkDensity !== null &&
+    height <= active.heightCm;
+  const tangerine =
+    inputsReady && height !== null && diameterCm !== null
+      ? tangerineCount(count, diameterCm, height)
+      : null;
+  const tomato =
+    inputsReady && height !== null && bulkDensity !== null
+      ? tomatoMassKg(active, height, bulkDensity)
+      : null;
 
   return (
     <>

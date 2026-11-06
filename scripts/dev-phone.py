@@ -161,6 +161,25 @@ def hotspot():
     return serial
 
 
+def loopback_open(port: str) -> bool:
+    """True when this port accepts TCP on 127.0.0.1 or on ::1.
+
+    `make dev` can be bound to only one of those. Checking 127.0.0.1 alone
+    misses an IPv6 localhost server and then starts a second one that fails.
+    """
+    number = int(port)
+    targets = ((socket.AF_INET, "127.0.0.1"), (socket.AF_INET6, "::1"))
+    for family, host in targets:
+        try:
+            with socket.socket(family, socket.SOCK_STREAM) as probe:
+                probe.settimeout(1)
+                if probe.connect_ex((host, number)) == 0:
+                    return True
+        except OSError:
+            continue
+    return False
+
+
 def main():
     if not shutil.which("adb"):
         fail("Instale Android SDK Platform-Tools e coloque adb no PATH.")
@@ -179,11 +198,9 @@ def main():
     if host not in ("localhost", "127.0.0.1", "::1"):
         print(f"HOSTNAME={host}: o reverse do adb continua em localhost:{port} no celular.")
     print("Mudanças no código web aparecem ao salvar. Se a conexão cair, repita o comando make.")
-    with socket.socket() as probe:
-        probe.settimeout(1)
-        if probe.connect_ex(("127.0.0.1", int(port))) == 0:
-            print(f"A porta {port} já está em uso: usando o servidor existente. Confira se é o app.")
-            return
+    if loopback_open(port):
+        print(f"A porta {port} já está em uso: usando o servidor existente. Confira se é o app.")
+        return
     os.chdir(ROOT / "app")
     sys.stdout.flush()
     os.execvp("npm", ["npm", "run", "dev"])

@@ -116,7 +116,7 @@ Mantenha o servidor no terminal. Alterações no código web aparecem ao salvar,
 1. Em **Medidas**, guarde um modelo: nome, comprimento interno, largura interna e altura interna, em centímetros. A Conferir usa a caixa em uso. Sem esse vão, a foto não tem régua.
 2. Em **Conferir**, escolha tangerina ou tomate.
 3. Em **Caixa e celular**, escolha o modelo. Escolha a lente do aparelho. **Android comum** vale 26 mm. Se a ficha técnica do celular trouxer outro número em milímetro equivalente, digite esse número. **Simulador** é a lente de 35 mm das fotos geradas. Numa foto de celular, essa lente desloca a altura.
-4. Em **Quadros**, toque **Fotografar** em cada posição: vista de cima, quadro A, quadro B e, na tangerina, quadro C. Encha o molde tracejado com a boca, sem cortar a borda. A luz é difusa, sem sol direto na caixa. O tomate não usa o quadro C.
+4. Em **Quadros**, toque **Fotografar** em cada posição: vista de cima, quadro A, quadro B e, na tangerina, quadro C. Na vista de cima, encaixe a boca no retângulo tracejado. Esse retângulo é o comprimento pela largura da caixa, visto de cima com a lente escolhida. Nos quadros laterais, afaste ou aproxime o celular até a boca coincidir com o molde tracejado, sem cortar a borda. O molde já cabe na foto para a caixa e a lente escolhidas. A luz é difusa, sem sol direto na caixa. O tomate não usa o quadro C.
 5. Se **Continuar** ficar desabilitado, a tela nomeia o quadro escuro ou estourado. Fotografe esse quadro de novo.
 6. Em **Borda**, toque os quatro cantos internos na ordem que a tela pede: superior esquerdo, superior direito, inferior direito, inferior esquerdo. Se a boca encheu o quadro, **Usar o quadro cheio** assume os quatro cantos da imagem.
 7. Em **Resultado**, confira as caixas sobre as frutas, a contagem, o diâmetro mediano, a altura do arco e a estimativa. Toque **Guardar conferência**. **Guardadas** mostra o JPEG.
@@ -159,7 +159,7 @@ O prazo no repositório do desafio é 6 de novembro de 2026, 23h59, pelo formul�
 
 | Falta | Onde está o rascunho | O que ainda é trabalho |
 | :--- | :--- | :--- |
-| Documento de até 6 páginas, em PDF | `docs/submissao.md` | Exportar no limite de páginas. |
+| Documento de até 6 páginas, em PDF | `docs/documento_submissao.docx` | O formulário pede PDF. O arquivo tem 3 páginas em A4. Falta exportar para PDF. |
 | Vídeo de até 5 minutos | `docs/roteiro-video.md` | Filmar caixa real de tangerina e de tomate, a recusa de luz e o resultado. Desfocar rostos. Nenhuma criança entra na imagem. |
 | README para a banca | `README.md` na raiz | Nomes de quem entrega, instalação e o comando que sobe a tela. O README de hoje aponta o livro. |
 | Material da margem | [Validação](validacao.md) | A margem do livro é simulador. Se a entrega ficar com esse número, o pacote leva as cenas e a semente do gerador, e o texto diz que é simulador. Uma margem de cozinha pede caixas contadas ou pesadas, noutro dia, por outra pessoa, depois que o passo e o quilo por litro estiverem travados. |

@@ -11,6 +11,7 @@ import {
   writeBook,
   type CrateBook,
 } from "@/lib/crate-store";
+import { positiveNumber } from "@/lib/positive-number";
 
 function formatDims(lengthCm: number, widthCm: number, heightCm: number): string {
   const parts = [lengthCm, widthCm, heightCm].map((value) =>
@@ -53,11 +54,15 @@ export default function MeasuresPage() {
   }
 
   function save() {
+    const length = positiveNumber(lengthCm);
+    const width = positiveNumber(widthCm);
+    const height = positiveNumber(heightCm);
+    if (length === null || width === null || height === null) return;
     const crate = {
       name: name.trim(),
-      lengthCm: Number(lengthCm),
-      widthCm: Number(widthCm),
-      heightCm: Number(heightCm),
+      lengthCm: length,
+      widthCm: width,
+      heightCm: height,
     };
     const next = editing && editing !== crate.name ? removeCrate(book, editing) : book;
     const updated = upsertCrate(next, crate);
@@ -82,9 +87,9 @@ export default function MeasuresPage() {
 
   const valid =
     name.trim().length > 0 &&
-    Number(lengthCm) > 0 &&
-    Number(widthCm) > 0 &&
-    Number(heightCm) > 0;
+    positiveNumber(lengthCm) !== null &&
+    positiveNumber(widthCm) !== null &&
+    positiveNumber(heightCm) !== null;
   const current = activeCrate(book);
 
   return (

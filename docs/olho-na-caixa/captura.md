@@ -19,7 +19,7 @@ Fotografar a caixa não cria uma trena. O comprimento, a largura e a altura da c
 
 1. O operador abre a tampa.
 2. No aplicativo, ele confirma o item (tangerina ou tomate), o modelo da caixa e a lente do celular.
-3. Ele fotografa cada posição com a boca dentro do molde tracejado, sem cortar a borda.
+3. Ele fotografa cada posição com a boca coincidindo com o molde tracejado, sem cortar a borda. O molde cabe na foto. Ele é a boca do modelo, vista com a distância focal do celular, na mira daquela posição do arco. Se essa boca não couber na pose marcada, a mira continua a mesma e o aparelho fica mais longe, até a boca entrar com folga. A vista de cima não usa essa mira do arco. O molde dela é um retângulo: o comprimento pela largura da boca, com a mesma lente. O arquivo do arco não tem câmera de cima. A mira assumida fica na vertical do centro da boca, 52 cm acima da borda em que o arco foi medido, e olha para baixo, para o molde continuar retângulo. Se o retângulo não cabe na foto, essa mira sobe em linha reta até a boca entrar com a mesma folga.
 4. Se um quadro estiver escuro ou estourado, **Continuar** fica desabilitado e a tela nomeia o quadro. Ele fotografa esse quadro de novo.
 5. Ele confere os quatro cantos internos da boca. Se a boca encheu o quadro, o quadro cheio serve. Se não encheu, ele toca os quatro cantos na ordem que a tela pede.
 6. O detector roda uma vez, na vista de cima. A altura sai dos quadros laterais. A conta de unidades ou de quilos roda no mesmo aparelho.
